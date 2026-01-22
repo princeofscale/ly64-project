@@ -1,26 +1,19 @@
 import { PrismaClient } from '@prisma/client';
 import { seedAchievements } from './seeds/achievements';
+import { seedDiagnosticTests } from './seeds/diagnosticTests';
 
 const prisma = new PrismaClient();
 
-/**
- * Главный файл для seeding базы данных
- * Запускает все seed скрипты
- */
 async function main() {
-  console.log('🌱 Starting database seeding...\n');
+  console.log('Starting database seeding...\n');
 
   try {
-    // Seed достижений
     await seedAchievements();
+    await seedDiagnosticTests();
 
-    // TODO: Добавить другие seeds
-    // await seedQuestions();
-    // await seedTests();
-
-    console.log('\n✅ Database seeding completed successfully!');
+    console.log('\nDatabase seeding completed successfully!');
   } catch (error) {
-    console.error('\n❌ Error during seeding:', error);
+    console.error('\nError during seeding:', error);
     throw error;
   }
 }

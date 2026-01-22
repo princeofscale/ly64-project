@@ -23,16 +23,19 @@ model User {
   desiredDirection String?  // Direction enum as string
   motivation       String?  // Почему хочет поступить (только для APPLICANT)
   authProvider     String   @default("EMAIL") // AuthProvider enum
-  dnevnikId        String?  @unique
   avatar           String?
+  bio              String?
+  isPublic         Boolean  @default(true)
   agreedToTerms    Boolean  @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  progress         UserProgress?
-  testAttempts     TestAttempt[]
-  userAchievements UserAchievement[]
+  progress           UserProgress?
+  testAttempts       TestAttempt[]
+  userAchievements   UserAchievement[]
+  diagnosticResults  DiagnosticResult[]
+  learningPlan       LearningPlan?
 }
 
 // Модель прогресса пользователя
@@ -72,23 +75,24 @@ model Question {
   tests         TestQuestion[]
 }
 
-// Модель теста
 model Test {
-  id           String   @id @default(uuid())
-  title        String
-  description  String?
-  subject      String   // Subject enum as string
-  examType     String   // ExamType enum as string
-  targetGrade  String?  // TargetGrade enum as string
+  id             String   @id @default(uuid())
+  title          String
+  description    String?
+  subject        String
+  examType       String
+  targetGrade    String?
+  isDiagnostic   Boolean  @default(false)
+  randomizeQuestions Boolean @default(true)
+  preventBackNavigation Boolean @default(false)
+  timeLimit      Int?
+  passingScore   Int?
 
-  timeLimit    Int?     // В минутах
-  passingScore Int?     // Минимальный балл (в процентах)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  questions    TestQuestion[]
-  attempts     TestAttempt[]
+  questions      TestQuestion[]
+  attempts       TestAttempt[]
 }
 
 // Связь между тестами и вопросами (many-to-many)
@@ -104,20 +108,64 @@ model TestQuestion {
   @@unique([testId, questionId])
 }
 
-// Модель попытки прохождения теста
 model TestAttempt {
   id          String    @id @default(uuid())
   userId      String
   testId      String
 
-  answers     String    // JSON array of answers
-  score       Int?      // Балл (в процентах)
+  answers        String    // JSON array of answers with timestamps
+  score          Int?
+  questionsOrder String?   // JSON array - порядок вопросов (рандомизированный)
+  answerTimes    String?   // JSON array - время ответа на каждый вопрос (мс)
+  suspiciousFlag Boolean   @default(false)
+  suspiciousReason String?
 
   startedAt   DateTime  @default(now())
   completedAt DateTime?
 
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   test        Test      @relation(fields: [testId], references: [id], onDelete: Cascade)
+}
+
+model DiagnosticResult {
+  id        String   @id @default(uuid())
+  userId    String
+  subject   String
+  score     Int
+  level     String   // BEGINNER, INTERMEDIATE, ADVANCED
+  details   String?  // JSON with detailed analysis
+
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, subject])
+}
+
+model LearningPlan {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  direction   String?
+  totalHours  Int      @default(0)
+  completedHours Int   @default(0)
+
+  items       LearningPlanItem[]
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model LearningPlanItem {
+  id            String   @id @default(uuid())
+  planId        String
+  subject       String
+  topic         String
+  priority      Int      @default(0)
+  estimatedHours Int     @default(1)
+  completed     Boolean  @default(false)
+  order         Int
+
+  plan          LearningPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 }
 
 // Модель достижения

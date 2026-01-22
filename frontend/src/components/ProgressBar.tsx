@@ -5,10 +5,6 @@ interface ProgressBarProps {
   className?: string;
 }
 
-/**
- * ProgressBar компонент
- * Отображает прогресс-бар с текущим шагом и общим количеством шагов
- */
 export function ProgressBar({
   current,
   total,
@@ -19,9 +15,9 @@ export function ProgressBar({
 
   return (
     <div className={`w-full ${className}`}>
-      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+      <div className="w-full bg-gray-700 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
         <div
-          className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+          className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
           style={{ width: `${percentage}%` }}
           role="progressbar"
           aria-valuenow={current}
@@ -30,7 +26,7 @@ export function ProgressBar({
         />
       </div>
       {showLabel && (
-        <p className="text-sm text-gray-600 mt-2 text-center">
+        <p className="text-sm text-gray-400 dark:text-gray-400 mt-3 text-center font-sans">
           Шаг {current} из {total}
         </p>
       )}

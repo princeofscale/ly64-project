@@ -27,7 +27,7 @@ interface AuthResponse {
 }
 
 export const authService = {
-  // Регистрация
+  
   async register(data: RegisterData): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/register', data);
 
@@ -39,7 +39,7 @@ export const authService = {
     return response.data;
   },
 
-  // Вход
+  
   async login(data: LoginData): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/login', data);
 
@@ -51,7 +51,7 @@ export const authService = {
     return response.data;
   },
 
-  // Выход
+  
   async logout(): Promise<void> {
     try {
       await api.post('/auth/logout');
@@ -62,7 +62,7 @@ export const authService = {
     }
   },
 
-  // Получить текущего пользователя
+  
   async getCurrentUser() {
     const response = await api.get('/auth/me');
     return response.data;

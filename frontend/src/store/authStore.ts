@@ -6,6 +6,7 @@ interface User {
   email: string;
   name: string;
   username: string;
+  desiredDirection?: string;
 }
 
 interface AuthState {
@@ -14,7 +15,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
 
-  // Actions
+  
   setUser: (user: User) => void;
   setToken: (token: string) => void;
   login: (user: User, token: string) => void;

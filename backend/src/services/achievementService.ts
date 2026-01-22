@@ -1,24 +1,16 @@
 import prisma from '../config/database';
 import { AppError } from '../middlewares/errorHandler';
 
-/**
- * Achievement Service
- * Сервис для управления достижениями пользователей
- */
+
 export class AchievementService {
-  /**
-   * Получить все достижения
-   */
+  
   async getAllAchievements() {
     return await prisma.achievement.findMany({
       orderBy: { points: 'asc' },
     });
   }
 
-  /**
-   * Получить достижения пользователя
-   * @param userId - ID пользователя
-   */
+  
   async getUserAchievements(userId: string) {
     const userAchievements = await prisma.userAchievement.findMany({
       where: { userId },
@@ -34,10 +26,7 @@ export class AchievementService {
     }));
   }
 
-  /**
-   * Получить все достижения с информацией о разблокировке для пользователя
-   * @param userId - ID пользователя
-   */
+  
   async getAllAchievementsWithProgress(userId: string) {
     const allAchievements = await this.getAllAchievements();
     const userAchievements = await prisma.userAchievement.findMany({
@@ -59,13 +48,9 @@ export class AchievementService {
     });
   }
 
-  /**
-   * Разблокировать достижение для пользователя
-   * @param userId - ID пользователя
-   * @param achievementId - ID достижения
-   */
+  
   async unlockAchievement(userId: string, achievementId: string) {
-    // Проверяем, существует ли достижение
+    
     const achievement = await prisma.achievement.findUnique({
       where: { id: achievementId },
     });
@@ -74,7 +59,7 @@ export class AchievementService {
       throw new AppError('Достижение не найдено', 404);
     }
 
-    // Проверяем, не разблокировано ли уже
+    
     const existing = await prisma.userAchievement.findUnique({
       where: {
         userId_achievementId: {
@@ -88,7 +73,7 @@ export class AchievementService {
       return { alreadyUnlocked: true, achievement };
     }
 
-    // Разблокируем достижение
+    
     await prisma.userAchievement.create({
       data: {
         userId,
@@ -99,11 +84,7 @@ export class AchievementService {
     return { alreadyUnlocked: false, achievement };
   }
 
-  /**
-   * Проверить и разблокировать достижения пользователя
-   * Вызывается после определенных событий (регистрация, прохождение теста и т.д.)
-   * @param userId - ID пользователя
-   */
+  
   async checkAndUnlockAchievements(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -137,36 +118,36 @@ export class AchievementService {
     return newlyUnlocked;
   }
 
-  /**
-   * Проверить условие достижения
-   * @param condition - Условие достижения
-   * @param user - Пользователь с его данными
-   */
+  
   private async checkAchievementCondition(condition: string, user: any): Promise<boolean> {
     switch (condition) {
       case 'register':
-        // Достижение за регистрацию - всегда true
         return true;
 
+      case 'complete_diagnostic':
+        const diagnosticResults = await prisma.diagnosticResult.findMany({
+          where: { userId: user.id }
+        });
+        return diagnosticResults.length > 0;
+
       case 'complete_first_test':
-        // Первый пройденный тест
         return user.testAttempts.some((attempt: any) => attempt.completedAt !== null);
 
       case 'complete_10_tests':
-        // 10 пройденных тестов
+        
         const completedTests = user.testAttempts.filter(
           (attempt: any) => attempt.completedAt !== null
         );
         return completedTests.length >= 10;
 
       case 'score_90_percent':
-        // Хотя бы один тест с результатом 90%+
+        
         return user.testAttempts.some(
           (attempt: any) => attempt.score !== null && attempt.score >= 90
         );
 
       case 'perfect_score':
-        // Хотя бы один тест с результатом 100%
+        
         return user.testAttempts.some(
           (attempt: any) => attempt.score !== null && attempt.score >= 100
         );
@@ -177,10 +158,7 @@ export class AchievementService {
     }
   }
 
-  /**
-   * Получить общую статистику по достижениям пользователя
-   * @param userId - ID пользователя
-   */
+  
   async getUserAchievementStats(userId: string) {
     const allAchievements = await this.getAllAchievements();
     const userAchievements = await prisma.userAchievement.findMany({

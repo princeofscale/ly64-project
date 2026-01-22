@@ -1,9 +1,22 @@
 import { z } from 'zod';
 
-// Схема валидации для регистрации
+
 export const registerSchema = z.object({
-  // Базовые поля
-  email: z.string().email('Некорректный email адрес'),
+  email: z
+    .string()
+    .email('Некорректный email адрес')
+    .refine((email) => !/[а-яА-ЯёЁ]/.test(email), {
+      message: 'Email не может содержать кириллицу',
+    })
+    .refine((email) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email), {
+      message: 'Некорректный формат email',
+    })
+    .refine((email) => {
+      const localPart = email.split('@')[0];
+      return localPart.length >= 3;
+    }, {
+      message: 'Часть email до @ должна содержать минимум 3 символа',
+    }),
   password: z
     .string()
     .min(8, 'Пароль должен содержать минимум 8 символов')
@@ -11,13 +24,13 @@ export const registerSchema = z.object({
     .regex(/[a-z]/, 'Пароль должен содержать хотя бы одну строчную букву')
     .regex(/[A-Z]/, 'Пароль должен содержать хотя бы одну заглавную букву')
     .regex(/[0-9]/, 'Пароль должен содержать хотя бы одну цифру')
-    .optional(), // Optional для OAuth
+    .optional(), 
   name: z
     .string()
     .min(2, 'Имя должно содержать минимум 2 символа')
     .max(100, 'Имя слишком длинное'),
 
-  // Новые поля
+  
   status: z.enum(['STUDENT', 'APPLICANT'], {
     errorMap: () => ({ message: 'Статус должен быть STUDENT или APPLICANT' }),
   }),
@@ -38,17 +51,21 @@ export const registerSchema = z.object({
     message: 'Необходимо согласиться с условиями использования',
   }),
 
-  // OAuth поля
-  authProvider: z.enum(['EMAIL', 'DNEVNIK']).default('EMAIL'),
-  dnevnikId: z.string().optional(),
+  
+  authProvider: z.literal('EMAIL').default('EMAIL'),
 });
 
-// Схема валидации для входа
+
 export const loginSchema = z.object({
-  email: z.string().email('Некорректный email адрес'),
+  email: z
+    .string()
+    .email('Некорректный email адрес')
+    .refine((email) => !/[а-яА-ЯёЁ]/.test(email), {
+      message: 'Email не может содержать кириллицу',
+    }),
   password: z.string().min(1, 'Пароль обязателен'),
 });
 
-// Типы для TypeScript
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

@@ -1,49 +1,47 @@
-// Статус пользователя
+
 export enum UserStatus {
-  STUDENT = 'STUDENT', // Уже учится в лицее
-  APPLICANT = 'APPLICANT', // Хочет поступить
+  STUDENT = 'STUDENT', 
+  APPLICANT = 'APPLICANT', 
 }
 
-// Провайдер аутентификации
+
 export enum AuthProvider {
   EMAIL = 'EMAIL',
-  DNEVNIK = 'DNEVNIK',
 }
 
-// Типы пользователей
+
 export interface User {
   id: string;
   email: string;
   name: string;
   status: UserStatus;
-  currentGrade: number; // Текущий класс (8-11)
+  currentGrade: number; 
   desiredDirection?: Direction;
-  motivation?: string; // Почему хочет поступить (только для APPLICANT)
+  motivation?: string; 
   authProvider: AuthProvider;
-  dnevnikId?: string;
   avatar?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Достижение пользователя
+
 export interface Achievement {
   id: string;
   name: string;
   description: string;
   icon: string;
-  condition: string; // Условие получения
-  points: number; // Баллы за достижение
+  condition: string; 
+  points: number; 
 }
 
-// Достижения пользователя
+
 export interface UserAchievement {
   userId: string;
   achievementId: string;
   unlockedAt: Date;
 }
 
-// Типы направлений обучения
+
 export enum Direction {
   PROGRAMMING = 'PROGRAMMING',
   ROBOTICS = 'ROBOTICS',
@@ -52,7 +50,7 @@ export enum Direction {
   CULTURE = 'CULTURE',
 }
 
-// Типы предметов
+
 export enum Subject {
   RUSSIAN = 'RUSSIAN',
   MATHEMATICS = 'MATHEMATICS',
@@ -63,35 +61,35 @@ export enum Subject {
   ENGLISH = 'ENGLISH',
 }
 
-// Типы классов для поступления
+
 export enum TargetGrade {
   GRADE_8 = 'GRADE_8',
   GRADE_10 = 'GRADE_10',
 }
 
-// Типы экзаменов
+
 export enum ExamType {
-  LYCEUM_ENTRANCE = 'LYCEUM_ENTRANCE', // Вступительный экзамен в лицей
-  OGE = 'OGE', // ОГЭ
-  EGE = 'EGE', // ЕГЭ
+  LYCEUM_ENTRANCE = 'LYCEUM_ENTRANCE', 
+  OGE = 'OGE', 
+  EGE = 'EGE', 
 }
 
-// Типы вопросов
+
 export enum QuestionType {
-  SINGLE_CHOICE = 'SINGLE_CHOICE', // Одиночный выбор
-  MULTIPLE_CHOICE = 'MULTIPLE_CHOICE', // Множественный выбор
-  TEXT_INPUT = 'TEXT_INPUT', // Текстовый ввод
-  DETAILED_ANSWER = 'DETAILED_ANSWER', // Развернутый ответ
+  SINGLE_CHOICE = 'SINGLE_CHOICE', 
+  MULTIPLE_CHOICE = 'MULTIPLE_CHOICE', 
+  TEXT_INPUT = 'TEXT_INPUT', 
+  DETAILED_ANSWER = 'DETAILED_ANSWER', 
 }
 
-// Уровень сложности
+
 export enum DifficultyLevel {
   EASY = 'EASY',
   MEDIUM = 'MEDIUM',
   HARD = 'HARD',
 }
 
-// Интерфейс вопроса
+
 export interface Question {
   id: string;
   subject: Subject;
@@ -100,15 +98,15 @@ export interface Question {
   type: QuestionType;
   difficulty: DifficultyLevel;
   question: string;
-  options?: string[]; // Для вопросов с выбором
-  correctAnswer: string | string[]; // Правильный ответ
-  explanation?: string; // Объяснение правильного ответа
-  topic?: string; // Тема вопроса
+  options?: string[]; 
+  correctAnswer: string | string[]; 
+  explanation?: string; 
+  topic?: string; 
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Интерфейс теста
+
 export interface Test {
   id: string;
   title: string;
@@ -117,13 +115,13 @@ export interface Test {
   examType: ExamType;
   targetGrade?: TargetGrade;
   questions: Question[];
-  timeLimit?: number; // В минутах
-  passingScore?: number; // Минимальный балл для прохождения (в процентах)
+  timeLimit?: number; 
+  passingScore?: number; 
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Интерфейс попытки прохождения теста
+
 export interface TestAttempt {
   id: string;
   userId: string;
@@ -132,12 +130,12 @@ export interface TestAttempt {
     questionId: string;
     answer: string | string[];
   }[];
-  score?: number; // Балл (в процентах)
+  score?: number; 
   completedAt?: Date;
   startedAt: Date;
 }
 
-// Интерфейс статистики пользователя
+
 export interface UserStats {
   userId: string;
   subject: Subject;
@@ -147,7 +145,7 @@ export interface UserStats {
   lastAttemptDate?: Date;
 }
 
-// Интерфейс прогресса пользователя
+
 export interface UserProgress {
   userId: string;
   direction?: Direction;
