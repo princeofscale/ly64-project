@@ -1,0 +1,196 @@
+// Prisma schema for Lyceum 64 Prep Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Модель пользователя
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String   @unique // Уникальный username для профиля
+  password  String?  // Optional для OAuth пользователей
+  name      String
+
+  // Расширенные поля
+  status           String   // UserStatus enum as string
+  currentGrade     Int      // Текущий класс (8-11)
+  desiredDirection String?  // Direction enum as string
+  motivation       String?  // Почему хочет поступить (только для APPLICANT)
+  authProvider     String   @default("EMAIL") // AuthProvider enum
+  avatar           String?
+  bio              String?
+  isPublic         Boolean  @default(true)
+  agreedToTerms    Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  progress           UserProgress?
+  testAttempts       TestAttempt[]
+  userAchievements   UserAchievement[]
+  diagnosticResults  DiagnosticResult[]
+  learningPlan       LearningPlan?
+}
+
+// Модель прогресса пользователя
+model UserProgress {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  direction   String?  // Direction enum as string
+  targetGrade String?  // TargetGrade enum as string
+
+  completedTests String // JSON array of test IDs
+  stats          String // JSON of UserStats[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Модель вопроса
+model Question {
+  id            String   @id @default(uuid())
+  subject       String   // Subject enum as string
+  examType      String   // ExamType enum as string
+  targetGrade   String?  // TargetGrade enum as string
+  type          String   // QuestionType enum as string
+  difficulty    String   // DifficultyLevel enum as string
+
+  question      String
+  options       String?  // JSON array of options
+  correctAnswer String   // JSON string or array
+  explanation   String?
+  topic         String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tests         TestQuestion[]
+}
+
+model Test {
+  id             String   @id @default(uuid())
+  title          String
+  description    String?
+  subject        String
+  examType       String
+  targetGrade    String?
+  isDiagnostic   Boolean  @default(false)
+  randomizeQuestions Boolean @default(true)
+  preventBackNavigation Boolean @default(false)
+  timeLimit      Int?
+  passingScore   Int?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  questions      TestQuestion[]
+  attempts       TestAttempt[]
+}
+
+// Связь между тестами и вопросами (many-to-many)
+model TestQuestion {
+  id         String   @id @default(uuid())
+  testId     String
+  questionId String
+  order      Int      // Порядок вопроса в тесте
+
+  test       Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([testId, questionId])
+}
+
+model TestAttempt {
+  id          String    @id @default(uuid())
+  userId      String
+  testId      String
+
+  answers        String    // JSON array of answers with timestamps
+  score          Int?
+  questionsOrder String?   // JSON array - порядок вопросов (рандомизированный)
+  answerTimes    String?   // JSON array - время ответа на каждый вопрос (мс)
+  suspiciousFlag Boolean   @default(false)
+  suspiciousReason String?
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  test        Test      @relation(fields: [testId], references: [id], onDelete: Cascade)
+}
+
+model DiagnosticResult {
+  id        String   @id @default(uuid())
+  userId    String
+  subject   String
+  score     Int
+  level     String   // BEGINNER, INTERMEDIATE, ADVANCED
+  details   String?  // JSON with detailed analysis
+
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, subject])
+}
+
+model LearningPlan {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  direction   String?
+  totalHours  Int      @default(0)
+  completedHours Int   @default(0)
+
+  items       LearningPlanItem[]
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model LearningPlanItem {
+  id            String   @id @default(uuid())
+  planId        String
+  subject       String
+  topic         String
+  priority      Int      @default(0)
+  estimatedHours Int     @default(1)
+  completed     Boolean  @default(false)
+  order         Int
+
+  plan          LearningPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+}
+
+// Модель достижения
+model Achievement {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  icon        String
+  condition   String   // Условие получения
+  points      Int      // Баллы за достижение
+
+  createdAt   DateTime @default(now())
+
+  userAchievements UserAchievement[]
+}
+
+// Достижения пользователей
+model UserAchievement {
+  id            String   @id @default(uuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+}

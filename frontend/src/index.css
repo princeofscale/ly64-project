@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+  }
+
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    @apply bg-gray-950 text-gray-100;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  }
+}
+
+@layer utilities {
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+    will-change: opacity;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out;
+    will-change: transform, opacity;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.4s ease-out;
+    will-change: transform, opacity;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px) translateZ(0);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) translateZ(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateZ(0);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateZ(0);
+    }
+  }
+
+  .animate-enter {
+    animation: enter 0.4s ease-out;
+    will-change: transform, opacity;
+  }
+
+  .animate-leave {
+    animation: leave 0.3s ease-in forwards;
+    will-change: transform, opacity;
+  }
+
+  @keyframes enter {
+    0% {
+      transform: translateY(-100%) scale(0.9) translateZ(0);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0) scale(1) translateZ(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes leave {
+    0% {
+      transform: scale(1) translateZ(0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(0.95) translateZ(0);
+      opacity: 0;
+    }
+  }
+
+  .backdrop-blur-optimized {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .contain-layout {
+    contain: layout style;
+  }
+
+  .contain-paint {
+    contain: paint;
+  }
+
+  /* Стили для отображения HTML контента из sdamgia.ru */
+  .question-content {
+    @apply text-gray-200 leading-relaxed;
+  }
+
+  /* Формулы (LaTeX изображения) */
+  .question-content img.tex {
+    @apply inline-block mx-1;
+    max-height: 2.5em;
+    vertical-align: middle;
+    background: white;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+
+  /* Обычные изображения (графики, чертежи) */
+  .question-content img:not(.tex) {
+    @apply my-4 mx-auto block;
+    max-width: 100%;
+    max-height: 400px;
+    background: white;
+    padding: 8px;
+    border-radius: 8px;
+    object-fit: contain;
+  }
+
+  .question-content .pbody {
+    @apply text-base;
+    background: none !important;
+  }
+
+  .question-content p {
+    @apply mb-2;
+  }
+
+  .question-content table {
+    @apply my-4 border-collapse w-auto mx-auto;
+  }
+
+  .question-content td {
+    @apply px-4 py-2 text-center;
+  }
+
+  .question-content .left_margin {
+    @apply ml-0;
+  }
+
+  /* Убираем номера заданий и служебные элементы из sdamgia */
+  .question-content [id^="body"] {
+    background: none !important;
+    border: none !important;
+  }
+
+  .question-content div[align] {
+    text-align: left !important;
+  }
+
+  /* Скрываем пустые параграфы */
+  .question-content p {
+    line-height: 1.6;
+  }
+
+  .question-content p:empty {
+    display: none;
+  }
+}
