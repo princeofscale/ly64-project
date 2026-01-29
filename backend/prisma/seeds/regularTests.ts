@@ -698,14 +698,3 @@ export async function seedRegularTests() {
   console.log('\n✨ Regular tests seeded successfully!');
 }
 
-// Запуск, если файл запущен напрямую
-if (require.main === module) {
-  seedRegularTests()
-    .catch((e) => {
-      console.error(e);
-      process.exit(1);
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
-    });
-}

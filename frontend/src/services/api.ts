@@ -42,4 +42,27 @@ api.interceptors.response.use(
   }
 );
 
+// Test API methods
+export const testApi = {
+  async getTests(params?: { subject?: string; examType?: string; isDiagnostic?: boolean }) {
+    const response = await api.get('/tests', { params });
+    return response.data;
+  },
+
+  async startTest(testId: string) {
+    const response = await api.post(`/tests/${testId}/start`);
+    return response.data;
+  },
+
+  async submitTest(testId: string, answers: Array<{ questionId: string; answer: string }>, questionsOrder: string[]) {
+    const response = await api.post(`/tests/${testId}/submit`, { answers, questionsOrder });
+    return response.data;
+  },
+
+  async getTestResults(testId: string) {
+    const response = await api.get(`/tests/${testId}/results`);
+    return response.data;
+  },
+};
+
 export default api;
