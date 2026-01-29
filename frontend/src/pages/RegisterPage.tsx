@@ -271,11 +271,12 @@ export default function RegisterPage() {
         return;
       }
 
-      toast.success('Регистрация прошла успешно! Добро пожаловать!');
+      toast.success('Регистрация успешна!');
+      toast.info('Далее: входная диагностика', { duration: 3000 });
 
       useAuthStore.getState().login(data.data.user, data.data.token);
 
-      setTimeout(() => navigate('/diagnostic'), 500);
+      setTimeout(() => navigate('/diagnostic'), 1500);
     } catch (err: any) {
       toast.error(err.message || 'Произошла ошибка при регистрации');
     } finally {

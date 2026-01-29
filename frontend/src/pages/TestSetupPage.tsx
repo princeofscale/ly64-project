@@ -35,51 +35,22 @@ export default function TestSetupPage() {
   const handleStartTest = () => {
     if (!selectedGrade || !subject) return;
 
-    // Для ВПР по физике (8 класс) - выбор базовый/профильный
-    if (selectedGrade === 8 && subject === 'PHYSICS') {
-      navigate('/test/vpr-physics8-level', {
-        state: { grade: selectedGrade, subject }
-      });
-    }
-    // Для ВПР по истории (8 класс)
-    else if (selectedGrade === 8 && subject === 'HISTORY') {
-      navigate('/test/vpr-history8', {
-        state: { grade: selectedGrade, subject }
-      });
-    }
-    // Для ВПР по биологии (8 класс)
-    else if (selectedGrade === 8 && subject === 'BIOLOGY') {
-      navigate('/test/vpr-biology8', {
-        state: { grade: selectedGrade, subject }
-      });
-    }
-    // Для ВПР по физике (10 класс)
-    else if (selectedGrade === 10 && subject === 'PHYSICS') {
-      navigate('/test/vpr-physics10', {
-        state: { grade: selectedGrade, subject }
-      });
-    }
-    // Для ОГЭ по математике (9 класс)
-    else if (selectedGrade === 9 && subject === 'MATHEMATICS') {
-      navigate('/test/oge-ege', {
-        state: { grade: selectedGrade, subject }
-      });
-    }
-    // Для ОГЭ по русскому языку (9 класс)
-    else if (selectedGrade === 9 && subject === 'RUSSIAN') {
-      navigate('/test/oge-russian', {
-        state: { grade: selectedGrade, subject }
-      });
-    }
     // Для ЕГЭ по математике (11 класс) - выбор профильный/базовый
-    else if (selectedGrade === 11 && subject === 'MATHEMATICS') {
+    if (selectedGrade === 11 && subject === 'MATHEMATICS') {
       navigate('/test/ege-type', {
         state: { grade: selectedGrade, subject }
       });
     }
-    // Остальные тесты
+    // Для ВПР по физике (8 класс) - выбор базовый/профильный
+    else if (selectedGrade === 8 && subject === 'PHYSICS') {
+      navigate('/test/vpr-physics8-level', {
+        state: { grade: selectedGrade, subject }
+      });
+    }
+    // Все остальные тесты направляем на ExamTestPage
+    // VPR (8/10 класс), OGE (9 класс), EGE (11 класс) для всех предметов
     else {
-      navigate(`/test/${subject.toLowerCase()}`, {
+      navigate('/test/oge-ege', {
         state: { grade: selectedGrade, subject }
       });
     }
@@ -184,15 +155,11 @@ export default function TestSetupPage() {
                   <ul className="text-sm text-gray-300 font-sans space-y-1">
                     <li className="flex items-center gap-2">
                       <span className="text-cyan-400">•</span>
-                      {selectedGrade === 9 ? 'Решить вариант ОГЭ' : selectedGrade === 11 ? 'Решить вариант ЕГЭ' : selectedGrade === 8 || selectedGrade === 10 ? 'Решить вариант ВПР' : `Задания соответствуют программе ${selectedGrade} класса`}
+                      10 вопросов
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="text-cyan-400">•</span>
-                      {selectedGrade === 9 || selectedGrade === 11 ? 'Полный экзаменационный вариант' : selectedGrade === 8 || selectedGrade === 10 ? 'Полный вариант Всероссийской проверочной работы' : 'Примерно 10-15 вопросов'}
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-cyan-400">•</span>
-                      Время на прохождение: {selectedGrade === 9 || selectedGrade === 11 ? '3 часа 55 минут' : selectedGrade === 10 && subject === 'PHYSICS' ? '45 минут' : selectedGrade === 8 || selectedGrade === 10 ? '1 час 30 минут' : '30 минут'}
+                      Время на прохождение: 30 минут
                     </li>
                   </ul>
                 </div>

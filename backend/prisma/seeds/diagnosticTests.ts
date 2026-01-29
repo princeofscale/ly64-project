@@ -87,6 +87,18 @@ const DIAGNOSTIC_QUESTIONS = {
     { question: 'Choose the correct form: He has ___ finished his homework.', options: ['already', 'yet', 'still', 'ago'], correctAnswer: 'already', difficulty: 'MEDIUM', topic: 'Grammar' },
     { question: 'What does "occasionally" mean?', options: ['Always', 'Never', 'Sometimes', 'Often'], correctAnswer: 'Sometimes', difficulty: 'MEDIUM', topic: 'Vocabulary' },
   ],
+  CHEMISTRY: [
+    { question: 'Какой химический символ у кислорода?', options: ['O', 'Ok', 'Ox', 'Os'], correctAnswer: 'O', difficulty: 'EASY', topic: 'Основы' },
+    { question: 'Сколько электронов в атоме водорода?', options: ['0', '1', '2', '3'], correctAnswer: '1', difficulty: 'EASY', topic: 'Строение атома' },
+    { question: 'Какой тип связи в молекуле NaCl?', options: ['Ковалентная', 'Ионная', 'Металлическая', 'Водородная'], correctAnswer: 'Ионная', difficulty: 'MEDIUM', topic: 'Химическая связь' },
+    { question: 'Что образуется при взаимодействии кислоты и основания?', options: ['Соль и вода', 'Только соль', 'Только вода', 'Газ'], correctAnswer: 'Соль и вода', difficulty: 'EASY', topic: 'Химические реакции' },
+    { question: 'Какой газ выделяется при реакции металла с кислотой?', options: ['Кислород', 'Азот', 'Водород', 'Углекислый газ'], correctAnswer: 'Водород', difficulty: 'MEDIUM', topic: 'Химические реакции' },
+    { question: 'Формула воды:', options: ['H2O', 'H2O2', 'HO', 'H3O'], correctAnswer: 'H2O', difficulty: 'EASY', topic: 'Основы' },
+    { question: 'Какой элемент имеет атомный номер 6?', options: ['Азот', 'Углерод', 'Кислород', 'Бор'], correctAnswer: 'Углерод', difficulty: 'MEDIUM', topic: 'Строение атома' },
+    { question: 'Что такое катализатор?', options: ['Ускоряет реакцию', 'Замедляет реакцию', 'Останавливает реакцию', 'Начинает реакцию'], correctAnswer: 'Ускоряет реакцию', difficulty: 'EASY', topic: 'Химические реакции' },
+    { question: 'Какой класс соединений содержит группу -OH?', options: ['Альдегиды', 'Спирты', 'Кислоты', 'Эфиры'], correctAnswer: 'Спирты', difficulty: 'MEDIUM', topic: 'Органическая химия' },
+    { question: 'pH нейтральной среды равен:', options: ['0', '7', '14', '1'], correctAnswer: '7', difficulty: 'EASY', topic: 'Химические реакции' },
+  ],
 };
 
 export async function seedDiagnosticTests() {

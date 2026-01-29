@@ -158,6 +158,16 @@ export default function TestPage() {
 
       if (data.success) {
         if (subject) {
+          // Собираем детали об ошибках для рекомендаций
+          const wrongAnswers = data.data.questionResults
+            ?.filter((q: any) => !q.isCorrect)
+            .map((q: any) => ({
+              questionId: q.questionId,
+              topic: q.topic,
+              userAnswer: q.userAnswer,
+              correctAnswer: q.correctAnswer,
+            })) || [];
+
           await fetch('/api/diagnostic/submit', {
             method: 'POST',
             headers: {
@@ -167,6 +177,11 @@ export default function TestPage() {
             body: JSON.stringify({
               subject,
               score: data.data.score,
+              details: {
+                wrongAnswers,
+                totalQuestions: data.data.totalQuestions,
+                correctCount: data.data.correctCount,
+              },
             }),
           });
         }
@@ -210,17 +225,17 @@ export default function TestPage() {
   const progress = ((currentIndex + 1) / testData.questions.length) * 100;
 
   return (
-    <div className="min-h-screen py-8 px-4 bg-gray-50">
+    <div className="min-h-screen py-8 px-4 bg-gray-950">
       <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <div className="bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-700">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-white">
               {testData.test.title}
             </h1>
             {timeLeft !== null && (
               <div
                 className={`px-4 py-2 rounded-lg font-mono text-lg ${
-                  timeLeft < 60 ? 'bg-red-100 text-red-700' : 'bg-gray-100'
+                  timeLeft < 60 ? 'bg-red-500/20 text-red-400' : 'bg-gray-800 text-gray-300'
                 }`}
               >
                 {formatTime(timeLeft)}
@@ -229,22 +244,22 @@ export default function TestPage() {
           </div>
 
           <div className="mb-6">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <div className="flex justify-between text-sm text-gray-400 mb-2">
               <span>
                 Вопрос {currentIndex + 1} из {testData.questions.length}
               </span>
               <span>{Math.round(progress)}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-700 rounded-full h-2">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all"
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 h-2 rounded-full transition-all"
                 style={{ width: `${progress}%` }}
               />
             </div>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-lg font-medium mb-6">{currentQuestion.question}</h2>
+            <h2 className="text-lg font-medium mb-6 text-white">{currentQuestion.question}</h2>
 
             {currentQuestion.options && (
               <div className="space-y-3">
@@ -254,11 +269,11 @@ export default function TestPage() {
                     onClick={() => handleAnswer(option)}
                     className={`w-full p-4 text-left border-2 rounded-xl transition-all ${
                       selectedAnswer === option
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-300'
+                        ? 'border-cyan-500 bg-cyan-500/10 text-white'
+                        : 'border-gray-700 hover:border-cyan-500/50 text-gray-200 hover:bg-gray-800'
                     }`}
                   >
-                    <span className="font-medium mr-3">
+                    <span className="font-medium mr-3 text-cyan-400">
                       {String.fromCharCode(65 + idx)}.
                     </span>
                     {option}
@@ -268,7 +283,7 @@ export default function TestPage() {
             )}
           </div>
 
-          <div className="flex justify-between items-center pt-6 border-t">
+          <div className="flex justify-between items-center pt-6 border-t border-gray-700">
             {testData.test.preventBackNavigation ? (
               <span className="text-sm text-gray-500">
                 Возврат к предыдущим вопросам запрещён

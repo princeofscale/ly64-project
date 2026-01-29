@@ -16,6 +16,7 @@ export const SUBJECT_LABELS: Record<Subject, string> = {
   [Subject.PHYSICS]: 'Физика',
   [Subject.INFORMATICS]: 'Информатика',
   [Subject.BIOLOGY]: 'Биология',
+  [Subject.CHEMISTRY]: 'Химия',
   [Subject.HISTORY]: 'История',
   [Subject.ENGLISH]: 'Английский язык',
 };
@@ -27,9 +28,9 @@ export const REQUIRED_SUBJECTS: Subject[] = [Subject.RUSSIAN, Subject.MATHEMATIC
 export const DIRECTION_SUBJECTS: Record<Direction, Subject[]> = {
   [Direction.PROGRAMMING]: [Subject.PHYSICS, Subject.INFORMATICS],
   [Direction.ROBOTICS]: [Subject.PHYSICS, Subject.INFORMATICS],
-  [Direction.MEDICINE]: [Subject.BIOLOGY],
-  [Direction.BIOTECHNOLOGY]: [Subject.BIOLOGY],
-  [Direction.CULTURE]: [Subject.HISTORY, Subject.ENGLISH],
+  [Direction.MEDICINE]: [Subject.CHEMISTRY, Subject.BIOLOGY],
+  [Direction.BIOTECHNOLOGY]: [Subject.CHEMISTRY, Subject.BIOLOGY],
+  [Direction.CULTURE]: [Subject.HISTORY],
 };
 
 

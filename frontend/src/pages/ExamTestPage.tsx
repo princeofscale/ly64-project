@@ -4,8 +4,11 @@ import { Button } from '../components/Button';
 import { getActiveTestService } from '../core/services';
 import { ConfettiService } from '../core/services/ConfettiService';
 import toast from 'react-hot-toast';
+import testService, { TestVariant } from '../services/testService';
+import { SUBJECT_LABELS } from '@lyceum64/shared';
 
 interface Task {
+  id: string;
   number: number;
   text: string;
   type: 'short' | 'choice' | 'matching' | 'multiple_choice' | 'detailed' | 'proof';
@@ -17,60 +20,121 @@ interface Task {
   requiresProof?: boolean;
 }
 
-import { ogeMathVariant } from '../data/oge-math-variant';
-import { egeMathProfile } from '../data/ege-math-profile';
-import { egeMathBase } from '../data/ege-math-base';
-
 export default function ExamTestPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { grade, subject, egeType } = location.state || {};
 
-  const getExamVariant = () => {
-    if (grade === 9) return ogeMathVariant;
-    if (grade === 11 && egeType === 'profile') return egeMathProfile;
-    if (grade === 11 && egeType === 'base') return egeMathBase;
-    return ogeMathVariant;
-  };
+  const [examVariant, setExamVariant] = useState<TestVariant | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const examVariant = getExamVariant();
-  const tasks = examVariant.tasks as Task[];
+  const tasks = examVariant?.tasks as Task[] || [];
 
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [timeLeft, setTimeLeft] = useState(examVariant.duration * 60);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [isTestRegistered, setIsTestRegistered] = useState(false);
+  const [testResults, setTestResults] = useState<any>(null);
+
+  // Load test data from API
+  useEffect(() => {
+    const loadTestData = async () => {
+      console.log('📖 ExamTestPage loadTestData:', { grade, subject, egeType });
+
+      if (!grade || !subject) {
+        console.warn('⚠️ Missing parameters:', { grade, subject });
+        setError('Не указаны параметры теста');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        // Определяем тип экзамена в зависимости от класса
+        let apiExamType: string;
+        if (grade === 8 || grade === 10) {
+          apiExamType = 'VPR';
+        } else if (grade === 9) {
+          apiExamType = 'OGE';
+        } else if (grade === 11) {
+          // Для математики используем EGE_BASE/EGE_PROFILE, для остальных предметов - EGE
+          if (subject === 'MATHEMATICS') {
+            apiExamType = egeType === 'base' ? 'EGE_BASE' : 'EGE_PROFILE';
+          } else {
+            apiExamType = 'EGE';
+          }
+        } else {
+          apiExamType = 'REGULAR';
+        }
+
+        console.log('🎯 Calling getTestVariant:', { subject, apiExamType, grade });
+        const variant = await testService.getTestVariant(subject, apiExamType, grade);
+
+        if (variant) {
+          setExamVariant(variant);
+          // Устанавливаем время только если duration определен
+          if (variant.duration && variant.duration > 0) {
+            setTimeLeft(variant.duration * 60);
+          } else {
+            // Значение по умолчанию: 3 часа для ОГЭ/ЕГЭ
+            setTimeLeft(180 * 60);
+          }
+          setError(null);
+        } else {
+          setError('Тест не найден. Убедитесь, что вы авторизованы.');
+        }
+      } catch (err) {
+        console.error('Error loading test:', err);
+        setError('Ошибка загрузки теста');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTestData();
+  }, [grade, subject, egeType]);
 
   const currentTask = tasks[currentTaskIndex];
   const progress = ((currentTaskIndex + 1) / tasks.length) * 100;
   const answeredCount = Object.keys(answers).filter(k => answers[parseInt(k)]?.trim()).length;
 
   const getExamTitle = () => {
-    if (grade === 9) return 'ОГЭ Математика';
-    if (grade === 11 && egeType === 'profile') return 'ЕГЭ Математика (Профильный)';
-    if (grade === 11 && egeType === 'base') return 'ЕГЭ Математика (Базовый)';
-    return 'Экзамен';
+    const subjectName = subject ? SUBJECT_LABELS[subject as keyof typeof SUBJECT_LABELS] || subject : 'Предмет';
+    if (grade === 8) return `ВПР ${subjectName}`;
+    if (grade === 9) return `ОГЭ ${subjectName}`;
+    if (grade === 10) return `ВПР ${subjectName}`;
+    if (grade === 11 && egeType === 'profile') return `ЕГЭ ${subjectName} (Профильный)`;
+    if (grade === 11 && egeType === 'base') return `ЕГЭ ${subjectName} (Базовый)`;
+    if (grade === 11) return `ЕГЭ ${subjectName}`;
+    return subjectName;
   };
 
   const getExamType = () => {
+    if (grade === 8 || grade === 10) return 'VPR' as const;
     if (grade === 9) return 'OGE' as const;
-    if (grade === 11 && egeType === 'profile') return 'EGE_PROFILE' as const;
-    if (grade === 11 && egeType === 'base') return 'EGE_BASE' as const;
+    if (grade === 11) {
+      if (subject === 'MATHEMATICS') {
+        return egeType === 'base' ? 'EGE_BASE' as const : 'EGE_PROFILE' as const;
+      }
+      return 'EGE' as const;
+    }
     return 'REGULAR' as const;
   };
 
   useEffect(() => {
-    if (!grade || !subject) return;
+    if (!grade || !subject || !examVariant) return;
 
     const activeTestService = getActiveTestService();
 
-    if (!isTestRegistered) {
+    if (!isTestRegistered && examVariant.duration) {
       activeTestService.startTest({
         examType: getExamType(),
-        subject: 'MATHEMATICS',
-        grade: grade as 9 | 11,
+        subject: subject || 'MATHEMATICS',
+        grade: grade as 8 | 9 | 10 | 11,
         title: getExamTitle(),
         startedAt: new Date().toISOString(),
         currentTaskIndex: 0,
@@ -81,7 +145,7 @@ export default function ExamTestPage() {
       });
       setIsTestRegistered(true);
     }
-  }, [grade, subject, isTestRegistered]);
+  }, [grade, subject, isTestRegistered, examVariant]);
 
   useEffect(() => {
     const activeTestService = getActiveTestService();
@@ -145,7 +209,38 @@ export default function ExamTestPage() {
     return Math.round((totalPoints / maxPoints) * 100);
   }, [answers, tasks]);
 
-  const handleFinish = useCallback(() => {
+  const handleFinish = useCallback(async () => {
+    if (!examVariant) return;
+
+    try {
+      // Format answers for API
+      const formattedAnswers = Object.entries(answers).map(([num, ans]) => {
+        const task = tasks.find((t) => t.number === parseInt(num));
+        return {
+          questionId: task?.id || '',
+          answer: ans,
+          timeSpent: 5000, // TODO: track actual time per question
+          timestamp: Date.now(),
+        };
+      });
+
+      const questionsOrder = tasks.map((t) => t.id);
+
+      // Submit test to server
+      const result = await testService.submitTest(
+        examVariant.testId,
+        formattedAnswers,
+        questionsOrder
+      );
+
+      if (result.success) {
+        setTestResults(result.data);
+      }
+    } catch (error) {
+      console.error('Error submitting test:', error);
+      toast.error('Ошибка отправки теста');
+    }
+
     const activeTestService = getActiveTestService();
     activeTestService.completeTest();
     setShowResults(true);
@@ -156,7 +251,7 @@ export default function ExamTestPage() {
     }, 300);
 
     toast.success('Тест завершен!');
-  }, [calculateScore]);
+  }, [calculateScore, examVariant, answers, tasks]);
 
   const handleExit = () => {
     setShowExitConfirm(true);
@@ -170,17 +265,32 @@ export default function ExamTestPage() {
   };
 
   const getTimeColor = () => {
-    const totalTime = examVariant.duration * 60;
+    const totalTime = (examVariant?.duration || 180) * 60;
     if (timeLeft > totalTime * 0.5) return 'text-cyan-400';
     if (timeLeft > totalTime * 0.25) return 'text-yellow-400';
     return 'text-red-400';
   };
 
-  if (!grade || !subject) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-400 font-sans mb-4">Ошибка загрузки теста</p>
+          <div className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400 font-sans">Загрузка теста...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !examVariant) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="text-6xl mb-4">⚠️</div>
+          <p className="text-gray-400 font-sans mb-4">{error || 'Тест не найден'}</p>
+          <p className="text-sm text-gray-500 mb-6">
+            Войдите в систему, чтобы начать прохождение теста.
+          </p>
           <Button onClick={() => navigate('/dashboard')}>Вернуться к панели</Button>
         </div>
       </div>
@@ -188,20 +298,22 @@ export default function ExamTestPage() {
   }
 
   if (showResults) {
-    const correctCount = Object.entries(answers).filter(
+    // Use results from server if available, otherwise calculate locally
+    const correctCount = testResults?.correctCount ?? Object.entries(answers).filter(
       ([num, ans]) => tasks.find((t) => t.number === parseInt(num))?.correctAnswer === ans
     ).length;
 
-    const totalPoints = Object.entries(answers).reduce((sum, [num, ans]) => {
-      const task = tasks.find((t) => t.number === parseInt(num));
-      if (task && task.correctAnswer === ans) {
-        return sum + task.points;
-      }
-      return sum;
-    }, 0);
+    const totalPoints = testResults?.questionResults?.reduce((sum: number, qr: any) => sum + qr.points, 0) ??
+      Object.entries(answers).reduce((sum, [num, ans]) => {
+        const task = tasks.find((t) => t.number === parseInt(num));
+        if (task && task.correctAnswer === ans) {
+          return sum + task.points;
+        }
+        return sum;
+      }, 0);
 
-    const maxPoints = tasks.reduce((sum, task) => sum + task.points, 0);
-    const scorePercent = Math.round((totalPoints / maxPoints) * 100);
+    const maxPoints = testResults?.totalQuestions ?? tasks.reduce((sum, task) => sum + task.points, 0);
+    const scorePercent = testResults?.score ?? Math.round((totalPoints / maxPoints) * 100);
 
     const getScoreEmoji = () => {
       if (scorePercent >= 90) return '🏆';
@@ -254,6 +366,87 @@ export default function ExamTestPage() {
                   <div className="text-2xl font-bold text-purple-400">{totalPoints}/{maxPoints}</div>
                   <div className="text-sm text-gray-400">первичных баллов</div>
                 </div>
+              </div>
+            </div>
+
+            {/* Детальный разбор заданий */}
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-gray-200 mb-4 text-left">Детальный разбор</h2>
+              <div className="space-y-3">
+                {(testResults?.questionResults || tasks.map((task) => ({
+                  number: task.number,
+                  userAnswer: answers[task.number] || null,
+                  correctAnswer: task.correctAnswer,
+                  isCorrect: task.correctAnswer === answers[task.number],
+                  points: task.points,
+                  topic: task.topic,
+                }))).map((result: any) => {
+                  const isAnswered = result.userAnswer !== null && result.userAnswer !== '';
+
+                  return (
+                    <div
+                      key={result.number}
+                      className={`p-4 rounded-xl border-2 ${
+                        result.isCorrect
+                          ? 'bg-green-500/10 border-green-500/30'
+                          : isAnswered
+                          ? 'bg-red-500/10 border-red-500/30'
+                          : 'bg-gray-800/50 border-gray-700/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className={`text-2xl ${result.isCorrect ? '' : isAnswered ? '' : 'opacity-50'}`}>
+                              {result.isCorrect ? '✓' : isAnswered ? '✗' : '○'}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-gray-200">
+                                Задание {result.number}
+                                {result.topic && !result.topic.match(/^(Д?\d+|[0-9]+)$/) && (
+                                  <span className="text-sm text-gray-500 ml-2">({result.topic})</span>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-400">
+                                {result.points || 1} {result.points === 1 ? 'балл' : (result.points || 1) < 5 ? 'балла' : 'баллов'}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="ml-11 space-y-2 text-sm">
+                            {isAnswered && (
+                              <div>
+                                <span className="text-gray-500">Ваш ответ:</span>{' '}
+                                <span className={result.isCorrect ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>
+                                  {result.userAnswer}
+                                </span>
+                              </div>
+                            )}
+                            {!result.isCorrect && (
+                              <div>
+                                <span className="text-gray-500">Правильный ответ:</span>{' '}
+                                <span className="text-green-400 font-medium">{result.correctAnswer}</span>
+                              </div>
+                            )}
+                            {!isAnswered && (
+                              <div className="text-gray-500 italic">Не отвечено</div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          result.isCorrect
+                            ? 'bg-green-500/20 text-green-400'
+                            : isAnswered
+                            ? 'bg-red-500/20 text-red-400'
+                            : 'bg-gray-700/50 text-gray-500'
+                        }`}>
+                          {result.isCorrect ? `+${result.points || 1}` : '0'}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -331,14 +524,17 @@ export default function ExamTestPage() {
                   {currentTask.points} {currentTask.points === 1 ? 'балл' : currentTask.points < 5 ? 'балла' : 'баллов'}
                 </span>
               </div>
-              <div className="text-sm text-gray-500 font-sans">{currentTask.topic}</div>
+              {currentTask.topic && !currentTask.topic.match(/^(Д?\d+|[0-9]+)$/) && (
+                <div className="text-sm text-gray-500 font-sans">{currentTask.topic}</div>
+              )}
             </div>
           </div>
 
           <div className="mb-8 p-6 bg-gray-800/50 rounded-2xl border border-gray-700/50">
-            <p className="text-lg text-gray-200 font-sans whitespace-pre-line leading-relaxed">
-              {currentTask.text}
-            </p>
+            <div
+              className="question-content text-lg font-sans"
+              dangerouslySetInnerHTML={{ __html: currentTask.text }}
+            />
           </div>
 
           <div className="mb-8">

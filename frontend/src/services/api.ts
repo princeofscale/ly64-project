@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
+import toast from 'react-hot-toast';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -30,6 +31,13 @@ api.interceptors.response.use(
       useAuthStore.getState().logout();
       window.location.href = '/login';
     }
+
+    // Handle diagnostic requirement
+    if (error.response?.status === 403 && error.response?.data?.requiresDiagnostic) {
+      toast.error('Завершите входную диагностику для доступа к этой функции');
+      window.location.href = '/diagnostic';
+    }
+
     return Promise.reject(error);
   }
 );

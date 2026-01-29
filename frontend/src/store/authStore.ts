@@ -7,6 +7,8 @@ interface User {
   name: string;
   username: string;
   desiredDirection?: string;
+  diagnosticCompleted?: boolean;
+  role?: string;
 }
 
 interface AuthState {

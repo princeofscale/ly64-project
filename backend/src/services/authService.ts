@@ -93,6 +93,7 @@ export class AuthService {
         motivation,
         agreedToTerms,
         authProvider,
+        diagnosticCompleted: false,
       },
       select: {
         id: true,
@@ -105,12 +106,14 @@ export class AuthService {
         motivation: true,
         authProvider: true,
         avatar: true,
+        diagnosticCompleted: true,
+        role: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    
+
     await prisma.userProgress.create({
       data: {
         userId: user.id,
@@ -179,6 +182,8 @@ export class AuthService {
         motivation: user.motivation,
         authProvider: user.authProvider,
         avatar: user.avatar,
+        diagnosticCompleted: user.diagnosticCompleted,
+        role: user.role,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
@@ -201,6 +206,8 @@ export class AuthService {
         motivation: true,
         authProvider: true,
         avatar: true,
+        diagnosticCompleted: true,
+        role: true,
         createdAt: true,
         updatedAt: true,
         progress: true,
