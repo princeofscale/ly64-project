@@ -26,11 +26,6 @@ import NotesPage from './pages/NotesPage';
 import ProblemGeneratorPage from './pages/ProblemGeneratorPage';
 import DailyChallengePage from './pages/DailyChallengePage';
 import OgeRussianTestPage from './pages/OgeRussianTestPage';
-import VprPhysics8LevelPage from './pages/VprPhysics8LevelPage';
-import VprPhysics8TestPage from './pages/VprPhysics8TestPage';
-import VprPhysics10TestPage from './pages/VprPhysics10TestPage';
-import VprHistory8TestPage from './pages/VprHistory8TestPage';
-import VprBiology8TestPage from './pages/VprBiology8TestPage';
 import VariantSelectionPage from './pages/VariantSelectionPage';
 import SdamgiaTestPage from './pages/SdamgiaTestPage';
 import { Header } from './components/Header';
@@ -105,11 +100,6 @@ function App() {
           <Route path="/test/ege-type" element={<ProtectedRoute><Header /><EgeTypePage /></ProtectedRoute>} />
           <Route path="/test/oge-ege" element={<ProtectedRoute><ExamTestPage /></ProtectedRoute>} />
           <Route path="/test/oge-russian" element={<ProtectedRoute><OgeRussianTestPage /></ProtectedRoute>} />
-          <Route path="/test/vpr-physics8-level" element={<ProtectedRoute><Header /><VprPhysics8LevelPage /></ProtectedRoute>} />
-          <Route path="/test/vpr-physics8" element={<ProtectedRoute><VprPhysics8TestPage /></ProtectedRoute>} />
-          <Route path="/test/vpr-physics10" element={<ProtectedRoute><VprPhysics10TestPage /></ProtectedRoute>} />
-          <Route path="/test/vpr-history8" element={<ProtectedRoute><VprHistory8TestPage /></ProtectedRoute>} />
-          <Route path="/test/vpr-biology8" element={<ProtectedRoute><VprBiology8TestPage /></ProtectedRoute>} />
           <Route path="/test/ege" element={<ProtectedRoute><ExamTestPage /></ProtectedRoute>} />
           <Route path="/test/exam" element={<ProtectedRoute><ExamPage /></ProtectedRoute>} />
           <Route path="/test/:testId" element={<ProtectedRoute><TestPage /></ProtectedRoute>} />
