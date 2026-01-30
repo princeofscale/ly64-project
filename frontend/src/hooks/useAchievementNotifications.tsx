@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
+import api from '../services/api';
 
 interface Achievement {
   id: string;
@@ -22,13 +23,8 @@ export const useAchievementNotifications = () => {
 
     const checkNewAchievements = async () => {
       try {
-        const response = await fetch('/api/users/achievements', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!response.ok) return;
-
-        const data = await response.json();
+        const response = await api.get('/users/achievements');
+        const data = response.data;
         const achievements: Achievement[] = data.achievements || [];
         const unlockedAchievements = achievements.filter((a) => a.isUnlocked);
 

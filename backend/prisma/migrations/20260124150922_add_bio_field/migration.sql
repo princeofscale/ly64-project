@@ -16,10 +16,11 @@ CREATE TABLE "new_User" (
     "bio" TEXT,
     "isPublic" BOOLEAN NOT NULL DEFAULT true,
     "agreedToTerms" BOOLEAN NOT NULL DEFAULT false,
+    "diagnosticCompleted" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
-INSERT INTO "new_User" ("agreedToTerms", "authProvider", "avatar", "createdAt", "currentGrade", "desiredDirection", "email", "id", "motivation", "name", "password", "status", "updatedAt", "username") SELECT "agreedToTerms", "authProvider", "avatar", "createdAt", "currentGrade", "desiredDirection", "email", "id", "motivation", "name", "password", "status", "updatedAt", "username" FROM "User";
+INSERT INTO "new_User" ("agreedToTerms", "authProvider", "avatar", "bio", "createdAt", "currentGrade", "desiredDirection", "email", "id", "isPublic", "motivation", "name", "password", "status", "updatedAt", "username") SELECT "agreedToTerms", "authProvider", "avatar", "bio", "createdAt", "currentGrade", "desiredDirection", "email", "id", "isPublic", "motivation", "name", "password", "status", "updatedAt", "username" FROM "User";
 DROP TABLE "User";
 ALTER TABLE "new_User" RENAME TO "User";
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");

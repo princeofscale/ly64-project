@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { Button } from '../components/Button';
 import { useAuthStore } from '../store/authStore';
 import { SUBJECT_LABELS } from '@lyceum64/shared';
+import api from '../services/api';
 
 interface DiagnosticStatus {
   completed: boolean;
@@ -54,13 +55,11 @@ export default function DiagnosticPage() {
 
   const loadStatus = async () => {
     try {
-      const response = await fetch(
-        `/api/diagnostic/status?direction=${user?.desiredDirection || ''}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await api.get(
+        `/diagnostic/status?direction=${user?.desiredDirection || ''}`
       );
-      const data = await response.json();
-      if (data.success) {
-        setStatus(data.data);
+      if (response.data.success) {
+        setStatus(response.data.data);
       }
     } catch (error) {
       toast.error('Ошибка загрузки');
@@ -75,12 +74,9 @@ export default function DiagnosticPage() {
 
   const loadRecommendations = async () => {
     try {
-      const response = await fetch('/api/diagnostic/recommendations', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      if (data.success) {
-        setRecommendations(data.data);
+      const response = await api.get('/diagnostic/recommendations');
+      if (response.data.success) {
+        setRecommendations(response.data.data);
         setShowRecommendations(true);
       }
     } catch (error) {
@@ -90,16 +86,10 @@ export default function DiagnosticPage() {
 
   const generatePlan = async () => {
     try {
-      const response = await fetch('/api/diagnostic/plan/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ direction: user?.desiredDirection }),
+      const response = await api.post('/diagnostic/plan/generate', {
+        direction: user?.desiredDirection,
       });
-      const data = await response.json();
-      if (data.success) {
+      if (response.data.success) {
         toast.success('План обучения создан!');
         navigate('/learning-plan');
       }
@@ -111,16 +101,9 @@ export default function DiagnosticPage() {
   const generatePlanAndRedirect = async () => {
     try {
       // 1. Генерируем план
-      const response = await fetch('/api/diagnostic/plan/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ direction: user?.desiredDirection }),
+      const response = await api.post('/diagnostic/plan/generate', {
+        direction: user?.desiredDirection,
       });
-
-      if (!response.ok) throw new Error('Failed to generate plan');
 
       // 2. Обновляем user в store
       if (user) {
