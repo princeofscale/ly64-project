@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
 import { authenticateToken, AuthRequest } from '../middlewares/auth';
-import { requireDiagnosticCompleted } from '../middlewares/requireDiagnostic';
 import diagnosticService from '../services/diagnosticService';
 
 const router = Router();
@@ -98,7 +97,7 @@ router.post('/plan/generate', authenticateToken, async (req: AuthRequest, res: R
   }
 });
 
-router.get('/plan', authenticateToken, requireDiagnosticCompleted, async (req: AuthRequest, res: Response) => {
+router.get('/plan', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const plan = await diagnosticService.getLearningPlan(userId);
@@ -113,7 +112,7 @@ router.get('/plan', authenticateToken, requireDiagnosticCompleted, async (req: A
   }
 });
 
-router.post('/plan/complete-topic', authenticateToken, requireDiagnosticCompleted, async (req: AuthRequest, res: Response) => {
+router.post('/plan/complete-topic', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const { itemId } = req.body;

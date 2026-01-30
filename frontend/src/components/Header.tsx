@@ -3,7 +3,6 @@ import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/authService';
 import { Button } from './Button';
 import { useState, useRef, useEffect } from 'react';
-import { ScheduleButton } from './ScheduleModal';
 
 export function Header() {
   const { isAuthenticated, user } = useAuthStore();
@@ -37,7 +36,6 @@ export function Header() {
           </Link>
 
           <nav className="flex items-center gap-3">
-            <ScheduleButton />
             {isAuthenticated ? (
               <div className="relative" ref={menuRef}>
                 <button

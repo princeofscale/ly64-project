@@ -33,7 +33,6 @@ import VprHistory8TestPage from './pages/VprHistory8TestPage';
 import VprBiology8TestPage from './pages/VprBiology8TestPage';
 import { Header } from './components/Header';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { RequireDiagnostic } from './components/RequireDiagnostic';
 import { useAchievementNotifications } from './hooks/useAchievementNotifications';
 
 function App() {
@@ -94,25 +93,25 @@ function App() {
           <Route path="/diagnostic" element={<ProtectedRoute><Header /><DiagnosticPage /></ProtectedRoute>} />
           <Route path="/diagnostic/test/:subject" element={<ProtectedRoute><TestPage /></ProtectedRoute>} />
 
-          {/* Защищенные роуты - аутентификация + диагностика */}
-          <Route path="/dashboard" element={<ProtectedRoute><RequireDiagnostic><Header /><DashboardPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><RequireDiagnostic><Header /><ProfilePage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/profiles/:username" element={<ProtectedRoute><RequireDiagnostic><Header /><PublicProfilePage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/test/setup/:subject" element={<ProtectedRoute><RequireDiagnostic><Header /><TestSetupPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/test/ege-type" element={<ProtectedRoute><RequireDiagnostic><Header /><EgeTypePage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/test/oge-ege" element={<ProtectedRoute><RequireDiagnostic><ExamTestPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/test/oge-russian" element={<ProtectedRoute><RequireDiagnostic><OgeRussianTestPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/test/vpr-physics8-level" element={<ProtectedRoute><RequireDiagnostic><Header /><VprPhysics8LevelPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/test/vpr-physics8" element={<ProtectedRoute><RequireDiagnostic><VprPhysics8TestPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/test/vpr-physics10" element={<ProtectedRoute><RequireDiagnostic><VprPhysics10TestPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/test/vpr-history8" element={<ProtectedRoute><RequireDiagnostic><VprHistory8TestPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/test/vpr-biology8" element={<ProtectedRoute><RequireDiagnostic><VprBiology8TestPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/test/ege" element={<ProtectedRoute><RequireDiagnostic><ExamTestPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/test/exam" element={<ProtectedRoute><RequireDiagnostic><ExamPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/test/:testId" element={<ProtectedRoute><RequireDiagnostic><TestPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/learning-plan" element={<ProtectedRoute><RequireDiagnostic><Header /><LearningPlanPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/leaderboard" element={<ProtectedRoute><RequireDiagnostic><Header /><LeaderboardPage /></RequireDiagnostic></ProtectedRoute>} />
-          <Route path="/error-analysis" element={<ProtectedRoute><RequireDiagnostic><Header /><ErrorAnalysisPage /></RequireDiagnostic></ProtectedRoute>} />
+          {/* Защищенные роуты - только аутентификация */}
+          <Route path="/dashboard" element={<ProtectedRoute><Header /><DashboardPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Header /><ProfilePage /></ProtectedRoute>} />
+          <Route path="/profiles/:username" element={<ProtectedRoute><Header /><PublicProfilePage /></ProtectedRoute>} />
+          <Route path="/test/setup/:subject" element={<ProtectedRoute><Header /><TestSetupPage /></ProtectedRoute>} />
+          <Route path="/test/ege-type" element={<ProtectedRoute><Header /><EgeTypePage /></ProtectedRoute>} />
+          <Route path="/test/oge-ege" element={<ProtectedRoute><ExamTestPage /></ProtectedRoute>} />
+          <Route path="/test/oge-russian" element={<ProtectedRoute><OgeRussianTestPage /></ProtectedRoute>} />
+          <Route path="/test/vpr-physics8-level" element={<ProtectedRoute><Header /><VprPhysics8LevelPage /></ProtectedRoute>} />
+          <Route path="/test/vpr-physics8" element={<ProtectedRoute><VprPhysics8TestPage /></ProtectedRoute>} />
+          <Route path="/test/vpr-physics10" element={<ProtectedRoute><VprPhysics10TestPage /></ProtectedRoute>} />
+          <Route path="/test/vpr-history8" element={<ProtectedRoute><VprHistory8TestPage /></ProtectedRoute>} />
+          <Route path="/test/vpr-biology8" element={<ProtectedRoute><VprBiology8TestPage /></ProtectedRoute>} />
+          <Route path="/test/ege" element={<ProtectedRoute><ExamTestPage /></ProtectedRoute>} />
+          <Route path="/test/exam" element={<ProtectedRoute><ExamPage /></ProtectedRoute>} />
+          <Route path="/test/:testId" element={<ProtectedRoute><TestPage /></ProtectedRoute>} />
+          <Route path="/learning-plan" element={<ProtectedRoute><Header /><LearningPlanPage /></ProtectedRoute>} />
+          <Route path="/leaderboard" element={<ProtectedRoute><Header /><LeaderboardPage /></ProtectedRoute>} />
+          <Route path="/error-analysis" element={<ProtectedRoute><Header /><ErrorAnalysisPage /></ProtectedRoute>} />
 
           {/* Мини-игры и инструменты */}
           <Route path="/spin-wheel" element={<SpinWheelPage />} />

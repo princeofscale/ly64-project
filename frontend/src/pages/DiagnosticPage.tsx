@@ -33,25 +33,6 @@ export default function DiagnosticPage() {
     loadStatus();
   }, []);
 
-  // Автоматическая генерация плана при завершении
-  useEffect(() => {
-    if (status?.completed && !user?.diagnosticCompleted) {
-      generatePlanAndRedirect();
-    }
-  }, [status?.completed]);
-
-  // Предупреждение о закрытии браузера
-  useEffect(() => {
-    if (status && !status.completed) {
-      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-        e.preventDefault();
-        e.returnValue = '';
-      };
-
-      window.addEventListener('beforeunload', handleBeforeUnload);
-      return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }
-  }, [status]);
 
   const loadStatus = async () => {
     try {
@@ -98,28 +79,6 @@ export default function DiagnosticPage() {
     }
   };
 
-  const generatePlanAndRedirect = async () => {
-    try {
-      // 1. Генерируем план
-      const response = await api.post('/diagnostic/plan/generate', {
-        direction: user?.desiredDirection,
-      });
-
-      // 2. Обновляем user в store
-      if (user) {
-        useAuthStore.getState().setUser({ ...user, diagnosticCompleted: true });
-      }
-
-      // 3. Показываем поздравление
-      toast.success('Диагностика завершена! План создан!', { duration: 5000 });
-
-      // 4. Редирект через 2 секунды
-      setTimeout(() => navigate('/dashboard'), 2000);
-    } catch (error) {
-      console.error('Error generating plan:', error);
-      toast.error('Ошибка генерации плана');
-    }
-  };
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -158,39 +117,6 @@ export default function DiagnosticPage() {
     );
   }
 
-  // Если пользователь уже завершил диагностику, показываем сообщение
-  if (user?.diagnosticCompleted && status?.completed) {
-    return (
-      <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden py-12 px-4">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
-
-        <div className="absolute top-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
-
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-[0_0_50px_rgba(6,182,212,0.1)] text-center">
-            <div className="mb-6">
-              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 flex items-center justify-center">
-                <svg className="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h1 className="text-3xl font-display font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent mb-3">
-                Диагностика уже завершена
-              </h1>
-              <p className="text-gray-400 font-sans">
-                Вы уже прошли входную диагностику и получили доступ к платформе
-              </p>
-            </div>
-            <Button onClick={() => navigate('/dashboard')}>
-              Перейти на главную
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden py-12 px-4">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
@@ -207,29 +133,6 @@ export default function DiagnosticPage() {
             Пройдите тесты по предметам, чтобы определить ваш уровень и получить
             персональный план обучения
           </p>
-
-          {/* Баннер обязательности */}
-          {!status?.completed && !user?.diagnosticCompleted && (
-            <div className="mb-6 p-5 bg-amber-500/10 border border-amber-500/30 rounded-2xl animate-scale-in">
-              <h4 className="font-semibold text-amber-300 mb-2 font-display">
-                Входная диагностика обязательна
-              </h4>
-              <p className="text-sm text-amber-400 font-sans mb-2">
-                Пройдите все тесты для получения доступа к платформе.
-              </p>
-              <p className="text-xs text-amber-500 font-sans">
-                Осталось:{' '}
-                <span className="font-semibold">
-                  {(status?.subjects.length || 0) - (status?.results.length || 0)}
-                </span>{' '}
-                {((status?.subjects.length || 0) - (status?.results.length || 0)) === 1
-                  ? 'тест'
-                  : ((status?.subjects.length || 0) - (status?.results.length || 0)) >= 5
-                  ? 'тестов'
-                  : 'теста'}
-              </p>
-            </div>
-          )}
 
           {/* Прогресс-бар */}
           {status && (
