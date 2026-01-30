@@ -47,9 +47,11 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       },
     });
 
-    if (user) {
-      (req as any).user = user;
+    if (!user) {
+      throw new AppError('Пользователь не найден', 401);
     }
+
+    (req as any).user = user;
 
     next();
   } catch (error) {
