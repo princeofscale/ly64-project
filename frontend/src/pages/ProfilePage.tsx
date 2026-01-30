@@ -114,25 +114,6 @@ export default function ProfilePage() {
     loadStats();
   }, []);
 
-  // Блокировка прокрутки body при открытии модальных окон
-  useEffect(() => {
-    if (isEditing || showAvatarPicker) {
-      // Сохраняем текущую позицию прокрутки
-      const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-
-      return () => {
-        // Восстанавливаем прокрутку при закрытии
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        window.scrollTo(0, scrollY);
-      };
-    }
-  }, [isEditing, showAvatarPicker]);
-
   const loadProfile = async () => {
     try {
       const token = useAuthStore.getState().token;
@@ -347,7 +328,6 @@ export default function ProfilePage() {
   };
 
   return (
-    <>
     <div className="min-h-screen bg-gray-950 relative overflow-hidden py-8">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20" />
       <div className="absolute top-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px]" />
@@ -967,11 +947,10 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </div>
 
       {showAvatarPicker && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700 my-8">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700">
             <h3 className="text-xl font-semibold text-white mb-4">Выберите аватар</h3>
 
             <div className="mb-6">
@@ -1036,8 +1015,8 @@ export default function ProfilePage() {
       )}
 
       {isEditing && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 my-8">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700">
             <h3 className="text-xl font-semibold text-white mb-6">Редактировать профиль</h3>
 
             <div className="space-y-4">
@@ -1097,6 +1076,6 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

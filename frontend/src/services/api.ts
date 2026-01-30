@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
+import toast from 'react-hot-toast';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -30,43 +31,35 @@ api.interceptors.response.use(
       useAuthStore.getState().logout();
       window.location.href = '/login';
     }
+
+    // Handle diagnostic requirement
+    if (error.response?.status === 403 && error.response?.data?.requiresDiagnostic) {
+      toast.error('Завершите входную диагностику для доступа к этой функции');
+      window.location.href = '/diagnostic';
+    }
+
     return Promise.reject(error);
   }
 );
 
 // Test API methods
 export const testApi = {
-  // Get all tests with optional filters
-  getTests: async (params?: {
-    subject?: string;
-    examType?: string;
-    isDiagnostic?: boolean;
-  }) => {
+  async getTests(params?: { subject?: string; examType?: string; isDiagnostic?: boolean }) {
     const response = await api.get('/tests', { params });
     return response.data;
   },
 
-  // Start a test (get randomized questions)
-  startTest: async (testId: string) => {
-    const response = await api.get(`/tests/${testId}/start`);
+  async startTest(testId: string) {
+    const response = await api.post(`/tests/${testId}/start`);
     return response.data;
   },
 
-  // Submit test answers
-  submitTest: async (
-    testId: string,
-    answers: Array<{ questionId: string; answer: string }>,
-    questionsOrder: string[]
-  ) => {
-    const response = await api.post(`/tests/${testId}/submit`, {
-      answers,
-      questionsOrder,
-    });
+  async submitTest(testId: string, answers: Array<{ questionId: string; answer: string }>, questionsOrder: string[]) {
+    const response = await api.post(`/tests/${testId}/submit`, { answers, questionsOrder });
     return response.data;
   },
 
-  // Get test results
-  getTestResults: async (testId: string) => {
+  async getTestResults(testId: string) {
     const response = await api.get(`/tests/${testId}/results`);
     return response.data;
   },

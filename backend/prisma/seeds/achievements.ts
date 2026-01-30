@@ -110,12 +110,8 @@ export async function seedAchievements() {
     });
 
     if (!existing) {
-      const now = new Date();
       await prisma.achievement.create({
-        data: {
-          ...achievement,
-          createdAt: now,
-        },
+        data: achievement,
       });
       console.log(`✅ Created achievement: ${achievement.name}`);
     } else {

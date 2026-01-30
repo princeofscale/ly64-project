@@ -45,7 +45,7 @@ class TestLoaderService {
       const scriptPath = path.join(__dirname, '../../scripts/fetch_sdamgia_tests.py');
 
       // Запускаем Python скрипт
-      const { stdout, stderr } = await execAsync(`python3 "${scriptPath}"`, {
+      const { stdout, stderr } = await execAsync(`py "${scriptPath}"`, {
         cwd: path.join(__dirname, '../..'),
         timeout: 300000, // 5 минут
       });
@@ -68,7 +68,7 @@ class TestLoaderService {
         console.warn('\n⚠️  Python or sdamgia_api not found.');
         console.warn('   Tests will not be auto-loaded.');
         console.warn('   To load tests manually, run:');
-        console.warn('   python3 backend/scripts/fetch_sdamgia_tests.py\n');
+        console.warn('   py backend/scripts/fetch_sdamgia_tests.py\n');
       }
     } finally {
       this.isLoading = false;

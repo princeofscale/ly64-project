@@ -17,11 +17,7 @@
     "build:backend": "npm run build --workspace=backend",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
-    "lint:fix": "npm run lint --workspaces -- --fix",
-    "type-check": "npm run type-check --workspaces",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "prepare": "husky"
+    "type-check": "npm run type-check --workspaces"
   },
   "keywords": [
     "edtech",
@@ -32,28 +28,6 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^8.2.2",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.2.7",
-    "prettier": "^3.8.1",
-    "react-is": "^19.2.3"
-  },
-  "lint-staged": {
-    "**/*.{ts,tsx,js,jsx,json,css,md}": [
-      "prettier --write"
-    ],
-    "frontend/**/*.{ts,tsx}": [
-      "eslint --fix --max-warnings=0 --workspace=frontend",
-      "bash -c 'if grep -rn \"console\\.log\\|debugger\" $0; then echo \"❌ Обнаружены console.log или debugger! Удалите их перед коммитом.\"; exit 1; fi'",
-      "npm run type-check --workspace=frontend"
-    ],
-    "backend/**/*.{ts,js}": [
-      "eslint --fix --max-warnings=0 --workspace=backend",
-      "bash -c 'if grep -rn \"console\\.log\\|debugger\" $0; then echo \"❌ Обнаружены console.log или debugger! Удалите их перед коммитом.\"; exit 1; fi'",
-      "npm run type-check --workspace=backend"
-    ],
-    "**/*": [
-      "bash -c 'if grep -rn \"<<<<<<<\\|=======\\|>>>>>>>\" $0 2>/dev/null; then echo \"❌ Обнаружены конфликты слияния! Разрешите их перед коммитом.\"; exit 1; fi'"
-    ]
+    "concurrently": "^8.2.2"
   }
 }

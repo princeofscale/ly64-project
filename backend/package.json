@@ -3,9 +3,6 @@
   "version": "0.1.0",
   "description": "Backend API for Lyceum 64 preparation platform",
   "main": "dist/index.js",
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",

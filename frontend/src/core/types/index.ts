@@ -6,7 +6,7 @@ export type QuestionType =
   | 'detailed'
   | 'proof';
 
-export type ExamType = 'OGE' | 'EGE_PROFILE' | 'EGE_BASE' | 'REGULAR';
+export type ExamType = 'OGE' | 'EGE' | 'EGE_PROFILE' | 'EGE_BASE' | 'VPR' | 'REGULAR';
 
 export type Subject =
   | 'MATHEMATICS'
@@ -14,7 +14,9 @@ export type Subject =
   | 'CHEMISTRY'
   | 'BIOLOGY'
   | 'RUSSIAN'
-  | 'INFORMATICS';
+  | 'INFORMATICS'
+  | 'HISTORY'
+  | 'ENGLISH';
 
 export type Grade = 8 | 9 | 10 | 11;
 

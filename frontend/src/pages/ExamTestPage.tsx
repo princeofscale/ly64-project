@@ -5,8 +5,10 @@ import { getActiveTestService } from '../core/services';
 import { ConfettiService } from '../core/services/ConfettiService';
 import toast from 'react-hot-toast';
 import testService, { TestVariant } from '../services/testService';
+import { SUBJECT_LABELS } from '@lyceum64/shared';
 
 interface Task {
+  id: string;
   number: number;
   text: string;
   type: 'short' | 'choice' | 'matching' | 'multiple_choice' | 'detailed' | 'proof';
@@ -40,7 +42,10 @@ export default function ExamTestPage() {
   // Load test data from API
   useEffect(() => {
     const loadTestData = async () => {
+      console.log('📖 ExamTestPage loadTestData:', { grade, subject, egeType });
+
       if (!grade || !subject) {
+        console.warn('⚠️ Missing parameters:', { grade, subject });
         setError('Не указаны параметры теста');
         setLoading(false);
         return;
@@ -48,13 +53,26 @@ export default function ExamTestPage() {
 
       try {
         setLoading(true);
-        const examTypeMap: Record<string, string> = {
-          'profile': 'EGE',
-          'base': 'EGE',
-        };
 
-        const apiExamType = grade === 9 ? 'OGE' : (examTypeMap[egeType] || 'EGE');
-        const variant = await testService.getTestVariant('MATHEMATICS', apiExamType, grade);
+        // Определяем тип экзамена в зависимости от класса
+        let apiExamType: string;
+        if (grade === 8 || grade === 10) {
+          apiExamType = 'VPR';
+        } else if (grade === 9) {
+          apiExamType = 'OGE';
+        } else if (grade === 11) {
+          // Для математики используем EGE_BASE/EGE_PROFILE, для остальных предметов - EGE
+          if (subject === 'MATHEMATICS') {
+            apiExamType = egeType === 'base' ? 'EGE_BASE' : 'EGE_PROFILE';
+          } else {
+            apiExamType = 'EGE';
+          }
+        } else {
+          apiExamType = 'REGULAR';
+        }
+
+        console.log('🎯 Calling getTestVariant:', { subject, apiExamType, grade });
+        const variant = await testService.getTestVariant(subject, apiExamType, grade);
 
         if (variant) {
           setExamVariant(variant);
@@ -67,7 +85,7 @@ export default function ExamTestPage() {
           }
           setError(null);
         } else {
-          setError('Тест не найден. Данные загружаются из sdamgia_api...');
+          setError('Тест не найден. Убедитесь, что вы авторизованы.');
         }
       } catch (err) {
         console.error('Error loading test:', err);
@@ -85,16 +103,25 @@ export default function ExamTestPage() {
   const answeredCount = Object.keys(answers).filter(k => answers[parseInt(k)]?.trim()).length;
 
   const getExamTitle = () => {
-    if (grade === 9) return 'ОГЭ Математика';
-    if (grade === 11 && egeType === 'profile') return 'ЕГЭ Математика (Профильный)';
-    if (grade === 11 && egeType === 'base') return 'ЕГЭ Математика (Базовый)';
-    return 'Экзамен';
+    const subjectName = subject ? SUBJECT_LABELS[subject as keyof typeof SUBJECT_LABELS] || subject : 'Предмет';
+    if (grade === 8) return `ВПР ${subjectName}`;
+    if (grade === 9) return `ОГЭ ${subjectName}`;
+    if (grade === 10) return `ВПР ${subjectName}`;
+    if (grade === 11 && egeType === 'profile') return `ЕГЭ ${subjectName} (Профильный)`;
+    if (grade === 11 && egeType === 'base') return `ЕГЭ ${subjectName} (Базовый)`;
+    if (grade === 11) return `ЕГЭ ${subjectName}`;
+    return subjectName;
   };
 
   const getExamType = () => {
+    if (grade === 8 || grade === 10) return 'VPR' as const;
     if (grade === 9) return 'OGE' as const;
-    if (grade === 11 && egeType === 'profile') return 'EGE_PROFILE' as const;
-    if (grade === 11 && egeType === 'base') return 'EGE_BASE' as const;
+    if (grade === 11) {
+      if (subject === 'MATHEMATICS') {
+        return egeType === 'base' ? 'EGE_BASE' as const : 'EGE_PROFILE' as const;
+      }
+      return 'EGE' as const;
+    }
     return 'REGULAR' as const;
   };
 
@@ -106,8 +133,8 @@ export default function ExamTestPage() {
     if (!isTestRegistered && examVariant.duration) {
       activeTestService.startTest({
         examType: getExamType(),
-        subject: 'MATHEMATICS',
-        grade: grade as 9 | 11,
+        subject: subject || 'MATHEMATICS',
+        grade: grade as 8 | 9 | 10 | 11,
         title: getExamTitle(),
         startedAt: new Date().toISOString(),
         currentTaskIndex: 0,
@@ -238,7 +265,7 @@ export default function ExamTestPage() {
   };
 
   const getTimeColor = () => {
-    const totalTime = examVariant.duration * 60;
+    const totalTime = (examVariant?.duration || 180) * 60;
     if (timeLeft > totalTime * 0.5) return 'text-cyan-400';
     if (timeLeft > totalTime * 0.25) return 'text-yellow-400';
     return 'text-red-400';
@@ -262,10 +289,7 @@ export default function ExamTestPage() {
           <div className="text-6xl mb-4">⚠️</div>
           <p className="text-gray-400 font-sans mb-4">{error || 'Тест не найден'}</p>
           <p className="text-sm text-gray-500 mb-6">
-            Убедитесь, что данные загружены из sdamgia_api. Запустите скрипт:<br/>
-            <code className="bg-gray-800 px-2 py-1 rounded text-cyan-400 text-xs">
-              python3 backend/scripts/fetch_sdamgia_tests.py
-            </code>
+            Войдите в систему, чтобы начать прохождение теста.
           </p>
           <Button onClick={() => navigate('/dashboard')}>Вернуться к панели</Button>
         </div>

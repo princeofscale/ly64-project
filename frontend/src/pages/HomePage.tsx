@@ -165,6 +165,40 @@ function HomePage() {
   );
 }
 
+interface DirectionInfo {
+  fullDescription: string;
+  subjects: string[];
+  careers: string[];
+}
+
+const DIRECTION_INFO: Record<Direction, DirectionInfo> = {
+  [Direction.PROGRAMMING]: {
+    fullDescription: 'Направление для тех, кто хочет стать профессиональным разработчиком программного обеспечения. Изучение алгоритмов, структур данных, языков программирования и современных технологий разработки.',
+    subjects: ['Математика (профиль)', 'Информатика (профиль)', 'Физика'],
+    careers: ['Программист', 'Системный аналитик', 'DevOps-инженер', 'Data Scientist'],
+  },
+  [Direction.ROBOTICS]: {
+    fullDescription: 'Направление объединяет программирование, электронику и механику. Студенты создают роботов, автоматизированные системы и изучают искусственный интеллект.',
+    subjects: ['Математика (профиль)', 'Физика (профиль)', 'Информатика', 'Технология'],
+    careers: ['Инженер-робототехник', 'Конструктор', 'Инженер автоматизации', 'Разработчик IoT'],
+  },
+  [Direction.MEDICINE]: {
+    fullDescription: 'Подготовка к поступлению в медицинские вузы. Углублённое изучение биологии, химии и основ медицины. Практические занятия и знакомство с современными медицинскими технологиями.',
+    subjects: ['Биология (профиль)', 'Химия (профиль)', 'Русский язык', 'Математика'],
+    careers: ['Врач', 'Фармацевт', 'Биотехнолог', 'Медицинский исследователь'],
+  },
+  [Direction.BIOTECHNOLOGY]: {
+    fullDescription: 'Направление на стыке биологии и технологий. Генетика, молекулярная биология, биоинформатика и современные методы исследований живых систем.',
+    subjects: ['Биология (профиль)', 'Химия (профиль)', 'Математика', 'Информатика'],
+    careers: ['Генетик', 'Биоинженер', 'Биоинформатик', 'Эколог'],
+  },
+  [Direction.CULTURE]: {
+    fullDescription: 'Направление для творческих личностей. Изучение истории искусств, культурологии, дизайна и современных творческих практик.',
+    subjects: ['Литература (профиль)', 'История (профиль)', 'Русский язык', 'Обществознание'],
+    careers: ['Дизайнер', 'Искусствовед', 'Культуролог', 'Журналист'],
+  },
+};
+
 interface DirectionCardProps {
   direction: Direction;
   label: string;
@@ -172,8 +206,9 @@ interface DirectionCardProps {
   index: number;
 }
 
-function DirectionCard({ label, description, index }: DirectionCardProps) {
+function DirectionCard({ direction, label, description, index }: DirectionCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const icons = ['💻', '🤖', '🏥', '🧬', '🎨'];
   const gradients = [
@@ -190,41 +225,114 @@ function DirectionCard({ label, description, index }: DirectionCardProps) {
     'from-pink-500/50 to-red-500/50',
     'from-red-500/50 to-orange-500/50',
   ];
+  const accentColors = ['cyan', 'blue', 'purple', 'pink', 'red'];
+
+  const info = DIRECTION_INFO[direction];
 
   return (
-    <div
-      className="group relative contain-layout"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{ animationDelay: `${index * 100}ms` }}
-    >
-      <div className={`absolute -inset-0.5 bg-gradient-to-r ${borderGradients[index]} rounded-2xl opacity-0 group-hover:opacity-100 blur transition-opacity duration-500`} />
+    <>
+      <div
+        className="group relative contain-layout cursor-pointer"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={() => setShowModal(true)}
+        style={{ animationDelay: `${index * 100}ms` }}
+      >
+        <div className={`absolute -inset-0.5 bg-gradient-to-r ${borderGradients[index]} rounded-2xl opacity-0 group-hover:opacity-100 blur transition-opacity duration-500`} />
 
-      <div className={`relative bg-gradient-to-br ${gradients[index]} border border-gray-700/50 rounded-2xl p-8 transition-[border-color] duration-500 group-hover:border-transparent gpu-accelerated`}>
-        <div className={`absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+        <div className={`relative bg-gradient-to-br ${gradients[index]} border border-gray-700/50 rounded-2xl p-8 transition-[border-color] duration-500 group-hover:border-transparent gpu-accelerated`}>
+          <div className={`absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
-        <div className="relative z-10">
-          <div className="text-5xl mb-4 transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12 gpu-accelerated" style={{ willChange: 'transform' }}>
-            {icons[index]}
-          </div>
+          <div className="relative z-10">
+            <div className="text-5xl mb-4 transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12 gpu-accelerated" style={{ willChange: 'transform' }}>
+              {icons[index]}
+            </div>
 
-          <h3 className="text-2xl font-display font-bold text-white mb-3">
-            {label}
-          </h3>
+            <h3 className="text-2xl font-display font-bold text-white mb-3">
+              {label}
+            </h3>
 
-          <p className="text-gray-400 font-sans leading-relaxed">
-            {description}
-          </p>
+            <p className="text-gray-400 font-sans leading-relaxed">
+              {description}
+            </p>
 
-          <div className={`mt-6 flex items-center text-cyan-400 font-sans font-medium transition-transform duration-300 gpu-accelerated ${isHovered ? 'translate-x-2' : ''}`} style={{ willChange: 'transform' }}>
-            <span>Узнать больше</span>
-            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
+            <div className={`mt-6 flex items-center text-cyan-400 font-sans font-medium transition-transform duration-300 gpu-accelerated ${isHovered ? 'translate-x-2' : ''}`} style={{ willChange: 'transform' }}>
+              <span>Узнать больше</span>
+              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Модальное окно */}
+      {showModal && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className={`bg-gray-900 border border-gray-700 rounded-2xl p-8 max-w-lg w-full animate-scale-in`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <span className="text-5xl">{icons[index]}</span>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">{label}</h2>
+                  <p className="text-gray-400 text-sm">Направление обучения</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-500 hover:text-white transition-colors p-1"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <p className="text-gray-300 leading-relaxed mb-6">
+              {info.fullDescription}
+            </p>
+
+            <div className="mb-6">
+              <h3 className="text-cyan-400 font-semibold mb-3 flex items-center gap-2">
+                <span>📚</span> Профильные предметы
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {info.subjects.map((subject, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1.5 bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 rounded-lg text-sm"
+                  >
+                    {subject}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-purple-400 font-semibold mb-3 flex items-center gap-2">
+                <span>💼</span> Возможные профессии
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {info.careers.map((career, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1.5 bg-purple-500/20 border border-purple-500/30 text-purple-300 rounded-lg text-sm"
+                  >
+                    {career}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

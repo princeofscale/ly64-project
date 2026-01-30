@@ -45,13 +45,15 @@ class TestService {
     isDiagnostic?: boolean;
   }): Promise<Test[]> {
     try {
+      console.log('🌐 getTests API call with params:', params);
       const response = await testApi.getTests(params);
+      console.log('📡 getTests API response:', response);
       if (response.success && response.data) {
         return response.data;
       }
       return [];
     } catch (error) {
-      console.error('Error fetching tests:', error);
+      console.error('❌ Error fetching tests:', error);
       return [];
     }
   }
@@ -89,9 +91,12 @@ class TestService {
   ): Promise<TestVariant | null> {
     try {
       const targetGrade = grade ? `GRADE_${grade}` : undefined;
+      console.log('🔍 getTestVariant called:', { subject, examType, grade, targetGrade });
       const tests = await this.getTests({ subject, examType });
+      console.log('📋 Tests received:', tests);
 
       if (tests.length === 0) {
+        console.warn('⚠️ No tests found for', { subject, examType });
         return null;
       }
 
@@ -159,17 +164,43 @@ class TestService {
       return orderA - orderB;
     });
 
-    const questions: TestQuestion[] = sortedQuestions.map((q: any, index: number) => ({
-      id: q.id,
-      number: index + 1,
-      text: q.question,
-      type: this.mapQuestionType(q.type),
-      options: q.options ? JSON.parse(q.options) : undefined,
-      correctAnswer: q.correctAnswer,
-      points: 1, // Default points, can be calculated based on difficulty
-      topic: q.topic || 'Общая тема',
-      explanation: q.explanation,
-    }));
+    const questions: TestQuestion[] = sortedQuestions.map((q: any, index: number) => {
+      // Parse options - could be string or already parsed array
+      let options: string[] | undefined;
+      if (q.options) {
+        if (typeof q.options === 'string') {
+          try {
+            options = JSON.parse(q.options);
+          } catch {
+            options = [q.options];
+          }
+        } else if (Array.isArray(q.options)) {
+          options = q.options;
+        }
+      }
+
+      // Parse correctAnswer - could be string or JSON string
+      let correctAnswer = q.correctAnswer;
+      if (typeof correctAnswer === 'string' && correctAnswer.startsWith('"')) {
+        try {
+          correctAnswer = JSON.parse(correctAnswer);
+        } catch {
+          // Keep as is
+        }
+      }
+
+      return {
+        id: q.id,
+        number: index + 1,
+        text: q.question,
+        type: this.mapQuestionType(q.type),
+        options,
+        correctAnswer,
+        points: 1, // Default points, can be calculated based on difficulty
+        topic: q.topic || 'Общая тема',
+        explanation: q.explanation,
+      };
+    });
 
     return {
       id: apiTest.id,
@@ -190,7 +221,8 @@ class TestService {
   private mapQuestionType(backendType: string): TestQuestion['type'] {
     const typeMap: Record<string, TestQuestion['type']> = {
       'SHORT_ANSWER': 'short',
-      'MULTIPLE_CHOICE': 'choice',
+      'SINGLE_CHOICE': 'choice',
+      'MULTIPLE_CHOICE': 'multiple_choice',
       'MATCHING': 'matching',
       'DETAILED': 'detailed',
       'PROOF': 'proof',

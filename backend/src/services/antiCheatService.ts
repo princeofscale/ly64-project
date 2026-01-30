@@ -1,4 +1,4 @@
-import prisma from '../config/database';
+import { prisma } from '../config/database';
 
 const MIN_ANSWER_TIME_MS = 2000;
 const SUSPICIOUS_FAST_ANSWERS_THRESHOLD = 3;
@@ -47,7 +47,6 @@ export class AntiCheatService {
       difficulty: tq.question.difficulty,
       options: tq.question.options ? JSON.parse(tq.question.options) : null,
       topic: tq.question.topic,
-      order: tq.order, // Preserve original order from sdamgia
     }));
 
     if (test.randomizeQuestions) {
@@ -128,46 +127,25 @@ export class AntiCheatService {
     const analysis = this.analyzeAnswerTimes(answerTimes);
 
     let correctCount = 0;
-    const questionResults = [];
+    for (const answer of answers) {
+      const testQuestion = test.questions.find(
+        (tq) => tq.question.id === answer.questionId
+      );
+      if (!testQuestion) continue;
 
-    // Sort questions by order to match frontend display
-    const sortedQuestions = test.questions.sort((a, b) => a.order - b.order);
+      const correctAnswer = JSON.parse(testQuestion.question.correctAnswer);
 
-    for (const testQuestion of sortedQuestions) {
-      const answer = answers.find((a) => a.questionId === testQuestion.question.id);
-
-      // Try to parse correctAnswer as JSON, fallback to raw string
-      let correctAnswer: any;
-      try {
-        correctAnswer = JSON.parse(testQuestion.question.correctAnswer);
-      } catch {
-        correctAnswer = testQuestion.question.correctAnswer;
+      if (Array.isArray(answer.answer) && Array.isArray(correctAnswer)) {
+        const isCorrect =
+          answer.answer.length === correctAnswer.length &&
+          answer.answer.every((a) => correctAnswer.includes(a));
+        if (isCorrect) correctCount++;
+      } else if (
+        String(answer.answer).toLowerCase().trim() ===
+        String(correctAnswer).toLowerCase().trim()
+      ) {
+        correctCount++;
       }
-
-      let isCorrect = false;
-      if (answer) {
-        if (Array.isArray(answer.answer) && Array.isArray(correctAnswer)) {
-          isCorrect =
-            answer.answer.length === correctAnswer.length &&
-            answer.answer.every((a) => correctAnswer.includes(a));
-        } else {
-          isCorrect =
-            String(answer.answer).toLowerCase().trim() ===
-            String(correctAnswer).toLowerCase().trim();
-        }
-      }
-
-      if (isCorrect) correctCount++;
-
-      questionResults.push({
-        questionId: testQuestion.question.id,
-        number: testQuestion.order + 1,
-        userAnswer: answer?.answer || null,
-        correctAnswer,
-        isCorrect,
-        points: isCorrect ? 1 : 0, // TODO: get actual points from question
-        topic: testQuestion.question.topic,
-      });
     }
 
     const score = Math.round((correctCount / test.questions.length) * 100);
@@ -192,7 +170,6 @@ export class AntiCheatService {
       correctCount,
       totalQuestions: test.questions.length,
       analysis: analysis.isSuspicious ? analysis : null,
-      questionResults, // Detailed results for each question
     };
   }
 }

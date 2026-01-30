@@ -1,4 +1,4 @@
-import prisma from '../config/database';
+import { prisma } from '../config/database';
 import achievementService from './achievementService';
 
 const REQUIRED_SUBJECTS = ['RUSSIAN', 'MATHEMATICS'];
@@ -6,9 +6,9 @@ const REQUIRED_SUBJECTS = ['RUSSIAN', 'MATHEMATICS'];
 const DIRECTION_SUBJECTS: Record<string, string[]> = {
   PROGRAMMING: ['PHYSICS', 'INFORMATICS'],
   ROBOTICS: ['PHYSICS', 'INFORMATICS'],
-  MEDICINE: ['BIOLOGY'],
-  BIOTECHNOLOGY: ['BIOLOGY'],
-  CULTURE: ['HISTORY', 'ENGLISH'],
+  MEDICINE: ['CHEMISTRY', 'BIOLOGY'],
+  BIOTECHNOLOGY: ['CHEMISTRY', 'BIOLOGY'],
+  CULTURE: ['HISTORY'],
 };
 
 const LEVEL_THRESHOLDS = {
@@ -55,6 +55,13 @@ const TOPICS_BY_SUBJECT: Record<string, { topic: string; hours: number }[]> = {
     { topic: 'Экология', hours: 4 },
     { topic: 'Анатомия человека', hours: 10 },
   ],
+  CHEMISTRY: [
+    { topic: 'Строение атома', hours: 6 },
+    { topic: 'Химическая связь', hours: 6 },
+    { topic: 'Неорганическая химия', hours: 10 },
+    { topic: 'Органическая химия', hours: 12 },
+    { topic: 'Химические реакции', hours: 8 },
+  ],
   HISTORY: [
     { topic: 'Древняя Русь', hours: 6 },
     { topic: 'Россия XVI-XVIII вв', hours: 8 },
@@ -71,12 +78,75 @@ const TOPICS_BY_SUBJECT: Record<string, { topic: string; hours: number }[]> = {
   ],
 };
 
+// Рекомендации по темам
+const TOPIC_RECOMMENDATIONS: Record<string, Record<string, string>> = {
+  RUSSIAN: {
+    'Орфография': 'Повтори правила правописания корней с чередованием, приставок ПРЕ-/ПРИ-, Н и НН в разных частях речи. Практикуй диктанты.',
+    'Пунктуация': 'Обрати внимание на знаки препинания при обособленных членах, в сложных предложениях. Разбирай предложения по составу.',
+    'Грамматика': 'Повтори части речи и их морфологические признаки. Делай морфологический разбор слов.',
+    'Лексика': 'Расширяй словарный запас, изучай синонимы, антонимы, фразеологизмы. Читай художественную литературу.',
+    'Речь и текст': 'Практикуй написание сочинений, анализируй тексты разных стилей. Учись выделять главную мысль.',
+  },
+  MATHEMATICS: {
+    'Уравнения': 'Повтори методы решения линейных и квадратных уравнений. Практикуй решение систем уравнений.',
+    'Неравенства': 'Изучи метод интервалов, повтори свойства неравенств. Решай задачи с модулем.',
+    'Алгебра': 'Повтори формулы сокращённого умножения, работу с дробями и степенями.',
+    'Геометрия': 'Выучи основные теоремы планиметрии, признаки равенства и подобия треугольников.',
+    'Вероятность': 'Изучи основные формулы комбинаторики и теории вероятностей.',
+    'Тригонометрия': 'Выучи значения тригонометрических функций, основные тождества.',
+  },
+  PHYSICS: {
+    'Механика': 'Повтори законы Ньютона, формулы кинематики. Решай задачи на движение тел.',
+    'Электричество': 'Изучи закон Ома, правила Кирхгофа. Практикуй расчёт электрических цепей.',
+    'Оптика': 'Повтори законы отражения и преломления, формулу тонкой линзы.',
+    'Термодинамика': 'Изучи газовые законы, первое начало термодинамики.',
+    'Колебания': 'Повтори формулы гармонических колебаний, понятия периода и частоты.',
+  },
+  INFORMATICS: {
+    'Системы счисления': 'Практикуй перевод чисел между системами счисления. Выучи алгоритмы перевода.',
+    'Логика': 'Повтори таблицы истинности, законы алгебры логики. Решай логические выражения.',
+    'Алгоритмы': 'Изучи основные алгоритмы сортировки и поиска. Оценивай сложность алгоритмов.',
+    'Программирование': 'Практикуй написание кода, изучи основные структуры данных.',
+    'Информация': 'Повтори единицы измерения информации, формулы Хартли и Шеннона.',
+  },
+  BIOLOGY: {
+    'Клетка': 'Изучи строение клетки, функции органоидов. Сравни растительную и животную клетки.',
+    'Генетика': 'Повтори законы Менделя, решай генетические задачи. Изучи типы наследования.',
+    'Фотосинтез': 'Разбери фазы фотосинтеза, изучи роль хлорофилла.',
+    'Анатомия': 'Повтори системы органов человека, их функции и взаимосвязь.',
+    'Экология': 'Изучи экологические факторы, пищевые цепи, круговорот веществ.',
+  },
+  CHEMISTRY: {
+    'Строение атома': 'Повтори строение электронных оболочек, периодический закон.',
+    'Химическая связь': 'Изучи типы химических связей, их характеристики.',
+    'Химические реакции': 'Практикуй уравнивание реакций, изучи типы реакций.',
+    'Органическая химия': 'Повтори классы органических соединений, их свойства.',
+    'Основы': 'Выучи химические символы, валентность элементов, номенклатуру.',
+  },
+  HISTORY: {
+    'Древняя Русь': 'Изучи основные события IX-XII веков, первых русских князей.',
+    'XVI-XVIII вв': 'Повтори эпоху Ивана Грозного, Смутное время, реформы Петра I.',
+    'XIX век': 'Изучи реформы Александра II, общественные движения.',
+    'XX век': 'Повтори революции, Великую Отечественную войну, распад СССР.',
+  },
+};
+
+// Общие рекомендации по уровню
+const LEVEL_RECOMMENDATIONS: Record<string, string> = {
+  BEGINNER: 'Начни с базовых понятий и определений. Используй учебники и видеоуроки для изучения основ.',
+  INTERMEDIATE: 'У тебя хорошая база! Фокусируйся на сложных темах и практикуй решение задач.',
+  ADVANCED: 'Отличный уровень! Углубляй знания, решай олимпиадные задачи.',
+};
+
 export class DiagnosticService {
-  getSubjectsForUser(direction?: string): string[] {
+  getSubjectsForUser(direction?: string, grade?: number): string[] {
     const subjects = [...REQUIRED_SUBJECTS];
+
+    // Добавляем предметы по направлению для всех классов
     if (direction && DIRECTION_SUBJECTS[direction]) {
       subjects.push(...DIRECTION_SUBJECTS[direction]);
     }
+
     return [...new Set(subjects)];
   }
 
@@ -106,6 +176,10 @@ export class DiagnosticService {
       },
     });
 
+    // Проверяем и обновляем флаг завершения диагностики
+    this.markDiagnosticCompleted(userId)
+      .catch((err) => console.error('Error marking diagnostic completed:', err));
+
     achievementService
       .checkAndUnlockAchievements(userId)
       .catch((err) => console.error('Error unlocking achievements:', err));
@@ -119,9 +193,9 @@ export class DiagnosticService {
     });
   }
 
-  async generateLearningPlan(userId: string, direction?: string) {
+  async generateLearningPlan(userId: string, direction?: string, grade?: number) {
     const diagnosticResults = await this.getUserDiagnosticResults(userId);
-    const subjects = this.getSubjectsForUser(direction);
+    const subjects = this.getSubjectsForUser(direction, grade);
 
     const items: {
       subject: string;
@@ -233,12 +307,119 @@ export class DiagnosticService {
     return this.getLearningPlan(userId);
   }
 
-  async checkDiagnosticCompleted(userId: string, direction?: string): Promise<boolean> {
-    const subjects = this.getSubjectsForUser(direction);
+  async checkDiagnosticCompleted(userId: string, direction?: string, grade?: number): Promise<boolean> {
+    const subjects = this.getSubjectsForUser(direction, grade);
     const results = await this.getUserDiagnosticResults(userId);
     const completedSubjects = results.map((r) => r.subject);
 
     return subjects.every((s) => completedSubjects.includes(s));
+  }
+
+  async generateRecommendations(userId: string) {
+    const results = await this.getUserDiagnosticResults(userId);
+    const recommendations: {
+      subject: string;
+      level: string;
+      score: number;
+      generalAdvice: string;
+      weakTopics: { topic: string; advice: string }[];
+      priority: 'high' | 'medium' | 'low';
+    }[] = [];
+
+    for (const result of results) {
+      const details = result.details ? JSON.parse(result.details as string) : null;
+      const weakTopics: { topic: string; advice: string }[] = [];
+
+      // Анализируем ошибки по темам из details
+      if (details?.wrongAnswers && Array.isArray(details.wrongAnswers)) {
+        const topicErrors: Record<string, number> = {};
+
+        for (const wrong of details.wrongAnswers) {
+          if (wrong.topic) {
+            topicErrors[wrong.topic] = (topicErrors[wrong.topic] || 0) + 1;
+          }
+        }
+
+        // Сортируем темы по количеству ошибок
+        const sortedTopics = Object.entries(topicErrors)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 3); // Топ-3 проблемных темы
+
+        for (const [topic] of sortedTopics) {
+          const advice = TOPIC_RECOMMENDATIONS[result.subject]?.[topic] ||
+            `Повтори тему "${topic}" - здесь были допущены ошибки.`;
+          weakTopics.push({ topic, advice });
+        }
+      }
+
+      // Если нет детальной информации, даём общие рекомендации по уровню
+      if (weakTopics.length === 0 && result.level !== 'ADVANCED') {
+        const subjectTopics = TOPIC_RECOMMENDATIONS[result.subject];
+        if (subjectTopics) {
+          const topicEntries = Object.entries(subjectTopics).slice(0, 2);
+          for (const [topic, advice] of topicEntries) {
+            weakTopics.push({ topic, advice });
+          }
+        }
+      }
+
+      // Определяем приоритет
+      let priority: 'high' | 'medium' | 'low' = 'low';
+      if (result.level === 'BEGINNER') priority = 'high';
+      else if (result.level === 'INTERMEDIATE') priority = 'medium';
+
+      recommendations.push({
+        subject: result.subject,
+        level: result.level,
+        score: result.score,
+        generalAdvice: LEVEL_RECOMMENDATIONS[result.level] || '',
+        weakTopics,
+        priority,
+      });
+    }
+
+    // Сортируем по приоритету
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    recommendations.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+    return recommendations;
+  }
+
+  async markDiagnosticCompleted(userId: string): Promise<void> {
+    // Получаем данные пользователя
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        desiredDirection: true,
+        currentGrade: true,
+        diagnosticCompleted: true,
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Если уже завершена, ничего не делаем
+    if (user.diagnosticCompleted) {
+      return;
+    }
+
+    // Проверяем завершение всех необходимых тестов
+    const isCompleted = await this.checkDiagnosticCompleted(
+      userId,
+      user.desiredDirection || undefined,
+      user.currentGrade
+    );
+
+    // Если все тесты пройдены, обновляем флаг
+    if (isCompleted) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { diagnosticCompleted: true },
+      });
+      console.log(`✅ User ${userId} completed diagnostic`);
+    }
   }
 }
 

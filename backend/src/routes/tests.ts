@@ -1,11 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { authenticateToken, AuthRequest } from '../middlewares/auth';
-import prisma from '../config/database';
+import { prisma } from '../config/database';
 import antiCheatService from '../services/antiCheatService';
 
 const router = Router();
 
-router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+// Public endpoint - no auth required to list tests
+router.get('/', async (req: Request, res: Response) => {
+  console.log('📋 GET /tests request:', req.query);
   try {
     const { subject, examType, isDiagnostic } = req.query;
 
@@ -36,6 +38,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 });
 
 router.get('/:testId/start', authenticateToken, async (req: AuthRequest, res: Response) => {
+  console.log('🚀 GET /tests/:testId/start request:', req.params.testId, 'user:', req.user?.id);
   try {
     const { testId } = req.params;
 

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../config/database';
 import achievementService from '../services/achievementService';
+import errorAnalysisService from '../services/errorAnalysisService';
 import { AppError } from '../middlewares/errorHandler';
 
 export async function getProfile(req: Request, res: Response, next: NextFunction) {
@@ -941,6 +942,26 @@ export async function getUserRank(req: Request, res: Response, next: NextFunctio
         bestScore: userBestScore,
         achievementsCount: userAchievements,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Детальный анализ ошибок
+export async function getErrorAnalysis(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      throw new AppError('Не авторизован', 401);
+    }
+
+    const analysis = await errorAnalysisService.getDetailedAnalysis(userId);
+
+    res.json({
+      success: true,
+      data: analysis,
     });
   } catch (error) {
     next(error);

@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { seedAchievements } from './seeds/achievements';
 import { seedDiagnosticTests } from './seeds/diagnosticTests';
+import { seedRegularTests } from './seeds/regularTests';
 import { seedTestUser } from './seeds/testUser';
 
 const prisma = new PrismaClient();
@@ -11,6 +12,7 @@ async function main() {
   try {
     await seedAchievements();
     await seedDiagnosticTests();
+    await seedRegularTests();
     await seedTestUser();
 
     console.log('\nDatabase seeding completed successfully!');

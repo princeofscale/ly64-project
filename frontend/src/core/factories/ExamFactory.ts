@@ -7,6 +7,10 @@ import {
   RegularExam,
 } from '../models';
 
+import { ogeMathVariant } from '../../data/oge-math-variant';
+import { egeMathProfile } from '../../data/ege-math-profile';
+import { egeMathBase } from '../../data/ege-math-base';
+
 class ExamDataRegistry {
   private static instance: ExamDataRegistry;
   private examData: Map<string, ExamDTO> = new Map();
@@ -23,8 +27,9 @@ class ExamDataRegistry {
   }
 
   private registerDefaultExams(): void {
-    // Default exams are now loaded from API via testService
-    // No hardcoded data needed
+    this.register('MATHEMATICS', 9, 'OGE', ogeMathVariant as ExamDTO);
+    this.register('MATHEMATICS', 11, 'EGE_PROFILE', egeMathProfile as ExamDTO);
+    this.register('MATHEMATICS', 11, 'EGE_BASE', egeMathBase as ExamDTO);
   }
 
   private createKey(subject: Subject, grade: Grade, examType: ExamType): string {

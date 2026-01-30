@@ -45,7 +45,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (stats) {
       const duration = 1000;
-      const steps = 20; // Уменьшено с 30 до 20 для производительности
+      const steps = 30;
       const stepDuration = duration / steps;
 
       let currentStep = 0;
@@ -126,11 +126,10 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20 gpu-accelerated" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
 
-      {/* Уменьшили blur со 120px до 80px для производительности */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/15 rounded-full blur-[80px] animate-pulse gpu-accelerated" style={{ willChange: 'opacity' }} />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/15 rounded-full blur-[80px] animate-pulse gpu-accelerated" style={{ animationDelay: '1s', willChange: 'opacity' }} />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
         <div className="mb-12 animate-fade-in">

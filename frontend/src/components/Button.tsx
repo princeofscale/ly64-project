@@ -13,7 +13,7 @@ export function Button({
   className = '',
   ...props
 }: ButtonProps) {
-  const baseStyles = 'px-6 py-3 rounded-xl font-semibold transition-[transform,box-shadow,background-color,opacity] duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 gpu-accelerated';
+  const baseStyles = 'px-6 py-3 rounded-xl font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95';
 
   const variantStyles = {
     primary: 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 focus:ring-blue-500 shadow-md hover:shadow-lg disabled:hover:scale-100',
@@ -25,7 +25,6 @@ export function Button({
     <button
       className={`${baseStyles} ${variantStyles[variant]} ${className}`}
       disabled={disabled || isLoading}
-      style={{ willChange: isLoading ? 'auto' : 'transform' }}
       {...props}
     >
       {isLoading ? (

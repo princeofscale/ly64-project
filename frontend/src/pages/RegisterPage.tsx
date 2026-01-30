@@ -42,9 +42,6 @@ export default function RegisterPage() {
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentSearch, setStudentSearch] = useState('');
   const [showStudentDropdown, setShowStudentDropdown] = useState(false);
-  const [studentNotFound, setStudentNotFound] = useState(false);
-  const [studentFound, setStudentFound] = useState(false);
-  const [similarStudents, setSimilarStudents] = useState<string[]>([]);
 
   const [formData, setFormData] = useState<RegisterFormData>({
     email: '',
@@ -83,45 +80,6 @@ export default function RegisterPage() {
     fetchStudents();
   }, []);
 
-  // Автоматический поиск студента по имени из шага 1
-  useEffect(() => {
-    if (formData.status === 'STUDENT' && formData.name && students.length > 0) {
-      const nameFromStep1 = formData.name.trim().toLowerCase();
-
-      // Умный поиск: ищем студента, у которого все слова из введенного имени присутствуют в полном ФИО
-      const searchWords = nameFromStep1.split(/\s+/).filter(word => word.length > 0);
-
-      const foundStudent = students.find(student => {
-        const studentNameLower = student.toLowerCase();
-
-        // Проверяем, что все слова из введенного имени присутствуют в ФИО студента
-        return searchWords.every(word => studentNameLower.includes(word));
-      });
-
-      if (foundStudent) {
-        setStudentFound(true);
-        setStudentNotFound(false);
-        setStudentSearch(foundStudent);
-        setSimilarStudents([]);
-      } else {
-        // Ищем похожих студентов (у которых совпадает хотя бы одно слово)
-        const similar = students.filter(student => {
-          const studentNameLower = student.toLowerCase();
-          return searchWords.some(word => studentNameLower.includes(word));
-        }).slice(0, 5); // Показываем максимум 5 похожих
-
-        setStudentFound(false);
-        setStudentNotFound(true);
-        setStudentSearch('');
-        setSimilarStudents(similar);
-      }
-    } else {
-      setStudentFound(false);
-      setStudentNotFound(false);
-      setSimilarStudents([]);
-    }
-  }, [formData.status, formData.name, students]);
-
   const filteredStudents = students.filter((student) =>
     student.toLowerCase().includes(studentSearch.toLowerCase())
   ).slice(0, 10);
@@ -143,6 +101,11 @@ export default function RegisterPage() {
     const localPart = email.split('@')[0];
     if (localPart.length < 3) {
       return 'Часть email до @ должна содержать минимум 3 символа';
+    }
+
+    const randomPattern = /^[a-z]{10,}$/i;
+    if (randomPattern.test(localPart.replace(/[0-9._+-]/g, ''))) {
+      return 'Email выглядит подозрительно. Используйте настоящий адрес';
     }
 
     return '';
@@ -227,19 +190,9 @@ export default function RegisterPage() {
       }
     }
     else if (step === 2) {
-      if (formData.status === 'STUDENT') {
-        if (!studentFound && !studentSearch) {
-          toast.error('Ваше имя не найдено в списке учащихся лицея');
-          return false;
-        }
-        if (studentNotFound) {
-          toast.error('Имя не найдено в списке учащихся. Вернитесь на шаг 1 и проверьте правильность написания, или выберите статус "Хочу поступить"');
-          return false;
-        }
-        if (!studentFound) {
-          toast.error('Пожалуйста, найдите и выберите своё имя из списка');
-          return false;
-        }
+      if (formData.status === 'STUDENT' && !formData.name) {
+        toast.error('Выберите своё имя из списка учащихся');
+        return false;
       }
     }
     else if (step === 4 && formData.status === 'APPLICANT') {
@@ -318,11 +271,12 @@ export default function RegisterPage() {
         return;
       }
 
-      toast.success('Регистрация прошла успешно! Добро пожаловать!');
+      toast.success('Регистрация успешна!');
+      toast.info('Далее: входная диагностика', { duration: 3000 });
 
       useAuthStore.getState().login(data.data.user, data.data.token);
 
-      setTimeout(() => navigate('/diagnostic'), 500);
+      setTimeout(() => navigate('/diagnostic'), 1500);
     } catch (err: any) {
       toast.error(err.message || 'Произошла ошибка при регистрации');
     } finally {
@@ -335,14 +289,13 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden py-12 px-4">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20 gpu-accelerated" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
 
-      {/* Уменьшили blur со 120px до 80px для производительности */}
-      <div className="absolute top-20 right-10 w-96 h-96 bg-cyan-500/15 rounded-full blur-[80px] animate-pulse gpu-accelerated" style={{ willChange: 'opacity' }} />
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-500/15 rounded-full blur-[80px] animate-pulse gpu-accelerated" style={{ animationDelay: '1s', willChange: 'opacity' }} />
+      <div className="absolute top-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
 
       <div className="relative z-10 max-w-2xl mx-auto">
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 border border-gray-700/50 rounded-3xl p-8 shadow-[0_0_50px_rgba(6,182,212,0.1)] animate-slide-up contain-layout gpu-accelerated">
+        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-[0_0_50px_rgba(6,182,212,0.1)] animate-slide-up">
           <div className="text-center mb-8">
             <h1 className="text-5xl font-display font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
               Регистрация
@@ -549,161 +502,46 @@ export default function RegisterPage() {
               {formData.status === 'STUDENT' && (
                 <div className="relative animate-scale-in">
                   <label className="block text-sm font-medium text-gray-400 mb-2 font-sans">
-                    Проверка в списке учащихся
+                    Выберите своё имя из списка учащихся
                   </label>
-
-                  {studentsLoading && (
-                    <div className="p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-center">
-                      <div className="flex items-center justify-center gap-2 text-gray-400">
-                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                        </svg>
-                        <span className="font-sans">Загрузка списка учащихся...</span>
-                      </div>
+                  <input
+                    type="text"
+                    value={studentSearch}
+                    onChange={(e) => {
+                      setStudentSearch(e.target.value);
+                      updateField('name', '');
+                      setShowStudentDropdown(true);
+                    }}
+                    onFocus={() => setShowStudentDropdown(true)}
+                    placeholder={studentsLoading ? 'Загрузка списка...' : 'Начните вводить ФИО...'}
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all font-sans"
+                    disabled={studentsLoading}
+                  />
+                  {showStudentDropdown && filteredStudents.length > 0 && (
+                    <div className="absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded-xl shadow-xl max-h-60 overflow-y-auto backdrop-blur-xl">
+                      {filteredStudents.map((student, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => {
+                            updateField('name', student);
+                            setStudentSearch(student);
+                            setShowStudentDropdown(false);
+                          }}
+                          className="w-full px-4 py-3 text-left text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-400 focus:bg-cyan-500/10 focus:text-cyan-400 focus:outline-none transition-colors font-sans"
+                        >
+                          {student}
+                        </button>
+                      ))}
                     </div>
                   )}
-
-                  {!studentsLoading && studentFound && (
-                    <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl backdrop-blur-sm">
-                      <div className="flex items-start gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-green-400 flex-shrink-0">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-green-300 font-sans">Ваше имя найдено в списке учащихся!</p>
-                          <p className="text-sm text-green-400 mt-1 font-sans">
-                            <span className="font-medium">Имя:</span> {studentSearch}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-2 font-sans">
-                            Вы можете продолжить регистрацию
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {!studentsLoading && studentNotFound && (
-                    <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl backdrop-blur-sm">
-                      <div className="flex items-start gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-yellow-400 flex-shrink-0">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                        </svg>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-yellow-300 font-sans">Точное совпадение не найдено</p>
-                          <p className="text-sm text-yellow-400 mt-1 font-sans">
-                            Имя "<span className="font-medium">{formData.name}</span>" не найдено в точном формате
-                          </p>
-
-                          {similarStudents.length > 0 && (
-                            <div className="mt-3">
-                              <p className="text-xs text-gray-400 mb-2 font-sans">
-                                <strong>Возможно, вы имели в виду:</strong>
-                              </p>
-                              <div className="space-y-1">
-                                {similarStudents.map((student, idx) => (
-                                  <button
-                                    key={idx}
-                                    type="button"
-                                    onClick={() => {
-                                      updateField('name', student);
-                                      setStudentSearch(student);
-                                      setStudentFound(true);
-                                      setStudentNotFound(false);
-                                      setSimilarStudents([]);
-                                      toast.success(`Выбран: ${student}`);
-                                    }}
-                                    className="w-full px-3 py-2 bg-gray-800/70 hover:bg-cyan-500/20 border border-gray-700 hover:border-cyan-500/50 rounded-lg text-left text-sm text-gray-300 hover:text-cyan-400 transition-all font-sans flex items-center gap-2"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                    </svg>
-                                    <span>{student}</span>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {similarStudents.length === 0 && (
-                            <div className="mt-3">
-                              <p className="text-xs text-gray-400 font-sans">
-                                <strong>Возможные причины:</strong>
-                              </p>
-                              <ul className="text-xs text-gray-400 mt-1 space-y-1 font-sans list-disc list-inside">
-                                <li>Вы еще не являетесь учащимся лицея</li>
-                                <li>Имя написано с ошибкой</li>
-                                <li>Данные не обновлены в системе</li>
-                              </ul>
-                            </div>
-                          )}
-
-                          <div className="mt-4 flex gap-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setStep(1);
-                                toast('Проверьте правильность написания имени и фамилии', { icon: 'ℹ️' });
-                              }}
-                              className="text-xs px-3 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-lg transition-colors font-sans"
-                            >
-                              Вернуться и исправить
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                updateField('status', 'APPLICANT');
-                                toast('Выбран статус "Хочу поступить"', { icon: '✅' });
-                              }}
-                              className="text-xs px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition-colors font-sans"
-                            >
-                              Выбрать "Хочу поступить"
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {!studentsLoading && !studentFound && (
-                    <div className="mt-4">
-                      <p className="text-xs text-gray-500 mb-2 font-sans">
-                        Если ваше имя не найдено автоматически, вы можете найти его вручную:
-                      </p>
-                      <input
-                        type="text"
-                        value={studentSearch}
-                        onChange={(e) => {
-                          setStudentSearch(e.target.value);
-                          setShowStudentDropdown(true);
-                          setStudentFound(false);
-                          setStudentNotFound(false);
-                        }}
-                        onFocus={() => setShowStudentDropdown(true)}
-                        placeholder="Начните вводить ФИО..."
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all font-sans"
-                      />
-                      {showStudentDropdown && filteredStudents.length > 0 && (
-                        <div className="absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded-xl shadow-xl max-h-60 overflow-y-auto backdrop-blur-xl">
-                          {filteredStudents.map((student, index) => (
-                            <button
-                              key={index}
-                              type="button"
-                              onClick={() => {
-                                updateField('name', student);
-                                setStudentSearch(student);
-                                setShowStudentDropdown(false);
-                                setStudentFound(true);
-                                setStudentNotFound(false);
-                              }}
-                              className="w-full px-4 py-3 text-left text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-400 focus:bg-cyan-500/10 focus:text-cyan-400 focus:outline-none transition-colors font-sans"
-                            >
-                              {student}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                  {formData.name && formData.status === 'STUDENT' && (
+                    <p className="mt-2 text-sm text-green-400 font-sans flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Выбрано: {formData.name}
+                    </p>
                   )}
                 </div>
               )}
