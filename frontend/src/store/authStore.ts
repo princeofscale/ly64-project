@@ -6,6 +6,7 @@ interface User {
   email: string;
   name: string;
   username: string;
+  avatar?: string;
   desiredDirection?: string;
   diagnosticCompleted?: boolean;
   role?: string;

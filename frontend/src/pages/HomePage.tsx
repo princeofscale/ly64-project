@@ -8,18 +8,15 @@ function HomePage() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
 
-  // Фиксируем приветствие и мотивацию при первом рендере
   const greeting = useMemo(() => getGreetingWithName(user?.name), [user?.name]);
   const motivation = useMemo(() => getRandomMotivation(), []);
 
   return (
     <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden">
-      {/* Статичный градиент вместо динамического */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-30 gpu-accelerated" />
 
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20 gpu-accelerated" />
 
-      {/* Уменьшили blur со 120px до 80px для производительности */}
       <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-[80px] animate-pulse gpu-accelerated" style={{ willChange: 'opacity' }} />
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[80px] animate-pulse gpu-accelerated" style={{ animationDelay: '1s', willChange: 'opacity' }} />
 
@@ -27,7 +24,7 @@ function HomePage() {
         <div className="text-center mb-20 animate-fade-in">
           <div className="inline-block mb-6">
             <span className="px-4 py-2 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 rounded-full text-cyan-400 text-sm font-mono font-medium backdrop-blur-sm">
-              {LYCEUM_INFO.name}
+              ГАПОУ СО «Саратовский областной образовательный комплекс — Политехнический колледж — Лицей-интернат 64»
             </span>
           </div>
 
@@ -174,18 +171,18 @@ interface DirectionInfo {
 const DIRECTION_INFO: Record<Direction, DirectionInfo> = {
   [Direction.PROGRAMMING]: {
     fullDescription: 'Направление для тех, кто хочет стать профессиональным разработчиком программного обеспечения. Изучение алгоритмов, структур данных, языков программирования и современных технологий разработки.',
-    subjects: ['Математика (профиль)', 'Информатика (профиль)', 'Физика'],
-    careers: ['Программист', 'Системный аналитик', 'DevOps-инженер', 'Data Scientist'],
+    subjects: ['Математика (профиль)', 'Информатика (профиль)', 'Физика (профиль)'],
+    careers: ['Программист', 'Системный аналитик', 'Python разработчик', 'Data Scientist'],
   },
   [Direction.ROBOTICS]: {
-    fullDescription: 'Направление объединяет программирование, электронику и механику. Студенты создают роботов, автоматизированные системы и изучают искусственный интеллект.',
-    subjects: ['Математика (профиль)', 'Физика (профиль)', 'Информатика', 'Технология'],
+    fullDescription: 'Направление объединяет программирование, электронику и механику. Вы научитесь собирать и программировать роботов с помощью Lego Mindstorm, EV3.',
+    subjects: ['Математика (профиль)', 'Физика (профиль)', 'Информатика (профиль)'],
     careers: ['Инженер-робототехник', 'Конструктор', 'Инженер автоматизации', 'Разработчик IoT'],
   },
   [Direction.MEDICINE]: {
     fullDescription: 'Подготовка к поступлению в медицинские вузы. Углублённое изучение биологии, химии и основ медицины. Практические занятия и знакомство с современными медицинскими технологиями.',
     subjects: ['Биология (профиль)', 'Химия (профиль)', 'Русский язык', 'Математика'],
-    careers: ['Врач', 'Фармацевт', 'Биотехнолог', 'Медицинский исследователь'],
+    careers: ['Врач', 'Фармацевт', 'Биотехнолог', 'Мед.сестра'],
   },
   [Direction.BIOTECHNOLOGY]: {
     fullDescription: 'Направление на стыке биологии и технологий. Генетика, молекулярная биология, биоинформатика и современные методы исследований живых систем.',
@@ -194,7 +191,7 @@ const DIRECTION_INFO: Record<Direction, DirectionInfo> = {
   },
   [Direction.CULTURE]: {
     fullDescription: 'Направление для творческих личностей. Изучение истории искусств, культурологии, дизайна и современных творческих практик.',
-    subjects: ['Литература (профиль)', 'История (профиль)', 'Русский язык', 'Обществознание'],
+    subjects: ['Литература (профиль)', 'История (профиль)', 'Русский язык', 'Английский язык (профиль)'],
     careers: ['Дизайнер', 'Искусствовед', 'Культуролог', 'Журналист'],
   },
 };
@@ -225,7 +222,6 @@ function DirectionCard({ direction, label, description, index }: DirectionCardPr
     'from-pink-500/50 to-red-500/50',
     'from-red-500/50 to-orange-500/50',
   ];
-  const accentColors = ['cyan', 'blue', 'purple', 'pink', 'red'];
 
   const info = DIRECTION_INFO[direction];
 
@@ -266,7 +262,6 @@ function DirectionCard({ direction, label, description, index }: DirectionCardPr
         </div>
       </div>
 
-      {/* Модальное окно */}
       {showModal && (
         <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"

@@ -31,6 +31,8 @@ import VprPhysics8TestPage from './pages/VprPhysics8TestPage';
 import VprPhysics10TestPage from './pages/VprPhysics10TestPage';
 import VprHistory8TestPage from './pages/VprHistory8TestPage';
 import VprBiology8TestPage from './pages/VprBiology8TestPage';
+import VariantSelectionPage from './pages/VariantSelectionPage';
+import SdamgiaTestPage from './pages/SdamgiaTestPage';
 import { Header } from './components/Header';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useAchievementNotifications } from './hooks/useAchievementNotifications';
@@ -98,6 +100,8 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute><Header /><ProfilePage /></ProtectedRoute>} />
           <Route path="/profiles/:username" element={<ProtectedRoute><Header /><PublicProfilePage /></ProtectedRoute>} />
           <Route path="/test/setup/:subject" element={<ProtectedRoute><Header /><TestSetupPage /></ProtectedRoute>} />
+          <Route path="/test/variants" element={<ProtectedRoute><VariantSelectionPage /></ProtectedRoute>} />
+          <Route path="/test/sdamgia" element={<ProtectedRoute><SdamgiaTestPage /></ProtectedRoute>} />
           <Route path="/test/ege-type" element={<ProtectedRoute><Header /><EgeTypePage /></ProtectedRoute>} />
           <Route path="/test/oge-ege" element={<ProtectedRoute><ExamTestPage /></ProtectedRoute>} />
           <Route path="/test/oge-russian" element={<ProtectedRoute><OgeRussianTestPage /></ProtectedRoute>} />

@@ -35,25 +35,10 @@ export default function TestSetupPage() {
   const handleStartTest = () => {
     if (!selectedGrade || !subject) return;
 
-    // Для ЕГЭ по математике (11 класс) - выбор профильный/базовый
-    if (selectedGrade === 11 && subject === 'MATHEMATICS') {
-      navigate('/test/ege-type', {
-        state: { grade: selectedGrade, subject }
-      });
-    }
-    // Для ВПР по физике (8 класс) - выбор базовый/профильный
-    else if (selectedGrade === 8 && subject === 'PHYSICS') {
-      navigate('/test/vpr-physics8-level', {
-        state: { grade: selectedGrade, subject }
-      });
-    }
-    // Все остальные тесты направляем на ExamTestPage
-    // VPR (8/10 класс), OGE (9 класс), EGE (11 класс) для всех предметов
-    else {
-      navigate('/test/oge-ege', {
-        state: { grade: selectedGrade, subject }
-      });
-    }
+    // Переходим на страницу выбора варианта из sdamgia
+    navigate('/test/variants', {
+      state: { grade: selectedGrade, subject }
+    });
   };
 
   return (

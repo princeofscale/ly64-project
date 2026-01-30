@@ -8,6 +8,7 @@ import studentsRoutes from './routes/students';
 import diagnosticRoutes from './routes/diagnostic';
 import testsRoutes from './routes/tests';
 import adminRoutes from './routes/admin';
+import sdamgiaRoutes from './routes/sdamgia';
 import testLoaderService from './services/testLoaderService';
 
 dotenv.config();
@@ -46,6 +47,8 @@ app.use('/api/diagnostic', diagnosticRoutes);
 app.use('/api/tests', testsRoutes);
 
 app.use('/api/admin', adminRoutes);
+
+app.use('/api/sdamgia', sdamgiaRoutes);
 
 app.use(errorHandler);
 
