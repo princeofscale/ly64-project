@@ -2,6 +2,9 @@ import { Router, Response } from 'express';
 import { authenticateToken, AuthRequest } from '../middlewares/auth';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { writeFile, unlink } from 'fs/promises';
+import path from 'path';
+import os from 'os';
 
 const router = Router();
 const execAsync = promisify(exec);
@@ -51,44 +54,21 @@ router.get('/variants', authenticateToken, async (req: AuthRequest, res: Respons
       });
     }
 
-    // Используем Python скрипт для получения вариантов
-    const pythonScript = `
-import sys
-sys.path.insert(0, "${process.cwd()}/sdamgia_api/src")
-try:
-    from sdamgia_api import SdamgiaClient, Subject, ExamType
-
-    # Генерируем случайные варианты (в реальности можно использовать API для получения списка)
-    variants = []
-    for i in range(1, 11):  # 10 вариантов
-        variants.append({
-            'id': str(10000 + i * 111),
-            'number': i,
-            'title': f'Вариант {i}',
-            'subject': '${sdamgiaSubject}',
-            'examType': '${examType}'
-        })
-
-    import json
-    print(json.dumps({'success': True, 'variants': variants}))
-except Exception as e:
-    import json
-    print(json.dumps({'success': False, 'error': str(e)}))
-`;
-
-    const { stdout } = await execAsync(`python3 -c "${pythonScript.replace(/"/g, '\\"')}"`);
-    const result = JSON.parse(stdout.trim());
-
-    if (!result.success) {
-      return res.status(500).json({
-        success: false,
-        message: result.error || 'Ошибка получения вариантов',
+    // Генерируем 10 вариантов (в реальности ID можно получать из API)
+    const variants = [];
+    for (let i = 1; i <= 10; i++) {
+      variants.push({
+        id: String(10000 + i * 111),
+        number: i,
+        title: `Вариант ${i}`,
+        subject: sdamgiaSubject,
+        examType: examType,
       });
     }
 
     res.json({
       success: true,
-      data: result.variants,
+      data: variants,
     });
   } catch (error: any) {
     console.error('Error fetching variants:', error);
@@ -104,6 +84,8 @@ except Exception as e:
  * Получить конкретный вариант с заданиями
  */
 router.get('/variant/:variantId', authenticateToken, async (req: AuthRequest, res: Response) => {
+  let tempFile: string | null = null;
+
   try {
     const { variantId } = req.params;
     const { subject, examType } = req.query;
@@ -124,7 +106,7 @@ router.get('/variant/:variantId', authenticateToken, async (req: AuthRequest, re
       });
     }
 
-    // Python скрипт для получения варианта
+    // Создаем временный Python скрипт
     const pythonScript = `
 import sys
 sys.path.insert(0, "${process.cwd()}/sdamgia_api/src")
@@ -139,7 +121,7 @@ try:
         variant = client.get_variant("${variantId}", subject_enum, exam_enum)
 
         problems = []
-        for idx, problem_ref in enumerate(variant.problems[:5]):  # Первые 5 для теста
+        for idx, problem_ref in enumerate(variant.problems[:5]):
             try:
                 problem = client.get_problem(problem_ref.id, subject_enum, exam_enum)
 
@@ -174,10 +156,14 @@ except Exception as e:
     print(json.dumps({'success': False, 'error': str(e), 'trace': traceback.format_exc()}))
 `;
 
-    const { stdout, stderr } = await execAsync(
-      `python3 -c "${pythonScript.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`,
-      { timeout: 60000 }
-    );
+    // Сохраняем во временный файл
+    tempFile = path.join(os.tmpdir(), `sdamgia_${Date.now()}.py`);
+    await writeFile(tempFile, pythonScript);
+
+    // Выполняем Python скрипт
+    const { stdout, stderr } = await execAsync(`python3 "${tempFile}"`, {
+      timeout: 60000,
+    });
 
     if (stderr && !stderr.includes('Warning')) {
       console.error('Python stderr:', stderr);
@@ -205,6 +191,15 @@ except Exception as e:
       message: 'Ошибка получения варианта',
       error: error.message,
     });
+  } finally {
+    // Удаляем временный файл
+    if (tempFile) {
+      try {
+        await unlink(tempFile);
+      } catch (err) {
+        // Игнорируем ошибки удаления
+      }
+    }
   }
 });
 
