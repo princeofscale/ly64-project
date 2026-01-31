@@ -11,14 +11,21 @@ export interface SdamgiaVariant {
 export interface SdamgiaProblem {
   id: string;
   number: number;
+  part: number;
   question: string;
+  images: string[];
   answer: string;
   solution?: string;
+  solutionImages?: string[];
   topic?: string;
+  score?: number;
 }
 
 export interface SdamgiaVariantDetail {
   id: string;
+  totalProblems: number;
+  part1Count: number;
+  part2Count: number;
   problems: SdamgiaProblem[];
 }
 
@@ -35,14 +42,16 @@ export const sdamgiaService = {
 
   /**
    * Получить конкретный вариант с заданиями
+   * @param grade - класс (обязателен для ВПР)
    */
   async getVariant(
     variantId: string,
     subject: string,
-    examType: string
+    examType: string,
+    grade?: number
   ): Promise<SdamgiaVariantDetail> {
     const response = await api.get(`/sdamgia/variant/${variantId}`, {
-      params: { subject, examType },
+      params: { subject, examType, grade },
     });
     return response.data.data;
   },

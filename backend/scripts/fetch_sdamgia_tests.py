@@ -8,6 +8,12 @@ import sys
 import os
 import sqlite3
 import json
+
+# Fix encoding for Windows console
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 import uuid
 from datetime import datetime
 from pathlib import Path

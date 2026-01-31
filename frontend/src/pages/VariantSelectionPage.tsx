@@ -5,6 +5,9 @@ import { SUBJECT_LABELS } from '@lyceum64/shared';
 import { Button } from '../components/Button';
 import { sdamgiaService, SdamgiaVariant } from '../services/sdamgiaService';
 
+// Все поддерживаемые классы: 4-11 (кроме 9 - ОГЭ, 11 - ЕГЭ, остальные - ВПР)
+const SUPPORTED_GRADES = [4, 5, 6, 7, 8, 9, 10, 11];
+
 export default function VariantSelectionPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -13,11 +16,20 @@ export default function VariantSelectionPage() {
   const [variants, setVariants] = useState<SdamgiaVariant[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
+  const [unsupportedGrade, setUnsupportedGrade] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!subject || !grade) {
       toast.error('Не указан предмет или класс');
       navigate('/dashboard');
+      return;
+    }
+
+    // Проверяем поддерживается ли класс
+    if (!SUPPORTED_GRADES.includes(Number(grade))) {
+      setUnsupportedGrade(true);
+      setLoading(false);
       return;
     }
 
@@ -27,11 +39,14 @@ export default function VariantSelectionPage() {
   const loadVariants = async () => {
     try {
       setLoading(true);
+      setErrorMessage(null);
       const data = await sdamgiaService.getVariants(subject, grade);
       setVariants(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading variants:', error);
-      toast.error('Ошибка загрузки вариантов');
+      const message = error.response?.data?.message || 'Ошибка загрузки вариантов';
+      setErrorMessage(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -55,9 +70,9 @@ export default function VariantSelectionPage() {
   };
 
   const getExamType = (gradeNum: number): string => {
-    if (gradeNum === 8 || gradeNum === 10) return 'VPR';
     if (gradeNum === 9) return 'OGE';
     if (gradeNum === 11) return 'EGE';
+    // Для классов 4-8, 10 - ВПР
     return 'VPR';
   };
 
@@ -117,7 +132,33 @@ export default function VariantSelectionPage() {
             </p>
           </div>
 
-          {variants.length === 0 ? (
+          {unsupportedGrade ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-6">🚧</div>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                Класс не поддерживается
+              </h2>
+              <p className="text-gray-400 font-sans mb-6 max-w-md mx-auto">
+                Для {grade} класса варианты пока не доступны.
+              </p>
+              <Button variant="outline" onClick={() => navigate(-1)}>
+                Вернуться назад
+              </Button>
+            </div>
+          ) : errorMessage ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-6">⚠️</div>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                Ошибка загрузки
+              </h2>
+              <p className="text-gray-400 font-sans mb-6 max-w-md mx-auto">
+                {errorMessage}
+              </p>
+              <Button variant="outline" onClick={() => navigate(-1)}>
+                Вернуться назад
+              </Button>
+            </div>
+          ) : variants.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-400 font-sans">Варианты не найдены</p>
             </div>

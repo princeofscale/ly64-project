@@ -1,10 +1,10 @@
 import bcrypt from 'bcrypt';
 import prisma from '../config/database';
 import { AppError } from '../middlewares/errorHandler';
-import { generateToken, JwtPayload } from '../utils/jwt';
 import { RegisterInput, LoginInput } from '../utils/validation';
 import emailValidationService from './emailValidationService';
 import achievementService from './achievementService';
+import { tokenService } from './tokenService';
 
 const SALT_ROUNDS = 10;
 
@@ -122,20 +122,21 @@ export class AuthService {
       },
     });
 
-    
+
     achievementService
       .checkAndUnlockAchievements(user.id)
       .catch((err) => console.error('Error unlocking achievements:', err));
 
-    
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-    });
+
+    const tokens = await tokenService.generateTokenPair(
+      { id: user.id, email: user.email, role: user.role }
+    );
 
     return {
       user,
-      token,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      expiresIn: tokens.expiresIn,
     };
   }
 
@@ -164,11 +165,10 @@ export class AuthService {
       throw new AppError('Неверный email или пароль', 401);
     }
 
-    
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-    });
+
+    const tokens = await tokenService.generateTokenPair(
+      { id: user.id, email: user.email, role: user.role }
+    );
 
     return {
       user: {
@@ -187,7 +187,9 @@ export class AuthService {
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
-      token,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      expiresIn: tokens.expiresIn,
     };
   }
 

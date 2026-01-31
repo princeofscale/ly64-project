@@ -7,7 +7,7 @@ import { sdamgiaService, SdamgiaProblem } from '../services/sdamgiaService';
 export default function SdamgiaTestPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { variantId, subject, examType } = location.state || {};
+  const { variantId, subject, examType, grade } = location.state || {};
 
   const [problems, setProblems] = useState<SdamgiaProblem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,12 +23,13 @@ export default function SdamgiaTestPage() {
     }
 
     loadVariant();
-  }, [variantId, subject, examType]);
+  }, [variantId, subject, examType, grade]);
 
   const loadVariant = async () => {
     try {
       setLoading(true);
-      const variant = await sdamgiaService.getVariant(variantId, subject, examType);
+      // Передаем grade для ВПР
+      const variant = await sdamgiaService.getVariant(variantId, subject, examType, grade);
       setProblems(variant.problems);
     } catch (error) {
       console.error('Error loading variant:', error);
@@ -153,9 +154,23 @@ export default function SdamgiaTestPage() {
         {/* Header */}
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <p className="text-gray-400 text-sm font-sans">
-              Вопрос {currentIndex + 1} из {problems.length}
-            </p>
+            <div className="flex items-center gap-3 mb-1">
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                currentProblem.part === 1
+                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                  : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+              }`}>
+                Часть {currentProblem.part}
+              </span>
+              <p className="text-gray-400 text-sm font-sans">
+                {currentIndex + 1} из {problems.length}
+              </p>
+              {currentProblem.score && currentProblem.score > 1 && (
+                <span className="text-yellow-400 text-xs">
+                  {currentProblem.score} балла
+                </span>
+              )}
+            </div>
             <h2 className="text-2xl font-display font-bold text-white">
               Задание №{currentProblem.number}
             </h2>
@@ -175,8 +190,64 @@ export default function SdamgiaTestPage() {
 
         {/* Question */}
         <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 mb-6">
+          {/* Стили для контента из sdamgia */}
+          <style>{`
+            .sdamgia-content img {
+              max-width: 100%;
+              height: auto;
+              margin: 1rem auto;
+              display: block;
+              border-radius: 12px;
+              background: white;
+              padding: 12px;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+            .sdamgia-content table {
+              border-collapse: collapse;
+              margin: 1rem auto;
+              background: rgba(255,255,255,0.95);
+              border-radius: 12px;
+              overflow: hidden;
+              color: #1f2937;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+            .sdamgia-content td, .sdamgia-content th {
+              border: 1px solid #e5e7eb;
+              padding: 10px 16px;
+              text-align: center;
+            }
+            .sdamgia-content th {
+              background: #f3f4f6;
+              font-weight: 600;
+            }
+            .sdamgia-content .left {
+              text-align: left !important;
+            }
+            .sdamgia-content p {
+              margin: 0.75rem 0;
+              line-height: 1.7;
+            }
+            .sdamgia-content b, .sdamgia-content strong {
+              color: #22d3ee;
+            }
+            .sdamgia-content .pbody {
+              background: rgba(255,255,255,0.05);
+              padding: 1rem;
+              border-radius: 8px;
+              margin: 0.5rem 0;
+            }
+            .sdamgia-content center {
+              margin: 1rem 0;
+            }
+            .sdamgia-content br {
+              margin: 0.25rem 0;
+            }
+            .sdamgia-content span[style*="math"] {
+              font-family: 'Times New Roman', serif;
+            }
+          `}</style>
           <div
-            className="prose prose-invert max-w-none mb-6"
+            className="sdamgia-content prose prose-invert max-w-none mb-6 text-gray-100"
             dangerouslySetInnerHTML={{ __html: currentProblem.question }}
           />
 
@@ -197,7 +268,7 @@ export default function SdamgiaTestPage() {
                 Показать решение
               </summary>
               <div
-                className="mt-4 prose prose-invert max-w-none"
+                className="mt-4 sdamgia-content prose prose-invert max-w-none"
                 dangerouslySetInnerHTML={{ __html: currentProblem.solution }}
               />
             </details>

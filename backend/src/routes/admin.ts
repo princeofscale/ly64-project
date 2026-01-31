@@ -1,9 +1,25 @@
 import { Router, Response } from 'express';
 import { authenticateToken, AuthRequest } from '../middlewares/auth';
 import { requireAdmin } from '../middlewares/requireAdmin';
+import { adminLimiter } from '../middlewares/security';
+import { logAdminAction } from '../utils/logger';
 import prisma from '../config/database';
+import { z } from 'zod';
+import { cacheService, invalidateCache } from '../services/cacheService';
 
 const router = Router();
+
+// Apply admin rate limiter to all admin routes
+router.use(adminLimiter);
+
+// Validation schema for user updates
+const updateUserSchema = z.object({
+  role: z.enum(['USER', 'ADMIN']).optional(),
+  diagnosticCompleted: z.boolean().optional(),
+  status: z.enum(['pending', 'active', 'inactive']).optional(),
+  currentGrade: z.number().min(8).max(11).optional(),
+  desiredDirection: z.enum(['math', 'physics', 'it', 'chemistry', 'biology']).optional(),
+}).strict(); // Strict mode - reject unknown fields
 
 // Получить всех пользователей
 router.get('/users', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
@@ -124,14 +140,26 @@ router.get('/users/:userId', authenticateToken, requireAdmin, async (req: AuthRe
 router.put('/users/:userId', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const { userId } = req.params;
-    const { role, diagnosticCompleted, status, currentGrade, desiredDirection } = req.body;
 
-    const updateData: any = {};
-    if (role !== undefined) updateData.role = role;
-    if (diagnosticCompleted !== undefined) updateData.diagnosticCompleted = diagnosticCompleted;
-    if (status !== undefined) updateData.status = status;
-    if (currentGrade !== undefined) updateData.currentGrade = currentGrade;
-    if (desiredDirection !== undefined) updateData.desiredDirection = desiredDirection;
+    // Validate input to prevent arbitrary field injection
+    const validationResult = updateUserSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Некорректные данные',
+        errors: validationResult.error.errors,
+      });
+    }
+
+    const updateData = validationResult.data;
+
+    // Check if there's anything to update
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Нет данных для обновления',
+      });
+    }
 
     const user = await prisma.user.update({
       where: { id: userId },
@@ -148,6 +176,9 @@ router.put('/users/:userId', authenticateToken, requireAdmin, async (req: AuthRe
         diagnosticCompleted: true,
       },
     });
+
+    // Log admin action
+    logAdminAction(req.user!.id, 'UPDATE_USER', userId, req, updateData);
 
     res.json({ success: true, data: user });
   } catch (error) {
@@ -171,6 +202,9 @@ router.delete('/users/:userId', authenticateToken, requireAdmin, async (req: Aut
       where: { id: userId },
     });
 
+    // Log admin action
+    logAdminAction(req.user!.id, 'DELETE_USER', userId, req);
+
     res.json({ success: true, message: 'Пользователь удалён' });
   } catch (error) {
     console.error('Error deleting user:', error);
@@ -193,6 +227,9 @@ router.post('/users/:userId/reset-diagnostic', authenticateToken, requireAdmin, 
       where: { id: userId },
       data: { diagnosticCompleted: false },
     });
+
+    // Log admin action
+    logAdminAction(req.user!.id, 'RESET_DIAGNOSTIC', userId, req);
 
     res.json({ success: true, message: 'Диагностика сброшена' });
   } catch (error) {
@@ -252,6 +289,64 @@ router.get('/stats', authenticateToken, requireAdmin, async (req: AuthRequest, r
   } catch (error) {
     console.error('Error fetching stats:', error);
     res.status(500).json({ success: false, message: 'Ошибка получения статистики' });
+  }
+});
+
+// ==========================================
+// Cache Management
+// ==========================================
+
+// Получить статистику кэша
+router.get('/cache/stats', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const stats = cacheService.getStats();
+    const hitRate = cacheService.getHitRate();
+
+    res.json({
+      success: true,
+      data: {
+        ...stats,
+        hitRate: `${hitRate}%`,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching cache stats:', error);
+    res.status(500).json({ success: false, message: 'Ошибка получения статистики кэша' });
+  }
+});
+
+// Очистить кэш по префиксу
+router.delete('/cache/:prefix', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { prefix } = req.params;
+    const deleted = invalidateCache(prefix);
+
+    logAdminAction(req.user!.id, 'CLEAR_CACHE', undefined, req, { prefix, deleted });
+
+    res.json({
+      success: true,
+      message: `Удалено ${deleted} записей кэша с префиксом "${prefix}"`,
+    });
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+    res.status(500).json({ success: false, message: 'Ошибка очистки кэша' });
+  }
+});
+
+// Очистить весь кэш
+router.delete('/cache', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    cacheService.clear();
+
+    logAdminAction(req.user!.id, 'CLEAR_ALL_CACHE', undefined, req);
+
+    res.json({
+      success: true,
+      message: 'Весь кэш очищен',
+    });
+  } catch (error) {
+    console.error('Error clearing all cache:', error);
+    res.status(500).json({ success: false, message: 'Ошибка очистки кэша' });
   }
 });
 
