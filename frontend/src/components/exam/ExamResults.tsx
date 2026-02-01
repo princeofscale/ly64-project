@@ -5,8 +5,10 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TestResults } from '../../core/types';
+
 import { TimerService } from '../../core/services';
+
+import type { TestResults } from '../../core/types';
 
 interface ExamResultsProps {
   results: TestResults;
@@ -14,18 +16,22 @@ interface ExamResultsProps {
   onRetry?: () => void;
 }
 
-export const ExamResults: React.FC<ExamResultsProps> = ({
-  results,
-  examTitle,
-  onRetry,
-}) => {
+export const ExamResults: React.FC<ExamResultsProps> = ({ results, examTitle, onRetry }) => {
   const navigate = useNavigate();
 
   const getGradeInfo = () => {
     const percentage = results.percentageScore;
-    if (percentage >= 90) return { grade: 5, label: 'Отлично!', color: 'from-green-400 to-emerald-400', emoji: '🏆' };
-    if (percentage >= 75) return { grade: 4, label: 'Хорошо!', color: 'from-cyan-400 to-blue-400', emoji: '🎉' };
-    if (percentage >= 50) return { grade: 3, label: 'Удовлетворительно', color: 'from-yellow-400 to-orange-400', emoji: '👍' };
+    if (percentage >= 90)
+      return { grade: 5, label: 'Отлично!', color: 'from-green-400 to-emerald-400', emoji: '🏆' };
+    if (percentage >= 75)
+      return { grade: 4, label: 'Хорошо!', color: 'from-cyan-400 to-blue-400', emoji: '🎉' };
+    if (percentage >= 50)
+      return {
+        grade: 3,
+        label: 'Удовлетворительно',
+        color: 'from-yellow-400 to-orange-400',
+        emoji: '👍',
+      };
     return { grade: 2, label: 'Нужно повторить', color: 'from-red-400 to-pink-400', emoji: '📚' };
   };
 
@@ -39,18 +45,16 @@ export const ExamResults: React.FC<ExamResultsProps> = ({
       <div className="relative z-10 max-w-2xl mx-auto">
         <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 text-center animate-scale-in">
           {/* Эмодзи */}
-          <div className="text-7xl mb-6 animate-bounce">
-            {gradeInfo.emoji}
-          </div>
+          <div className="text-7xl mb-6 animate-bounce">{gradeInfo.emoji}</div>
 
           {/* Заголовок */}
-          <h1 className={`text-4xl font-display font-bold bg-gradient-to-r ${gradeInfo.color} bg-clip-text text-transparent mb-2`}>
+          <h1
+            className={`text-4xl font-display font-bold bg-gradient-to-r ${gradeInfo.color} bg-clip-text text-transparent mb-2`}
+          >
             {gradeInfo.label}
           </h1>
 
-          <p className="text-gray-400 font-sans mb-8">
-            {examTitle} завершен
-          </p>
+          <p className="text-gray-400 font-sans mb-8">{examTitle} завершен</p>
 
           {/* Основная статистика */}
           <div className="grid grid-cols-2 gap-4 mb-8">
@@ -72,7 +76,9 @@ export const ExamResults: React.FC<ExamResultsProps> = ({
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-400 font-sans">Результат</span>
-              <span className={`text-lg font-bold bg-gradient-to-r ${gradeInfo.color} bg-clip-text text-transparent`}>
+              <span
+                className={`text-lg font-bold bg-gradient-to-r ${gradeInfo.color} bg-clip-text text-transparent`}
+              >
                 {results.percentageScore}%
               </span>
             </div>

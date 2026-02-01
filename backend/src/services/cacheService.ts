@@ -1,5 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
+
+import type { Request, Response, NextFunction } from 'express';
 
 interface CacheEntry<T> {
   readonly data: T;
@@ -75,10 +76,7 @@ class CacheService {
   }
 
   private startCleanupInterval(): void {
-    this.cleanupIntervalId = setInterval(
-      () => this.cleanup(),
-      this.config.cleanupIntervalMs
-    );
+    this.cleanupIntervalId = setInterval(() => this.cleanup(), this.config.cleanupIntervalMs);
   }
 
   public static getInstance(): CacheService {
@@ -112,7 +110,7 @@ class CacheService {
   private buildSortedParametersString(params: Record<string, unknown>): string {
     return Object.keys(params)
       .sort()
-      .map((key) => this.formatParameter(key, params[key]))
+      .map(key => this.formatParameter(key, params[key]))
       .join(this.parameterDelimiter);
   }
 
@@ -226,11 +224,7 @@ class CacheService {
     return true;
   }
 
-  public async getOrSet<T>(
-    key: string,
-    fetchFn: () => Promise<T>,
-    ttlMs?: number
-  ): Promise<T> {
+  public async getOrSet<T>(key: string, fetchFn: () => Promise<T>, ttlMs?: number): Promise<T> {
     const cached = this.get<T>(key);
 
     if (cached !== null) {
@@ -320,19 +314,14 @@ class CacheService {
   }
 
   private getSortedEntriesByAge(): Array<[string, CacheEntry<unknown>]> {
-    return Array.from(this.cache.entries()).sort(
-      (a, b) => a[1].createdAt - b[1].createdAt
-    );
+    return Array.from(this.cache.entries()).sort((a, b) => a[1].createdAt - b[1].createdAt);
   }
 
   private calculateEvictionCount(totalEntries: number): number {
     return Math.ceil(totalEntries * this.config.evictionPercentage);
   }
 
-  private removeOldestEntries(
-    entries: Array<[string, CacheEntry<unknown>]>,
-    count: number
-  ): void {
+  private removeOldestEntries(entries: Array<[string, CacheEntry<unknown>]>, count: number): void {
     for (let i = 0; i < count; i++) {
       this.cache.delete(entries[i][0]);
     }

@@ -1,13 +1,15 @@
-import { Request, Response, NextFunction } from 'express';
-import authService from '../services/authService';
-import { registerSchema, loginSchema, RegisterInput, LoginInput } from '../utils/validation';
+import { HTTP_STATUS_CODES } from '../constants/authConstants';
 import { AppError } from '../middlewares/errorHandler';
 import accountLockoutService from '../services/accountLockoutService';
 import authResponseService from '../services/authResponseService';
+import authService from '../services/authService';
 import { logRegistration } from '../utils/logger';
 import { RequestUtils } from '../utils/requestUtils';
-import { HTTP_STATUS_CODES } from '../constants/authConstants';
-import { AuthResult, AuthUser } from '../types/authTypes';
+import { registerSchema, loginSchema } from '../utils/validation';
+
+import type { AuthResult, AuthUser } from '../types/authTypes';
+import type { RegisterInput, LoginInput } from '../utils/validation';
+import type { Request, Response, NextFunction } from 'express';
 
 export class AuthController {
   public async register(req: Request, res: Response, next: NextFunction): Promise<void> {

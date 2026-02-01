@@ -4,7 +4,8 @@
  */
 
 import { motion } from 'framer-motion';
-import { ReactNode } from 'react';
+
+import type { ReactNode } from 'react';
 
 interface SkeletonProps {
   className?: string;
@@ -17,10 +18,7 @@ interface SkeletonProps {
  */
 export function Skeleton({ className = '', animate = true, style }: SkeletonProps) {
   return (
-    <div
-      className={`relative overflow-hidden bg-gray-800 rounded ${className}`}
-      style={style}
-    >
+    <div className={`relative overflow-hidden bg-gray-800 rounded ${className}`} style={style}>
       {animate && (
         <motion.div
           className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"
@@ -41,14 +39,15 @@ export function Skeleton({ className = '', animate = true, style }: SkeletonProp
 /**
  * Text skeleton (single line)
  */
-export function SkeletonText({ width = '100%', className = '' }: { width?: string | number; className?: string }) {
+export function SkeletonText({
+  width = '100%',
+  className = '',
+}: {
+  width?: string | number;
+  className?: string;
+}) {
   const widthStyle = typeof width === 'number' ? `${width}px` : width;
-  return (
-    <Skeleton
-      className={`h-4 ${className}`}
-      style={{ width: widthStyle }}
-    />
-  );
+  return <Skeleton className={`h-4 ${className}`} style={{ width: widthStyle }} />;
 }
 
 /**
@@ -64,11 +63,7 @@ export function SkeletonParagraph({
   return (
     <div className={`space-y-2 ${className}`}>
       {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton
-          key={i}
-          className="h-4"
-          style={{ width: i === lines - 1 ? '70%' : '100%' }}
-        />
+        <Skeleton key={i} className="h-4" style={{ width: i === lines - 1 ? '70%' : '100%' }} />
       ))}
     </div>
   );
@@ -154,7 +149,7 @@ export function SkeletonProfile({ className = '' }: { className?: string }) {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-8">
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3].map(i => (
           <div key={i} className="bg-gray-900 rounded-xl p-4">
             <Skeleton className="h-8 w-16 mb-2" />
             <Skeleton className="h-4 w-24" />
@@ -212,14 +207,17 @@ export function SkeletonTable({
 /**
  * Leaderboard skeleton
  */
-export function SkeletonLeaderboard({ rows = 10, className = '' }: { rows?: number; className?: string }) {
+export function SkeletonLeaderboard({
+  rows = 10,
+  className = '',
+}: {
+  rows?: number;
+  className?: string;
+}) {
   return (
     <div className={`space-y-3 ${className}`}>
       {Array.from({ length: rows }).map((_, i) => (
-        <div
-          key={i}
-          className="flex items-center gap-4 bg-gray-900 rounded-xl p-4"
-        >
+        <div key={i} className="flex items-center gap-4 bg-gray-900 rounded-xl p-4">
           <Skeleton className="h-8 w-8 rounded-full" />
           <SkeletonAvatar size="md" />
           <div className="flex-1">
@@ -244,11 +242,8 @@ export function SkeletonQuestion({ className = '' }: { className?: string }) {
 
       {/* Answer options */}
       <div className="space-y-3">
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="flex items-center gap-3 bg-gray-900 rounded-lg p-4"
-          >
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="flex items-center gap-3 bg-gray-900 rounded-lg p-4">
             <Skeleton className="h-5 w-5 rounded-full" />
             <Skeleton className="h-4 flex-1" />
           </div>
@@ -272,7 +267,7 @@ export function SkeletonDashboard({ className = '' }: { className?: string }) {
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        {[1, 2, 3, 4].map((i) => (
+        {[1, 2, 3, 4].map(i => (
           <div key={i} className="bg-gray-900 rounded-xl p-6">
             <Skeleton className="h-10 w-16 mb-2" />
             <Skeleton className="h-4 w-24" />
@@ -293,7 +288,7 @@ export function SkeletonDashboard({ className = '' }: { className?: string }) {
       <div>
         <Skeleton className="h-6 w-32 mb-4" />
         <div className="flex gap-3">
-          {[1, 2, 3, 4].map((i) => (
+          {[1, 2, 3, 4].map(i => (
             <Skeleton key={i} className="h-16 w-16 rounded-xl" />
           ))}
         </div>

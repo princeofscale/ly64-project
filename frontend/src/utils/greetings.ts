@@ -18,7 +18,7 @@ const greetings = [
 const motivationalPhrases = [
   'Иди дальше к своей цели',
   'Продолжай в том же духе',
-  'Мы в тебя верим'
+  'Мы в тебя верим',
 ];
 
 export function getRandomGreeting(): string {

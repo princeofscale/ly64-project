@@ -1,9 +1,13 @@
-import { Router, Request, Response } from 'express';
-import { authenticateToken, AuthRequest } from '../middlewares/auth';
+import { Router } from 'express';
+
 import prisma from '../config/database';
+import { authenticateToken } from '../middlewares/auth';
+import { testSubmitRateLimitMiddleware } from '../middlewares/security';
 import antiCheatService from '../services/antiCheatService';
 import { cacheService } from '../services/cacheService';
-import { testSubmitRateLimitMiddleware } from '../middlewares/security';
+
+import type { AuthRequest } from '../middlewares/auth';
+import type { Request, Response } from 'express';
 
 const router = Router();
 
@@ -76,32 +80,39 @@ router.get('/:testId/start', authenticateToken, async (req: AuthRequest, res: Re
   }
 });
 
-router.post('/:testId/submit', authenticateToken, testSubmitRateLimitMiddleware, async (req: AuthRequest, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { testId } = req.params;
-    const { answers, questionsOrder } = req.body;
+router.post(
+  '/:testId/submit',
+  authenticateToken,
+  testSubmitRateLimitMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const { testId } = req.params;
+      const { answers, questionsOrder } = req.body;
 
-    if (!answers || !Array.isArray(answers)) {
-      return res.status(400).json({ success: false, message: 'Укажите ответы' });
+      if (!answers || !Array.isArray(answers)) {
+        return res.status(400).json({ success: false, message: 'Укажите ответы' });
+      }
+
+      if (Array.isArray(testId)) {
+        return res
+          .status(400)
+          .json({ success: false, message: 'Некорректный идентификатор теста' });
+      }
+
+      const result = await antiCheatService.submitTestWithAntiCheat(
+        userId,
+        testId,
+        answers,
+        questionsOrder || []
+      );
+
+      res.json({ success: true, data: result });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message || 'Ошибка' });
     }
-
-    if (Array.isArray(testId)) {
-      return res.status(400).json({ success: false, message: 'Некорректный идентификатор теста' });
-    }
-
-    const result = await antiCheatService.submitTestWithAntiCheat(
-      userId,
-      testId,
-      answers,
-      questionsOrder || []
-    );
-
-    res.json({ success: true, data: result });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message || 'Ошибка' });
   }
-});
+);
 
 router.get('/:testId/results', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {

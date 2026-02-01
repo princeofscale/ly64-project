@@ -1,7 +1,12 @@
-import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import crypto from 'crypto';
+
+import jwt from 'jsonwebtoken';
+
 import { AppError } from '../middlewares/errorHandler';
+
 import { logger } from './logger';
+
+import type { SignOptions, VerifyOptions } from 'jsonwebtoken';
 
 export interface JwtPayload {
   readonly userId: string;
@@ -89,7 +94,9 @@ class JwtService {
 
   private validateSecretLength(secret: string): void {
     if (secret.length < this.minSecretLength) {
-      this.logSecurityWarning(`JWT_SECRET should be at least ${this.minSecretLength} characters long`);
+      this.logSecurityWarning(
+        `JWT_SECRET should be at least ${this.minSecretLength} characters long`
+      );
     }
   }
 

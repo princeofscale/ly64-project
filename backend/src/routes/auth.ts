@@ -1,8 +1,11 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+
 import authController from '../controllers/authController';
 import { authenticateToken } from '../middlewares/auth';
 import { authLimiter, registrationLimiter, requestSizeLimiter } from '../middlewares/security';
 import { tokenService } from '../services/tokenService';
+
+import type { Request, Response } from 'express';
 
 const router = Router();
 

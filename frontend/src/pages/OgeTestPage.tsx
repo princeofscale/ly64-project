@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '../components/Button';
 import toast from 'react-hot-toast';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+import { Button } from '../components/Button';
 
 interface Task {
   number: number;
@@ -23,35 +24,25 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '2,3',
     points: 1,
-    topic: 'Арифметика'
+    topic: 'Арифметика',
   },
   {
     number: 2,
     text: 'На координатной прямой отмечены числа a и b. Какое из следующих неравенств неверно?',
     type: 'choice',
-    options: [
-      'a - b < 0',
-      'ab < 0',
-      'a + b > 0',
-      'a² > b²'
-    ],
+    options: ['a - b < 0', 'ab < 0', 'a + b > 0', 'a² > b²'],
     correctAnswer: 'a + b > 0',
     points: 1,
-    topic: 'Числа на координатной прямой'
+    topic: 'Числа на координатной прямой',
   },
   {
     number: 3,
     text: 'Значение какого из выражений является числом рациональным?\n\n1) (√7 - 3)(√7 + 3)\n2) √5 · √20\n3) (√6 - 2)²\n4) √48 : √3',
     type: 'choice',
-    options: [
-      '1',
-      '2',
-      '3',
-      '4'
-    ],
+    options: ['1', '2', '3', '4'],
     correctAnswer: '1',
     points: 1,
-    topic: 'Иррациональные числа'
+    topic: 'Иррациональные числа',
   },
   {
     number: 4,
@@ -59,7 +50,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '-2; 7',
     points: 1,
-    topic: 'Квадратные уравнения'
+    topic: 'Квадратные уравнения',
   },
   {
     number: 5,
@@ -67,7 +58,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: 'А-1, Б-3, В-2',
     points: 1,
-    topic: 'Линейная функция'
+    topic: 'Линейная функция',
   },
   {
     number: 6,
@@ -75,7 +66,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '95',
     points: 1,
-    topic: 'Арифметическая прогрессия'
+    topic: 'Арифметическая прогрессия',
   },
   {
     number: 7,
@@ -83,7 +74,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '125',
     points: 1,
-    topic: 'Степени'
+    topic: 'Степени',
   },
   {
     number: 8,
@@ -93,11 +84,11 @@ const mockOgeTasks: Task[] = [
       'Отрезок [-1; 5]',
       'Отрезок [-5; 1]',
       'Два луча: (-∞; -1] и [5; +∞)',
-      'Два луча: (-∞; -5] и [1; +∞)'
+      'Два луча: (-∞; -5] и [1; +∞)',
     ],
     correctAnswer: 'Отрезок [-1; 5]',
     points: 1,
-    topic: 'Квадратные неравенства'
+    topic: 'Квадратные неравенства',
   },
   {
     number: 9,
@@ -105,7 +96,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '20',
     points: 2,
-    topic: 'Арифметическая прогрессия - задача'
+    topic: 'Арифметическая прогрессия - задача',
   },
   {
     number: 10,
@@ -113,7 +104,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '0,11',
     points: 1,
-    topic: 'Теория вероятностей'
+    topic: 'Теория вероятностей',
   },
   {
     number: 11,
@@ -121,7 +112,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '3',
     points: 1,
-    topic: 'Графики функций'
+    topic: 'Графики функций',
   },
   {
     number: 12,
@@ -129,21 +120,16 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '6',
     points: 1,
-    topic: 'Формулы'
+    topic: 'Формулы',
   },
   {
     number: 13,
     text: 'Укажите решение неравенства:\n\n5x - 7,5 ≥ 6x + 3,2',
     type: 'choice',
-    options: [
-      'x ≥ -10,7',
-      'x ≤ -10,7',
-      'x ≥ 10,7',
-      'x ≤ 10,7'
-    ],
+    options: ['x ≥ -10,7', 'x ≤ -10,7', 'x ≥ 10,7', 'x ≤ 10,7'],
     correctAnswer: 'x ≤ -10,7',
     points: 1,
-    topic: 'Неравенства'
+    topic: 'Неравенства',
   },
   {
     number: 14,
@@ -151,7 +137,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '0,994',
     points: 1,
-    topic: 'Теория вероятностей'
+    topic: 'Теория вероятностей',
   },
   {
     number: 15,
@@ -159,7 +145,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '5',
     points: 1,
-    topic: 'Прямоугольный треугольник'
+    topic: 'Прямоугольный треугольник',
   },
   {
     number: 16,
@@ -167,7 +153,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '8',
     points: 1,
-    topic: 'Окружность и квадрат'
+    topic: 'Окружность и квадрат',
   },
   {
     number: 17,
@@ -175,7 +161,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '10',
     points: 1,
-    topic: 'Трапеция'
+    topic: 'Трапеция',
   },
   {
     number: 18,
@@ -183,7 +169,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '2',
     points: 1,
-    topic: 'Тригонометрия на клетчатой бумаге'
+    topic: 'Тригонометрия на клетчатой бумаге',
   },
   {
     number: 19,
@@ -191,7 +177,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '1, 2',
     points: 1,
-    topic: 'Геометрические утверждения'
+    topic: 'Геометрические утверждения',
   },
   {
     number: 20,
@@ -199,7 +185,7 @@ const mockOgeTasks: Task[] = [
     type: 'detailed',
     correctAnswer: '(0; 6); (-5; 31)',
     points: 2,
-    topic: 'Системы уравнений'
+    topic: 'Системы уравнений',
   },
   {
     number: 21,
@@ -207,7 +193,7 @@ const mockOgeTasks: Task[] = [
     type: 'detailed',
     correctAnswer: '3 часа',
     points: 2,
-    topic: 'Задачи на движение'
+    topic: 'Задачи на движение',
   },
   {
     number: 22,
@@ -215,7 +201,7 @@ const mockOgeTasks: Task[] = [
     type: 'detailed',
     correctAnswer: 'm = 0 или m < -1',
     points: 2,
-    topic: 'Построение и исследование графиков'
+    topic: 'Построение и исследование графиков',
   },
   {
     number: 23,
@@ -223,7 +209,7 @@ const mockOgeTasks: Task[] = [
     type: 'detailed',
     correctAnswer: '50',
     points: 2,
-    topic: 'Параллелограмм'
+    topic: 'Параллелограмм',
   },
   {
     number: 24,
@@ -231,7 +217,7 @@ const mockOgeTasks: Task[] = [
     type: 'proof',
     correctAnswer: '',
     points: 2,
-    topic: 'Доказательство - окружность и трапеция'
+    topic: 'Доказательство - окружность и трапеция',
   },
   {
     number: 25,
@@ -239,8 +225,8 @@ const mockOgeTasks: Task[] = [
     type: 'detailed',
     correctAnswer: '8',
     points: 2,
-    topic: 'Четырёхугольник и окружность'
-  }
+    topic: 'Четырёхугольник и окружность',
+  },
 ];
 
 export default function OgeTestPage() {
@@ -259,7 +245,7 @@ export default function OgeTestPage() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
+      setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
           handleFinish();
@@ -280,7 +266,7 @@ export default function OgeTestPage() {
   };
 
   const handleAnswer = (answer: string) => {
-    setAnswers((prev) => ({
+    setAnswers(prev => ({
       ...prev,
       [currentTask.number]: answer,
     }));
@@ -288,13 +274,13 @@ export default function OgeTestPage() {
 
   const handleNext = () => {
     if (currentTaskIndex < tasks.length - 1) {
-      setCurrentTaskIndex((prev) => prev + 1);
+      setCurrentTaskIndex(prev => prev + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentTaskIndex > 0) {
-      setCurrentTaskIndex((prev) => prev - 1);
+      setCurrentTaskIndex(prev => prev - 1);
     }
   };
 
@@ -322,7 +308,7 @@ export default function OgeTestPage() {
 
   if (showResults) {
     const correctCount = Object.entries(answers).filter(
-      ([num, ans]) => tasks.find((t) => t.number === parseInt(num))?.correctAnswer === ans
+      ([num, ans]) => tasks.find(t => t.number === parseInt(num))?.correctAnswer === ans
     ).length;
 
     return (
@@ -336,12 +322,11 @@ export default function OgeTestPage() {
               Тест завершен!
             </h1>
             <p className="text-xl text-gray-300 font-sans mb-8">
-              Правильных ответов: <span className="font-bold text-cyan-400">{correctCount}</span> из {tasks.length}
+              Правильных ответов: <span className="font-bold text-cyan-400">{correctCount}</span> из{' '}
+              {tasks.length}
             </p>
             <div className="flex gap-4 justify-center">
-              <Button onClick={() => navigate('/dashboard')}>
-                К панели управления
-              </Button>
+              <Button onClick={() => navigate('/dashboard')}>К панели управления</Button>
               <Button variant="outline" onClick={() => window.location.reload()}>
                 Пройти заново
               </Button>
@@ -364,16 +349,25 @@ export default function OgeTestPage() {
               <div className="text-2xl font-display font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                 ОГЭ Математика
               </div>
-              <div className="text-sm text-gray-400 font-sans">
-                {grade} класс
-              </div>
+              <div className="text-sm text-gray-400 font-sans">{grade} класс</div>
             </div>
 
             <div className="flex items-center gap-6">
               {/* Таймер */}
               <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 ${getTimeColor()}`}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className={`w-5 h-5 ${getTimeColor()}`}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <span className={`font-mono text-lg font-semibold ${getTimeColor()}`}>
                   {formatTime(timeLeft)}
@@ -382,7 +376,8 @@ export default function OgeTestPage() {
 
               {/* Прогресс */}
               <div className="text-sm font-sans text-gray-400">
-                <span className="text-cyan-400 font-semibold">{currentTaskIndex + 1}</span> / {tasks.length}
+                <span className="text-cyan-400 font-semibold">{currentTaskIndex + 1}</span> /{' '}
+                {tasks.length}
               </div>
             </div>
           </div>
@@ -444,13 +439,11 @@ export default function OgeTestPage() {
 
             {currentTask.type === 'short' && (
               <div>
-                <label className="block text-sm font-sans text-gray-400 mb-2">
-                  Введите ответ:
-                </label>
+                <label className="block text-sm font-sans text-gray-400 mb-2">Введите ответ:</label>
                 <input
                   type="text"
                   value={answers[currentTask.number] || ''}
-                  onChange={(e) => handleAnswer(e.target.value)}
+                  onChange={e => handleAnswer(e.target.value)}
                   placeholder="Ваш ответ"
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all font-sans"
                 />
@@ -464,8 +457,12 @@ export default function OgeTestPage() {
                 </label>
                 <textarea
                   value={answers[currentTask.number] || ''}
-                  onChange={(e) => handleAnswer(e.target.value)}
-                  placeholder={currentTask.type === 'proof' ? 'Опишите доказательство...' : 'Опишите решение...'}
+                  onChange={e => handleAnswer(e.target.value)}
+                  placeholder={
+                    currentTask.type === 'proof'
+                      ? 'Опишите доказательство...'
+                      : 'Опишите решение...'
+                  }
                   rows={8}
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all resize-vertical font-sans"
                 />
@@ -475,23 +472,15 @@ export default function OgeTestPage() {
 
           {/* Навигация */}
           <div className="flex items-center justify-between pt-6 border-t border-gray-700/50">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentTaskIndex === 0}
-            >
+            <Button variant="outline" onClick={handlePrevious} disabled={currentTaskIndex === 0}>
               ← Предыдущее
             </Button>
 
             <div className="flex gap-3">
               {currentTaskIndex === tasks.length - 1 ? (
-                <Button onClick={handleFinish}>
-                  Завершить тест
-                </Button>
+                <Button onClick={handleFinish}>Завершить тест</Button>
               ) : (
-                <Button onClick={handleNext}>
-                  Следующее →
-                </Button>
+                <Button onClick={handleNext}>Следующее →</Button>
               )}
             </div>
           </div>
@@ -509,8 +498,8 @@ export default function OgeTestPage() {
                   currentTaskIndex === index
                     ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white scale-110'
                     : answers[task.number]
-                    ? 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-400'
-                    : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-cyan-500/50'
+                      ? 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-400'
+                      : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-cyan-500/50'
                 }`}
               >
                 {task.number}

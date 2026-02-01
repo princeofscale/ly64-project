@@ -1,6 +1,7 @@
 import { PREDICTION_CONSTANTS } from '../constants/statsConstants';
 import { StatisticsCalculator } from '../utils/statisticsUtils';
-import { PredictionData, DailyActivity } from '../types/userTypes';
+
+import type { PredictionData, DailyActivity } from '../types/userTypes';
 
 interface TestAttempt {
   readonly score: number | null;
@@ -34,11 +35,7 @@ export class PredictionService {
       averageScore
     );
 
-    const confidence = this.calculateConfidence(
-      totalTests,
-      consistency,
-      frequencyFactor
-    );
+    const confidence = this.calculateConfidence(totalTests, consistency, frequencyFactor);
 
     const factors = this.buildPredictionFactors(
       momentum,
@@ -67,9 +64,7 @@ export class PredictionService {
     totalTests: number
   ): ReadonlyArray<number> {
     const limit = Math.min(PREDICTION_CONSTANTS.RECENT_SCORES_LIMIT, totalTests);
-    return attempts
-      .slice(0, limit)
-      .map(attempt => attempt.score ?? 0);
+    return attempts.slice(0, limit).map(attempt => attempt.score ?? 0);
   }
 
   private calculateWeightedMovingAverage(scores: ReadonlyArray<number>): number {
@@ -89,14 +84,12 @@ export class PredictionService {
     return first5Avg - last5Avg;
   }
 
-  private calculateConsistency(
-    scores: ReadonlyArray<number>,
-    averageScore: number
-  ): number {
+  private calculateConsistency(scores: ReadonlyArray<number>, averageScore: number): number {
     const stdDev = StatisticsCalculator.calculateStandardDeviation(scores, averageScore);
     return Math.max(
       0,
-      PREDICTION_CONSTANTS.CONSISTENCY_MAX_SCORE - stdDev * PREDICTION_CONSTANTS.CONSISTENCY_VARIANCE_MULTIPLIER
+      PREDICTION_CONSTANTS.CONSISTENCY_MAX_SCORE -
+        stdDev * PREDICTION_CONSTANTS.CONSISTENCY_VARIANCE_MULTIPLIER
     );
   }
 
@@ -105,10 +98,7 @@ export class PredictionService {
     return Math.min(1, daysWithActivity / PREDICTION_CONSTANTS.FREQUENCY_DAYS_DIVISOR);
   }
 
-  private calculateRecentBoost(
-    scores: ReadonlyArray<number>,
-    averageScore: number
-  ): number {
+  private calculateRecentBoost(scores: ReadonlyArray<number>, averageScore: number): number {
     const recentScores = scores.slice(0, PREDICTION_CONSTANTS.MIN_RECENT_SCORES);
     const recentAvg = StatisticsCalculator.calculateAverageScore(recentScores);
     return (recentAvg - averageScore) * PREDICTION_CONSTANTS.RECENT_BOOST_WEIGHT;
@@ -122,9 +112,7 @@ export class PredictionService {
     consistency: number,
     averageScore: number
   ): number {
-    let predicted = weightedAvg +
-      momentum * PREDICTION_CONSTANTS.MOMENTUM_WEIGHT +
-      recentBoost;
+    let predicted = weightedAvg + momentum * PREDICTION_CONSTANTS.MOMENTUM_WEIGHT + recentBoost;
 
     predicted += frequencyFactor * PREDICTION_CONSTANTS.FREQUENCY_BONUS;
 
@@ -133,11 +121,7 @@ export class PredictionService {
     }
 
     const minScore = averageScore - PREDICTION_CONSTANTS.MAX_SCORE_DIFF;
-    return StatisticsCalculator.clampValue(
-      predicted,
-      minScore,
-      PREDICTION_CONSTANTS.MAX_SCORE
-    );
+    return StatisticsCalculator.clampValue(predicted, minScore, PREDICTION_CONSTANTS.MAX_SCORE);
   }
 
   private calculateConfidence(

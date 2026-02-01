@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { Header } from '../components/Header';
 
 interface UnitCategory {
@@ -115,15 +116,23 @@ function UnitConverterPage() {
     // Сначала в Цельсий
     let celsius: number;
     switch (from) {
-      case 'f': celsius = (value - 32) * 5 / 9; break;
-      case 'k': celsius = value - 273.15; break;
-      default: celsius = value;
+      case 'f':
+        celsius = ((value - 32) * 5) / 9;
+        break;
+      case 'k':
+        celsius = value - 273.15;
+        break;
+      default:
+        celsius = value;
     }
     // Из Цельсия в нужную
     switch (to) {
-      case 'f': return celsius * 9 / 5 + 32;
-      case 'k': return celsius + 273.15;
-      default: return celsius;
+      case 'f':
+        return (celsius * 9) / 5 + 32;
+      case 'k':
+        return celsius + 273.15;
+      default:
+        return celsius;
     }
   };
 
@@ -194,7 +203,10 @@ function UnitConverterPage() {
       <div className="min-h-screen bg-gray-950 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-yellow-500/5 opacity-30" />
         <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/20 rounded-full blur-[80px] animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-yellow-500/20 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-yellow-500/20 rounded-full blur-[80px] animate-pulse"
+          style={{ animationDelay: '1s' }}
+        />
 
         <main className="relative z-10 max-w-4xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
@@ -232,17 +244,19 @@ function UnitConverterPage() {
                 <label className="block text-gray-400 text-sm mb-2">Из</label>
                 <select
                   value={fromUnit}
-                  onChange={(e) => handleFromUnitChange(e.target.value)}
+                  onChange={e => handleFromUnitChange(e.target.value)}
                   className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white focus:border-orange-500 focus:outline-none mb-2"
                 >
                   {currentCategory.units.map(unit => (
-                    <option key={unit.id} value={unit.id}>{unit.name}</option>
+                    <option key={unit.id} value={unit.id}>
+                      {unit.name}
+                    </option>
                   ))}
                 </select>
                 <input
                   type="number"
                   value={fromValue}
-                  onChange={(e) => handleFromValueChange(e.target.value)}
+                  onChange={e => handleFromValueChange(e.target.value)}
                   className="w-full px-4 py-4 bg-gray-800 border border-gray-600 rounded-xl text-white text-2xl font-bold focus:border-orange-500 focus:outline-none"
                   placeholder="0"
                 />
@@ -255,7 +269,12 @@ function UnitConverterPage() {
                   className="p-3 bg-orange-500/20 border border-orange-500/50 text-orange-400 rounded-xl hover:bg-orange-500/30 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                    />
                   </svg>
                 </button>
               </div>
@@ -265,17 +284,19 @@ function UnitConverterPage() {
                 <label className="block text-gray-400 text-sm mb-2">В</label>
                 <select
                   value={toUnit}
-                  onChange={(e) => handleToUnitChange(e.target.value)}
+                  onChange={e => handleToUnitChange(e.target.value)}
                   className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white focus:border-orange-500 focus:outline-none mb-2"
                 >
                   {currentCategory.units.map(unit => (
-                    <option key={unit.id} value={unit.id}>{unit.name}</option>
+                    <option key={unit.id} value={unit.id}>
+                      {unit.name}
+                    </option>
                   ))}
                 </select>
                 <input
                   type="number"
                   value={toValue}
-                  onChange={(e) => handleToValueChange(e.target.value)}
+                  onChange={e => handleToValueChange(e.target.value)}
                   className="w-full px-4 py-4 bg-gray-800 border border-gray-600 rounded-xl text-white text-2xl font-bold focus:border-orange-500 focus:outline-none"
                   placeholder="0"
                 />
@@ -286,11 +307,11 @@ function UnitConverterPage() {
             {fromValue && toValue && (
               <div className="mt-6 text-center">
                 <p className="text-gray-400">
-                  <span className="text-orange-400 font-bold">{fromValue}</span>
-                  {' '}{currentCategory.units.find(u => u.id === fromUnit)?.name}
+                  <span className="text-orange-400 font-bold">{fromValue}</span>{' '}
+                  {currentCategory.units.find(u => u.id === fromUnit)?.name}
                   {' = '}
-                  <span className="text-yellow-400 font-bold">{toValue}</span>
-                  {' '}{currentCategory.units.find(u => u.id === toUnit)?.name}
+                  <span className="text-yellow-400 font-bold">{toValue}</span>{' '}
+                  {currentCategory.units.find(u => u.id === toUnit)?.name}
                 </p>
               </div>
             )}

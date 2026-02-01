@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { ITask } from '../../core/interfaces';
+
+import type { ITask } from '../../core/interfaces';
 
 interface ShortAnswerQuestionProps {
   task: ITask;
@@ -21,11 +22,14 @@ export const ShortAnswerQuestion: React.FC<ShortAnswerQuestionProps> = ({
 }) => {
   const [localValue, setLocalValue] = useState(currentAnswer);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setLocalValue(value);
-    onAnswer(value);
-  }, [onAnswer]);
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setLocalValue(value);
+      onAnswer(value);
+    },
+    [onAnswer]
+  );
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     // Предотвращаем отправку формы при нажатии Enter
@@ -37,7 +41,9 @@ export const ShortAnswerQuestion: React.FC<ShortAnswerQuestionProps> = ({
   return (
     <div className="space-y-3">
       <label className="block text-sm font-sans text-gray-400">
-        {task.type === 'matching' ? 'Введите соответствие (например: А-1, Б-2, В-3):' : 'Введите ответ:'}
+        {task.type === 'matching'
+          ? 'Введите соответствие (например: А-1, Б-2, В-3):'
+          : 'Введите ответ:'}
       </label>
 
       <div className="relative">

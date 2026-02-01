@@ -1,11 +1,12 @@
-import express, { Application, Request, Response } from 'express';
-import { createServer, Server as HttpServer } from 'http';
-import cors, { CorsOptions } from 'cors';
+import { createServer } from 'http';
+
 import compression from 'compression';
+import cors from 'cors';
 import dotenv from 'dotenv';
+import express from 'express';
+
 import { errorHandler } from './middlewares/errorHandler';
 import { handleNotFound } from './middlewares/notFoundHandler';
-import { wsService } from './services/websocketService';
 import {
   securityHeaders,
   generalLimiter,
@@ -15,17 +16,22 @@ import {
   securityLogger,
   checkBlacklist,
 } from './middlewares/security';
-import { requestLogger, logger } from './utils/logger';
-import authRoutes from './routes/auth';
-import userRoutes from './routes/user';
-import studentsRoutes from './routes/students';
-import testsRoutes from './routes/tests';
 import adminRoutes from './routes/admin';
-import sdamgiaRoutes from './routes/sdamgia';
+import authRoutes from './routes/auth';
+import baseRouter from './routes/base';
 import gamificationRoutes from './routes/gamification';
 import recommendationsRoutes from './routes/recommendations';
+import sdamgiaRoutes from './routes/sdamgia';
+import studentsRoutes from './routes/students';
+import testsRoutes from './routes/tests';
+import userRoutes from './routes/user';
 import testLoaderService from './services/testLoaderService';
-import baseRouter from './routes/base';
+import { wsService } from './services/websocketService';
+import { requestLogger, logger } from './utils/logger';
+
+import type { CorsOptions } from 'cors';
+import type { Application, Request, Response } from 'express';
+import type { Server as HttpServer } from 'http';
 
 interface ServerConfiguration {
   readonly port: number;
@@ -48,7 +54,14 @@ class ApplicationServer {
   private readonly httpServer: HttpServer;
   private readonly config: ServerConfiguration;
   private readonly localhostPattern: RegExp = /^http:\/\/localhost:\d+$/;
-  private readonly allowedHttpMethods: ReadonlyArray<string> = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'];
+  private readonly allowedHttpMethods: ReadonlyArray<string> = [
+    'GET',
+    'POST',
+    'PUT',
+    'DELETE',
+    'PATCH',
+    'OPTIONS',
+  ];
   private readonly allowedHeaders: ReadonlyArray<string> = ['Content-Type', 'Authorization'];
   private readonly bodyLimitSize: string = '10mb';
   private readonly compressionLevel: number = 6;
@@ -118,7 +131,10 @@ class ApplicationServer {
     const allowedOrigins = this.getAllowedOrigins();
     const isDevelopment = this.isDevelopmentEnvironment();
 
-    return (origin: string | undefined, callback: (arg0: Error | null, arg1: boolean | undefined) => void): void => {
+    return (
+      origin: string | undefined,
+      callback: (arg0: Error | null, arg1: boolean | undefined) => void
+    ): void => {
       if (this.shouldAllowOrigin(origin, allowedOrigins, isDevelopment)) {
         callback(null, true);
       } else {
@@ -266,7 +282,9 @@ class ApplicationServer {
     logger.info(`Server is running on ${baseUrl}`);
     logger.info(`API documentation: ${baseUrl}/api`);
     logger.info(`WebSocket server running on ${wsUrl}`);
-    logger.info('Security features enabled: Helmet, Rate Limiting, XSS Protection, SQL Injection Protection');
+    logger.info(
+      'Security features enabled: Helmet, Rate Limiting, XSS Protection, SQL Injection Protection'
+    );
   }
 
   private async initializeServices(): Promise<void> {

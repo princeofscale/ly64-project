@@ -3,8 +3,9 @@
  * Настройки звуковых эффектов
  */
 
-import { Volume2, VolumeX } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Volume2, VolumeX } from 'lucide-react';
+
 import { useSound } from '../../hooks/useSound';
 
 interface SoundSettingsProps {
@@ -121,7 +122,7 @@ export function SoundSettings({ className = '', showVolumeSlider = true }: Sound
         <div className="mt-4 pt-4 border-t border-gray-800">
           <span className="text-sm text-gray-400 block mb-2">Проверка звуков</span>
           <div className="flex flex-wrap gap-2">
-            {(['click', 'success', 'error', 'achievement'] as const).map((sound) => (
+            {(['click', 'success', 'error', 'achievement'] as const).map(sound => (
               <button
                 key={sound}
                 onClick={() => play(sound)}

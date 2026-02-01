@@ -1,7 +1,3 @@
-import { Link } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
-import { authService } from '../services/authService';
-import { useState, useRef, useEffect } from 'react';
 import {
   Menu,
   LayoutDashboard,
@@ -19,8 +15,12 @@ import {
   Settings,
   LogOut,
   GraduationCap,
-  ChevronRight
 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+
+import { authService } from '../services/authService';
+import { useAuthStore } from '../store/authStore';
 
 export function Header() {
   const { isAuthenticated, user } = useAuthStore();
@@ -77,9 +77,7 @@ export function Header() {
                       <p className="font-medium text-slate-900 dark:text-slate-50 text-sm">
                         {user?.name || user?.email}
                       </p>
-                      <p className="text-xs text-slate-500 truncate">
-                        {user?.email}
-                      </p>
+                      <p className="text-xs text-slate-500 truncate">{user?.email}</p>
                     </div>
 
                     {/* Main Navigation */}
@@ -239,9 +237,10 @@ function MenuItem({ to, icon: Icon, label, onClick, highlight }: MenuItemProps) 
       onClick={onClick}
       className={`
         flex items-center gap-3 px-3 py-2.5 transition-colors
-        ${highlight
-          ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20'
-          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+        ${
+          highlight
+            ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20'
+            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
         }
       `}
     >

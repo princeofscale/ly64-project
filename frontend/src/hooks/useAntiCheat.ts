@@ -1,6 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { antiCheatService, SuspiciousEvent, AntiCheatReport } from '../core/services/AntiCheatService';
 import { toast } from 'react-hot-toast';
+
+import { antiCheatService } from '../core/services/AntiCheatService';
+
+import type { SuspiciousEvent, AntiCheatReport } from '../core/services/AntiCheatService';
 
 interface UseAntiCheatOptions {
   sessionId: string;
@@ -60,43 +63,46 @@ export function useAntiCheat(options: UseAntiCheatOptions): UseAntiCheatReturn {
   }, [showWarnings, onLimitExceeded]);
 
   // Обработка подозрительных событий
-  const handleSuspiciousEvent = useCallback((event: SuspiciousEvent) => {
-    updateStats();
-    onSuspiciousActivity?.(event);
+  const handleSuspiciousEvent = useCallback(
+    (event: SuspiciousEvent) => {
+      updateStats();
+      onSuspiciousActivity?.(event);
 
-    // Показываем тост для некоторых событий
-    if (showWarnings) {
-      switch (event.type) {
-        case 'copy_attempt':
-          toast.error('Копирование текста запрещено во время теста', {
-            duration: 2000,
-            icon: '🚫',
-          });
-          break;
-        case 'right_click':
-          toast.error('Контекстное меню недоступно', {
-            duration: 1500,
-            icon: '🚫',
-          });
-          break;
-        case 'dev_tools':
-          toast.error('Инструменты разработчика недоступны', {
-            duration: 2000,
-            icon: '🚫',
-          });
-          break;
-        case 'tab_switch':
-          const switches = antiCheatService.getStats().tabSwitches;
-          if (switches <= 3) {
-            toast(`Переключение вкладки зафиксировано (${switches}/3)`, {
+      // Показываем тост для некоторых событий
+      if (showWarnings) {
+        switch (event.type) {
+          case 'copy_attempt':
+            toast.error('Копирование текста запрещено во время теста', {
               duration: 2000,
-              icon: '👁️',
+              icon: '🚫',
             });
-          }
-          break;
+            break;
+          case 'right_click':
+            toast.error('Контекстное меню недоступно', {
+              duration: 1500,
+              icon: '🚫',
+            });
+            break;
+          case 'dev_tools':
+            toast.error('Инструменты разработчика недоступны', {
+              duration: 2000,
+              icon: '🚫',
+            });
+            break;
+          case 'tab_switch':
+            const switches = antiCheatService.getStats().tabSwitches;
+            if (switches <= 3) {
+              toast(`Переключение вкладки зафиксировано (${switches}/3)`, {
+                duration: 2000,
+                icon: '👁️',
+              });
+            }
+            break;
+        }
       }
-    }
-  }, [updateStats, showWarnings, onSuspiciousActivity]);
+    },
+    [updateStats, showWarnings, onSuspiciousActivity]
+  );
 
   // Запуск мониторинга
   const startMonitoring = useCallback(() => {
@@ -141,9 +147,7 @@ export function useAntiCheat(options: UseAntiCheatOptions): UseAntiCheatReturn {
 
   // Рассчёт подозрительности
   const suspiciousScore = Math.min(
-    stats.tabSwitches * 15 +
-    stats.copyAttempts * 10 +
-    Math.floor(stats.blurTime / 10000) * 5,
+    stats.tabSwitches * 15 + stats.copyAttempts * 10 + Math.floor(stats.blurTime / 10000) * 5,
     100
   );
 

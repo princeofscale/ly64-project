@@ -1,5 +1,5 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
 
 interface AntiCheatIndicatorProps {
   tabSwitches: number;
@@ -40,11 +40,7 @@ export const AntiCheatIndicator: React.FC<AntiCheatIndicatorProps> = ({
       >
         <span>{getStatusIcon()}</span>
         <span>
-          {tabSwitches > 0 ? (
-            <>Переключений: {tabSwitches}/3</>
-          ) : (
-            <>Мониторинг активен</>
-          )}
+          {tabSwitches > 0 ? <>Переключений: {tabSwitches}/3</> : <>Мониторинг активен</>}
         </span>
 
         {/* Индикатор записи */}
@@ -106,7 +102,8 @@ export const AntiCheatWarningModal: React.FC<AntiCheatWarningModalProps> = ({
         </div>
 
         <p className="text-slate-400 text-sm text-center mb-6">
-          Пожалуйста, оставайтесь на странице теста. Повторные нарушения могут привести к аннулированию результата.
+          Пожалуйста, оставайтесь на странице теста. Повторные нарушения могут привести к
+          аннулированию результата.
         </p>
 
         <div className="flex gap-3">

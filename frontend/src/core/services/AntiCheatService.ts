@@ -4,7 +4,14 @@
  */
 
 export interface SuspiciousEvent {
-  type: 'tab_switch' | 'copy_attempt' | 'paste_attempt' | 'right_click' | 'dev_tools' | 'blur' | 'focus_lost';
+  type:
+    | 'tab_switch'
+    | 'copy_attempt'
+    | 'paste_attempt'
+    | 'right_click'
+    | 'dev_tools'
+    | 'blur'
+    | 'focus_lost';
   timestamp: number;
   details?: string;
 }
@@ -33,9 +40,9 @@ class AntiCheatService {
 
   // Лимиты для предупреждений
   private readonly LIMITS = {
-    tabSwitches: 3,      // После 3 переключений - предупреждение
-    copyAttempts: 2,     // После 2 попыток копирования
-    maxBlurTime: 60000,  // 60 секунд вне фокуса
+    tabSwitches: 3, // После 3 переключений - предупреждение
+    copyAttempts: 2, // После 2 попыток копирования
+    maxBlurTime: 60000, // 60 секунд вне фокуса
   };
 
   private constructor() {}
@@ -108,7 +115,9 @@ class AntiCheatService {
     const warnings: string[] = [];
 
     if (stats.tabSwitches >= this.LIMITS.tabSwitches) {
-      warnings.push(`Вы переключили вкладку ${stats.tabSwitches} раз(а). Это может быть расценено как подозрительное поведение.`);
+      warnings.push(
+        `Вы переключили вкладку ${stats.tabSwitches} раз(а). Это может быть расценено как подозрительное поведение.`
+      );
     }
 
     if (stats.copyAttempts >= this.LIMITS.copyAttempts) {
@@ -239,7 +248,9 @@ class AntiCheatService {
     // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
     if (
       e.key === 'F12' ||
-      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) ||
+      (e.ctrlKey &&
+        e.shiftKey &&
+        (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) ||
       (e.ctrlKey && (e.key === 'U' || e.key === 'u'))
     ) {
       e.preventDefault();
@@ -266,14 +277,14 @@ class AntiCheatService {
 
   private generateReport(): AntiCheatReport {
     const tabSwitchCount = this.events.filter(e => e.type === 'tab_switch').length;
-    const copyAttempts = this.events.filter(e =>
-      e.type === 'copy_attempt' || e.type === 'paste_attempt'
+    const copyAttempts = this.events.filter(
+      e => e.type === 'copy_attempt' || e.type === 'paste_attempt'
     ).length;
 
     // Расчёт подозрительности (0-100)
     let suspiciousScore = 0;
-    suspiciousScore += Math.min(tabSwitchCount * 15, 45);  // Макс 45 за переключения
-    suspiciousScore += Math.min(copyAttempts * 10, 30);    // Макс 30 за копирование
+    suspiciousScore += Math.min(tabSwitchCount * 15, 45); // Макс 45 за переключения
+    suspiciousScore += Math.min(copyAttempts * 10, 30); // Макс 30 за копирование
     suspiciousScore += Math.min(Math.floor(this.totalBlurTime / 10000) * 5, 25); // Макс 25 за время вне фокуса
 
     return {

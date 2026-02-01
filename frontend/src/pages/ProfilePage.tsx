@@ -1,11 +1,25 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Achievement } from '@lyceum64/shared';
-import { AchievementCard } from '../components/AchievementCard';
-import { CURRENT_GRADE_LABELS, USER_STATUS_LABELS, DIRECTION_LABELS } from '@lyceum64/shared';
-import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { Link } from 'react-router-dom';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from 'recharts';
+
+import { AchievementCard } from '../components/AchievementCard';
+import { useAuthStore } from '../store/authStore';
+
+import type {
+  Achievement,
+  CURRENT_GRADE_LABELS,
+  USER_STATUS_LABELS,
+  DIRECTION_LABELS,
+} from '@lyceum64/shared';
 
 interface UserProfile {
   id: string;
@@ -125,7 +139,7 @@ export default function ProfilePage() {
 
       const response = await fetch('/api/users/profile', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -151,7 +165,7 @@ export default function ProfilePage() {
       if (!token) return;
 
       const response = await fetch('/api/users/achievements', {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
@@ -169,7 +183,7 @@ export default function ProfilePage() {
       if (!token) return;
 
       const response = await fetch('/api/users/stats', {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
@@ -189,7 +203,7 @@ export default function ProfilePage() {
       const response = await fetch('/api/users/profile', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(editForm),
@@ -214,14 +228,14 @@ export default function ProfilePage() {
       const response = await fetch('/api/users/avatar', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ avatar: avatarUrl }),
       });
 
       if (response.ok) {
-        setUser(prev => prev ? { ...prev, avatar: avatarUrl } : null);
+        setUser(prev => (prev ? { ...prev, avatar: avatarUrl } : null));
         setShowAvatarPicker(false);
         toast.success('Аватар обновлён');
       }
@@ -251,7 +265,7 @@ export default function ProfilePage() {
     try {
       // Конвертация в base64
       const reader = new FileReader();
-      reader.onload = async (event) => {
+      reader.onload = async event => {
         const base64String = event.target?.result as string;
 
         const token = useAuthStore.getState().token;
@@ -260,14 +274,14 @@ export default function ProfilePage() {
         const response = await fetch('/api/users/avatar', {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ avatar: base64String }),
         });
 
         if (response.ok) {
-          setUser(prev => prev ? { ...prev, avatar: base64String } : null);
+          setUser(prev => (prev ? { ...prev, avatar: base64String } : null));
           setShowAvatarPicker(false);
           setShowCustomUpload(false);
           toast.success('Аватар загружен');
@@ -313,7 +327,7 @@ export default function ProfilePage() {
     );
   }
 
-  const unlockedAchievements = achievements.filter((a) => a.isUnlocked);
+  const unlockedAchievements = achievements.filter(a => a.isUnlocked);
 
   const getSubjectLabel = (subject: string) => {
     const labels: Record<string, string> = {
@@ -343,7 +357,11 @@ export default function ProfilePage() {
                 <div className="relative group flex-shrink-0">
                   <div className="w-32 h-32 rounded-2xl bg-gray-800 border-4 border-gray-900 overflow-hidden">
                     {user.avatar ? (
-                      <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-4xl font-bold text-white">
                         {user.name.charAt(0).toUpperCase()}
@@ -360,11 +378,17 @@ export default function ProfilePage() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-3 mb-1">
-                    <h1 className="text-2xl md:text-3xl font-bold text-white break-words">{user.name}</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white break-words">
+                      {user.name}
+                    </h1>
                     {user.isPublic ? (
-                      <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full whitespace-nowrap">Публичный</span>
+                      <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full whitespace-nowrap">
+                        Публичный
+                      </span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-gray-500/20 text-gray-400 text-xs rounded-full whitespace-nowrap">Приватный</span>
+                      <span className="px-2 py-0.5 bg-gray-500/20 text-gray-400 text-xs rounded-full whitespace-nowrap">
+                        Приватный
+                      </span>
                     )}
                   </div>
                   <p className="text-cyan-400 font-mono break-all">@{user.username}</p>
@@ -377,8 +401,19 @@ export default function ProfilePage() {
                   onClick={copyProfileLink}
                   className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors flex items-center gap-2"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.193-9.193a4.5 4.5 0 00-6.364 0l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-4 h-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.193-9.193a4.5 4.5 0 00-6.364 0l-4.5 4.5a4.5 4.5 0 001.242 7.244"
+                    />
                   </svg>
                   Поделиться
                 </button>
@@ -393,19 +428,27 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
               <div className="bg-gray-800/50 rounded-xl p-4 text-center group hover:bg-gray-800/70 transition-all">
-                <p className="text-3xl font-bold text-cyan-400 group-hover:scale-110 transition-transform">{stats?.totalTests || 0}</p>
+                <p className="text-3xl font-bold text-cyan-400 group-hover:scale-110 transition-transform">
+                  {stats?.totalTests || 0}
+                </p>
                 <p className="text-sm text-gray-400">Тестов пройдено</p>
               </div>
               <div className="bg-gray-800/50 rounded-xl p-4 text-center group hover:bg-gray-800/70 transition-all">
-                <p className="text-3xl font-bold text-purple-400 group-hover:scale-110 transition-transform">{stats?.averageScore || 0}%</p>
+                <p className="text-3xl font-bold text-purple-400 group-hover:scale-110 transition-transform">
+                  {stats?.averageScore || 0}%
+                </p>
                 <p className="text-sm text-gray-400">Средний балл</p>
               </div>
               <div className="bg-gray-800/50 rounded-xl p-4 text-center group hover:bg-gray-800/70 transition-all">
-                <p className="text-3xl font-bold text-green-400 group-hover:scale-110 transition-transform">{stats?.bestScore || 0}%</p>
+                <p className="text-3xl font-bold text-green-400 group-hover:scale-110 transition-transform">
+                  {stats?.bestScore || 0}%
+                </p>
                 <p className="text-sm text-gray-400">Лучший результат</p>
               </div>
               <div className="bg-gray-800/50 rounded-xl p-4 text-center group hover:bg-gray-800/70 transition-all">
-                <p className="text-3xl font-bold text-amber-400 group-hover:scale-110 transition-transform">{unlockedAchievements.length}</p>
+                <p className="text-3xl font-bold text-amber-400 group-hover:scale-110 transition-transform">
+                  {unlockedAchievements.length}
+                </p>
                 <p className="text-sm text-gray-400">Достижений</p>
               </div>
             </div>
@@ -421,7 +464,9 @@ export default function ProfilePage() {
               <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-xl p-4 text-center">
                 <div className="flex items-center justify-center gap-2 mb-1">
                   <span className="text-2xl">⏱️</span>
-                  <p className="text-2xl font-bold text-blue-400">{Math.round((stats?.totalTimeSpent || 0) / 60) || 0}</p>
+                  <p className="text-2xl font-bold text-blue-400">
+                    {Math.round((stats?.totalTimeSpent || 0) / 60) || 0}
+                  </p>
                 </div>
                 <p className="text-xs text-gray-400">Минут занятий</p>
               </div>
@@ -435,7 +480,9 @@ export default function ProfilePage() {
               <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4 text-center">
                 <div className="flex items-center justify-center gap-2 mb-1">
                   <span className="text-2xl">⭐</span>
-                  <p className="text-xl font-bold text-green-400">{getSubjectLabel(stats?.favoriteSubject || 'MATHEMATICS')}</p>
+                  <p className="text-xl font-bold text-green-400">
+                    {getSubjectLabel(stats?.favoriteSubject || 'MATHEMATICS')}
+                  </p>
                 </div>
                 <p className="text-xs text-gray-400">Любимый предмет</p>
               </div>
@@ -453,7 +500,10 @@ export default function ProfilePage() {
               <div className="flex items-center gap-1 text-xs text-gray-500">
                 <span>Меньше</span>
                 {[0, 1, 2, 3, 4].map(i => (
-                  <div key={i} className={`w-2 h-2 rounded ${['bg-gray-800', 'bg-cyan-900/50', 'bg-cyan-700/70', 'bg-cyan-500', 'bg-cyan-400'][i]}`} />
+                  <div
+                    key={i}
+                    className={`w-2 h-2 rounded ${['bg-gray-800', 'bg-cyan-900/50', 'bg-cyan-700/70', 'bg-cyan-500', 'bg-cyan-400'][i]}`}
+                  />
                 ))}
                 <span>Больше</span>
               </div>
@@ -466,7 +516,7 @@ export default function ProfilePage() {
                   'bg-cyan-900/50',
                   'bg-cyan-700/70',
                   'bg-cyan-500',
-                  'bg-cyan-400'
+                  'bg-cyan-400',
                 ];
                 return (
                   <div
@@ -474,10 +524,17 @@ export default function ProfilePage() {
                     className={`w-8 h-8 rounded-lg ${colors[intensity]} hover:scale-110 transition-all cursor-pointer group relative`}
                   >
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 border border-gray-700 shadow-xl">
-                      <div className="font-bold">{new Date(day.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}</div>
+                      <div className="font-bold">
+                        {new Date(day.date).toLocaleDateString('ru-RU', {
+                          day: 'numeric',
+                          month: 'short',
+                        })}
+                      </div>
                       <div className="text-gray-400">{day.count} тестов</div>
                       {day.avgScore > 0 && (
-                        <div className={`${day.avgScore >= 70 ? 'text-green-400' : 'text-yellow-400'}`}>
+                        <div
+                          className={`${day.avgScore >= 70 ? 'text-green-400' : 'text-yellow-400'}`}
+                        >
                           {day.avgScore.toFixed(0)}% средний балл
                         </div>
                       )}
@@ -498,30 +555,32 @@ export default function ProfilePage() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={stats.recentAttempts.slice().reverse().map((a, i) => ({
-                    name: new Date(a.completedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }),
-                    score: a.score,
-                    subject: getSubjectLabel(a.subject),
-                  }))}
+                  data={stats.recentAttempts
+                    .slice()
+                    .reverse()
+                    .map((a, i) => ({
+                      name: new Date(a.completedAt).toLocaleDateString('ru-RU', {
+                        day: 'numeric',
+                        month: 'short',
+                      }),
+                      score: a.score,
+                      subject: getSubjectLabel(a.subject),
+                    }))}
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
                   <defs>
                     <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis
-                    dataKey="name"
-                    stroke="#9ca3af"
-                    tick={{ fill: '#9ca3af', fontSize: 12 }}
-                  />
+                  <XAxis dataKey="name" stroke="#9ca3af" tick={{ fill: '#9ca3af', fontSize: 12 }} />
                   <YAxis
                     stroke="#9ca3af"
                     tick={{ fill: '#9ca3af', fontSize: 12 }}
                     domain={[0, 100]}
-                    tickFormatter={(value) => `${value}%`}
+                    tickFormatter={value => `${value}%`}
                   />
                   <Tooltip
                     contentStyle={{
@@ -533,7 +592,7 @@ export default function ProfilePage() {
                     labelStyle={{ color: '#9ca3af', marginBottom: '4px' }}
                     formatter={(value: number, name: string, props: any) => [
                       `${value}%`,
-                      props.payload.subject
+                      props.payload.subject,
                     ]}
                   />
                   <Area
@@ -555,7 +614,10 @@ export default function ProfilePage() {
           {/* Тепловая карта времени дня */}
           <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
             <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-              <span className="w-2 h-2 bg-amber-400 rounded-full mr-3 animate-pulse" style={{ animationDelay: '0.7s' }} />
+              <span
+                className="w-2 h-2 bg-amber-400 rounded-full mr-3 animate-pulse"
+                style={{ animationDelay: '0.7s' }}
+              />
               🕒 Тепловая карта активности
             </h2>
             <p className="text-gray-400 text-sm mb-6">Ваши лучшие результаты по времени суток</p>
@@ -565,20 +627,26 @@ export default function ProfilePage() {
                 const hourData = stats?.timeHeatmap?.find(h => h.hour === hour) || {
                   hour,
                   avgScore: 0,
-                  testCount: 0
+                  testCount: 0,
                 };
 
-                const intensity = hourData.testCount === 0 ? 0 :
-                  hourData.avgScore < 60 ? 1 :
-                  hourData.avgScore < 70 ? 2 :
-                  hourData.avgScore < 80 ? 3 : 4;
+                const intensity =
+                  hourData.testCount === 0
+                    ? 0
+                    : hourData.avgScore < 60
+                      ? 1
+                      : hourData.avgScore < 70
+                        ? 2
+                        : hourData.avgScore < 80
+                          ? 3
+                          : 4;
 
                 const colors = [
                   'bg-gray-800',
                   'bg-red-900/40',
                   'bg-yellow-700/60',
                   'bg-green-600/70',
-                  'bg-green-400'
+                  'bg-green-400',
                 ];
 
                 return (
@@ -589,9 +657,13 @@ export default function ProfilePage() {
                     >
                       <span className="text-xs text-gray-400 font-mono">{hour}</span>
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 border border-gray-700 shadow-xl">
-                        <div className="font-bold">{hour}:00 - {hour + 1}:00</div>
+                        <div className="font-bold">
+                          {hour}:00 - {hour + 1}:00
+                        </div>
                         <div className="text-gray-400">{hourData.testCount} тестов</div>
-                        <div className={`${hourData.avgScore >= 70 ? 'text-green-400' : 'text-yellow-400'}`}>
+                        <div
+                          className={`${hourData.avgScore >= 70 ? 'text-green-400' : 'text-yellow-400'}`}
+                        >
                           {hourData.avgScore.toFixed(0)}% средний балл
                         </div>
                       </div>
@@ -605,52 +677,68 @@ export default function ProfilePage() {
               <span>Низкие результаты</span>
               <div className="flex gap-1">
                 {[0, 1, 2, 3, 4].map(i => (
-                  <div key={i} className={`w-5 h-5 rounded ${['bg-gray-800', 'bg-red-900/40', 'bg-yellow-700/60', 'bg-green-600/70', 'bg-green-400'][i]}`} />
+                  <div
+                    key={i}
+                    className={`w-5 h-5 rounded ${['bg-gray-800', 'bg-red-900/40', 'bg-yellow-700/60', 'bg-green-600/70', 'bg-green-400'][i]}`}
+                  />
                 ))}
               </div>
               <span>Высокие результаты</span>
             </div>
 
-            {stats?.timeHeatmap && stats.timeHeatmap.length > 0 && (() => {
-              const bestHour = stats.timeHeatmap.reduce((best, curr) =>
-                curr.avgScore > best.avgScore ? curr : best
-              , stats.timeHeatmap[0]);
+            {stats?.timeHeatmap &&
+              stats.timeHeatmap.length > 0 &&
+              (() => {
+                const bestHour = stats.timeHeatmap.reduce(
+                  (best, curr) => (curr.avgScore > best.avgScore ? curr : best),
+                  stats.timeHeatmap[0]
+                );
 
-              return bestHour.testCount > 0 ? (
-                <div className="mt-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl">💡</span>
-                    <div>
-                      <p className="text-cyan-400 font-semibold mb-1">Совет:</p>
-                      <p className="text-gray-300 text-sm">
-                        Ваши лучшие результаты показаны в {bestHour.hour}:00-{bestHour.hour + 1}:00 ({bestHour.avgScore.toFixed(0)}%).
-                        Старайтесь заниматься в это время для максимальной эффективности!
-                      </p>
+                return bestHour.testCount > 0 ? (
+                  <div className="mt-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">💡</span>
+                      <div>
+                        <p className="text-cyan-400 font-semibold mb-1">Совет:</p>
+                        <p className="text-gray-300 text-sm">
+                          Ваши лучшие результаты показаны в {bestHour.hour}:00-{bestHour.hour + 1}
+                          :00 ({bestHour.avgScore.toFixed(0)}%). Старайтесь заниматься в это время
+                          для максимальной эффективности!
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : null;
-            })()}
+                ) : null;
+              })()}
           </div>
 
           {/* Сравнение со средним */}
           <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
             <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-              <span className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse" style={{ animationDelay: '0.9s' }} />
+              <span
+                className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse"
+                style={{ animationDelay: '0.9s' }}
+              />
               📊 Сравнение с другими пользователями
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold text-cyan-400 mb-1">#{stats?.userRank || '—'}</div>
+                <div className="text-3xl font-bold text-cyan-400 mb-1">
+                  #{stats?.userRank || '—'}
+                </div>
                 <div className="text-gray-400 text-xs">Ваше место</div>
               </div>
               <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold text-purple-400 mb-1">{stats?.percentile || 0}%</div>
+                <div className="text-3xl font-bold text-purple-400 mb-1">
+                  {stats?.percentile || 0}%
+                </div>
                 <div className="text-gray-400 text-xs">Перцентиль</div>
               </div>
               <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold text-green-400 mb-1">{stats?.usersBeaten || 0}</div>
+                <div className="text-3xl font-bold text-green-400 mb-1">
+                  {stats?.usersBeaten || 0}
+                </div>
                 <div className="text-gray-400 text-xs">Обогнали из {stats?.totalUsers || 0}</div>
               </div>
             </div>
@@ -660,7 +748,9 @@ export default function ProfilePage() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-gray-400 text-sm">Ваш средний балл</span>
-                    <span className="text-2xl font-bold text-cyan-400">{stats?.averageScore || 0}%</span>
+                    <span className="text-2xl font-bold text-cyan-400">
+                      {stats?.averageScore || 0}%
+                    </span>
                   </div>
                   <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
                     <div
@@ -673,7 +763,9 @@ export default function ProfilePage() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-gray-400 text-sm">Средний балл платформы</span>
-                    <span className="text-2xl font-bold text-gray-400">{stats?.platformAverage || 0}%</span>
+                    <span className="text-2xl font-bold text-gray-400">
+                      {stats?.platformAverage || 0}%
+                    </span>
                   </div>
                   <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
                     <div
@@ -689,7 +781,9 @@ export default function ProfilePage() {
                   <svg className="w-full h-full transform -rotate-90">
                     <circle cx="80" cy="80" r="70" stroke="#1f2937" strokeWidth="12" fill="none" />
                     <circle
-                      cx="80" cy="80" r="70"
+                      cx="80"
+                      cy="80"
+                      r="70"
                       stroke="url(#percentileGradient)"
                       strokeWidth="12"
                       fill="none"
@@ -705,7 +799,9 @@ export default function ProfilePage() {
                     </defs>
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-bold text-white">топ {100 - (stats?.percentile || 0)}%</span>
+                    <span className="text-3xl font-bold text-white">
+                      топ {100 - (stats?.percentile || 0)}%
+                    </span>
                     <span className="text-gray-400 text-xs">пользователей</span>
                   </div>
                 </div>
@@ -719,7 +815,8 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-green-400 font-semibold mb-1">Вы в топе!</p>
                     <p className="text-gray-300 text-sm">
-                      Вы входите в топ {100 - (stats?.percentile || 0)}% пользователей платформы. Обогнали {stats?.usersBeaten || 0} из {stats?.totalUsers || 0} учеников!
+                      Вы входите в топ {100 - (stats?.percentile || 0)}% пользователей платформы.
+                      Обогнали {stats?.usersBeaten || 0} из {stats?.totalUsers || 0} учеников!
                     </p>
                   </div>
                 </div>
@@ -731,7 +828,8 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-cyan-400 font-semibold mb-1">Хороший результат!</p>
                     <p className="text-gray-300 text-sm">
-                      Вы показываете результаты выше среднего. Ещё немного усилий, и вы войдёте в топ!
+                      Вы показываете результаты выше среднего. Ещё немного усилий, и вы войдёте в
+                      топ!
                     </p>
                   </div>
                 </div>
@@ -755,7 +853,10 @@ export default function ProfilePage() {
             {/* Предсказание баллов */}
             <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
               <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-                <span className="w-2 h-2 bg-pink-400 rounded-full mr-3 animate-pulse" style={{ animationDelay: '1.1s' }} />
+                <span
+                  className="w-2 h-2 bg-pink-400 rounded-full mr-3 animate-pulse"
+                  style={{ animationDelay: '1.1s' }}
+                />
                 🤖 ИИ прогноз результата
               </h2>
 
@@ -775,20 +876,28 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl">
                   <span className="text-gray-400 text-sm">Динамика за неделю</span>
-                  <span className={`font-semibold ${(stats?.weeklyProgress || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {(stats?.weeklyProgress || 0) >= 0 ? '+' : ''}{stats?.weeklyProgress || 0}%
+                  <span
+                    className={`font-semibold ${(stats?.weeklyProgress || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                  >
+                    {(stats?.weeklyProgress || 0) >= 0 ? '+' : ''}
+                    {stats?.weeklyProgress || 0}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl">
                   <span className="text-gray-400 text-sm">Уверенность прогноза</span>
-                  <span className="text-cyan-400 font-semibold">{stats?.predictionConfidence || 0}%</span>
+                  <span className="text-cyan-400 font-semibold">
+                    {stats?.predictionConfidence || 0}%
+                  </span>
                 </div>
               </div>
 
               {stats?.predictionFactors && stats.predictionFactors.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
                   {stats.predictionFactors.map((factor, i) => (
-                    <span key={i} className="px-3 py-1 bg-pink-500/20 border border-pink-500/30 rounded-full text-pink-400 text-xs">
+                    <span
+                      key={i}
+                      className="px-3 py-1 bg-pink-500/20 border border-pink-500/30 rounded-full text-pink-400 text-xs"
+                    >
                       {factor}
                     </span>
                   ))}
@@ -803,8 +912,7 @@ export default function ProfilePage() {
                     <p className="text-gray-300 text-sm">
                       {(stats?.totalTests || 0) < 3
                         ? 'Пройдите ещё несколько тестов для точного прогноза. Минимум 3 теста для анализа.'
-                        : `Прогноз основан на ${stats?.totalTests} тестов. При текущей динамике вы можете улучшить результат до ${Math.min(100, (stats?.predictedScore || 0) + 5).toFixed(0)}%!`
-                      }
+                        : `Прогноз основан на ${stats?.totalTests} тестов. При текущей динамике вы можете улучшить результат до ${Math.min(100, (stats?.predictedScore || 0) + 5).toFixed(0)}%!`}
                     </p>
                   </div>
                 </div>
@@ -814,41 +922,60 @@ export default function ProfilePage() {
             {/* Слабые места */}
             <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
               <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-                <span className="w-2 h-2 bg-red-400 rounded-full mr-3 animate-pulse" style={{ animationDelay: '1.3s' }} />
+                <span
+                  className="w-2 h-2 bg-red-400 rounded-full mr-3 animate-pulse"
+                  style={{ animationDelay: '1.3s' }}
+                />
                 🎯 Темы для улучшения
               </h2>
 
               <div className="space-y-3 mb-6">
-                {stats?.weakTopics && stats.weakTopics.length > 0 ? stats.weakTopics.slice(0, 5).map((topic, index) => (
-                  <div key={index} className="p-4 bg-gray-800/50 rounded-xl hover:bg-gray-800/70 transition-all">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <h3 className="text-white font-semibold">{topic.topic}</h3>
-                        <p className="text-gray-400 text-xs">{getSubjectLabel(topic.subject)} • {topic.totalAttempts} попыток</p>
-                      </div>
-                      <div className="text-right">
-                        <div className={`text-2xl font-bold ${
-                          topic.avgScore < 50 ? 'text-red-400' :
-                          topic.avgScore < 60 ? 'text-orange-400' :
-                          topic.avgScore < 70 ? 'text-yellow-400' : 'text-green-400'
-                        }`}>
-                          {topic.avgScore}%
+                {stats?.weakTopics && stats.weakTopics.length > 0 ? (
+                  stats.weakTopics.slice(0, 5).map((topic, index) => (
+                    <div
+                      key={index}
+                      className="p-4 bg-gray-800/50 rounded-xl hover:bg-gray-800/70 transition-all"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h3 className="text-white font-semibold">{topic.topic}</h3>
+                          <p className="text-gray-400 text-xs">
+                            {getSubjectLabel(topic.subject)} • {topic.totalAttempts} попыток
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div
+                            className={`text-2xl font-bold ${
+                              topic.avgScore < 50
+                                ? 'text-red-400'
+                                : topic.avgScore < 60
+                                  ? 'text-orange-400'
+                                  : topic.avgScore < 70
+                                    ? 'text-yellow-400'
+                                    : 'text-green-400'
+                            }`}
+                          >
+                            {topic.avgScore}%
+                          </div>
                         </div>
                       </div>
+                      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            topic.avgScore < 50
+                              ? 'bg-gradient-to-r from-red-600 to-red-500'
+                              : topic.avgScore < 60
+                                ? 'bg-gradient-to-r from-orange-600 to-orange-500'
+                                : topic.avgScore < 70
+                                  ? 'bg-gradient-to-r from-yellow-600 to-yellow-500'
+                                  : 'bg-gradient-to-r from-green-600 to-green-500'
+                          }`}
+                          style={{ width: `${topic.avgScore}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          topic.avgScore < 50 ? 'bg-gradient-to-r from-red-600 to-red-500' :
-                          topic.avgScore < 60 ? 'bg-gradient-to-r from-orange-600 to-orange-500' :
-                          topic.avgScore < 70 ? 'bg-gradient-to-r from-yellow-600 to-yellow-500' :
-                          'bg-gradient-to-r from-green-600 to-green-500'
-                        }`}
-                        style={{ width: `${topic.avgScore}%` }}
-                      />
-                    </div>
-                  </div>
-                )) : (
+                  ))
+                ) : (
                   <div className="text-center py-8 text-gray-500">
                     <div className="text-4xl mb-2">🎯</div>
                     <p>Пройдите несколько тестов, чтобы мы смогли определить темы для улучшения</p>
@@ -857,17 +984,18 @@ export default function ProfilePage() {
               </div>
 
               {stats?.weakTopics && stats.weakTopics.length > 0 && (
-              <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">📚</span>
-                  <div>
-                    <p className="text-orange-400 font-semibold mb-1">Рекомендация</p>
-                    <p className="text-gray-300 text-sm">
-                      Уделите больше внимания этим темам. Решение дополнительных 5-10 задач может повысить ваш балл на 10-15%!
-                    </p>
+                <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">📚</span>
+                    <div>
+                      <p className="text-orange-400 font-semibold mb-1">Рекомендация</p>
+                      <p className="text-gray-300 text-sm">
+                        Уделите больше внимания этим темам. Решение дополнительных 5-10 задач может
+                        повысить ваш балл на 10-15%!
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
               )}
             </div>
           </div>
@@ -890,12 +1018,19 @@ export default function ProfilePage() {
                 {user.desiredDirection && (
                   <div>
                     <p className="text-sm text-gray-500">Направление</p>
-                    <p className="text-cyan-400">{DIRECTION_LABELS[user.desiredDirection as keyof typeof DIRECTION_LABELS]}</p>
+                    <p className="text-cyan-400">
+                      {DIRECTION_LABELS[user.desiredDirection as keyof typeof DIRECTION_LABELS]}
+                    </p>
                   </div>
                 )}
                 <div>
                   <p className="text-sm text-gray-500">На платформе с</p>
-                  <p className="text-white">{new Date(user.createdAt).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long' })}</p>
+                  <p className="text-white">
+                    {new Date(user.createdAt).toLocaleDateString('ru-RU', {
+                      year: 'numeric',
+                      month: 'long',
+                    })}
+                  </p>
                 </div>
               </div>
 
@@ -904,9 +1039,24 @@ export default function ProfilePage() {
                   to={`/profiles/${user.username}`}
                   className="text-cyan-400 hover:text-cyan-300 text-sm flex items-center gap-2"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-4 h-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
                   </svg>
                   Посмотреть публичный профиль
                 </Link>
@@ -918,12 +1068,14 @@ export default function ProfilePage() {
             <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-white">Достижения</h2>
-                <span className="text-sm text-gray-400">{unlockedAchievements.length} из {achievements.length}</span>
+                <span className="text-sm text-gray-400">
+                  {unlockedAchievements.length} из {achievements.length}
+                </span>
               </div>
 
               {unlockedAchievements.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {unlockedAchievements.slice(0, 6).map((achievement) => (
+                  {unlockedAchievements.slice(0, 6).map(achievement => (
                     <AchievementCard
                       key={achievement.id}
                       achievement={achievement}
@@ -975,8 +1127,19 @@ export default function ProfilePage() {
                       </div>
                     ) : (
                       <>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 mx-auto mb-2 text-cyan-400">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                          stroke="currentColor"
+                          className="w-8 h-8 mx-auto mb-2 text-cyan-400"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                          />
                         </svg>
                         <p className="text-cyan-400 font-medium">Загрузить свое фото</p>
                         <p className="text-gray-500 text-sm mt-1">PNG, JPG до 5MB</p>
@@ -1025,7 +1188,7 @@ export default function ProfilePage() {
                 <input
                   type="text"
                   value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  onChange={e => setEditForm({ ...editForm, name: e.target.value })}
                   className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white focus:border-cyan-500 focus:outline-none"
                 />
               </div>
@@ -1034,7 +1197,7 @@ export default function ProfilePage() {
                 <label className="block text-sm text-gray-400 mb-2">О себе</label>
                 <textarea
                   value={editForm.bio}
-                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                  onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
                   rows={3}
                   placeholder="Расскажите о себе..."
                   className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white focus:border-cyan-500 focus:outline-none resize-none"
@@ -1052,9 +1215,11 @@ export default function ProfilePage() {
                     editForm.isPublic ? 'bg-cyan-500' : 'bg-gray-600'
                   }`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                    editForm.isPublic ? 'translate-x-6' : 'translate-x-0.5'
-                  }`} />
+                  <div
+                    className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                      editForm.isPublic ? 'translate-x-6' : 'translate-x-0.5'
+                    }`}
+                  />
                 </button>
               </div>
             </div>

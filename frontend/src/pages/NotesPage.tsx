@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+
 import { Header } from '../components/Header';
 
 interface Note {
@@ -75,7 +76,7 @@ function NotesPage() {
       updatedAt: new Date().toISOString(),
     };
 
-    const newNotes = notes.map(n => n.id === selectedNote.id ? updatedNote : n);
+    const newNotes = notes.map(n => (n.id === selectedNote.id ? updatedNote : n));
     saveNotes(newNotes);
     setSelectedNote(updatedNote);
     setIsEditing(false);
@@ -93,9 +94,7 @@ function NotesPage() {
   };
 
   const togglePin = (noteId: string) => {
-    const newNotes = notes.map(n =>
-      n.id === noteId ? { ...n, pinned: !n.pinned } : n
-    );
+    const newNotes = notes.map(n => (n.id === noteId ? { ...n, pinned: !n.pinned } : n));
     saveNotes(newNotes);
     if (selectedNote?.id === noteId) {
       setSelectedNote({ ...selectedNote, pinned: !selectedNote.pinned });
@@ -117,8 +116,9 @@ function NotesPage() {
       if (filterSubject && note.subject !== filterSubject) return false;
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        return note.title.toLowerCase().includes(query) ||
-               note.content.toLowerCase().includes(query);
+        return (
+          note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query)
+        );
       }
       return true;
     })
@@ -167,7 +167,7 @@ function NotesPage() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Поиск заметок..."
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:border-amber-500 focus:outline-none"
               />
@@ -194,7 +194,8 @@ function NotesPage() {
                         : 'bg-gray-800 text-gray-400 hover:text-white'
                     }`}
                     style={{
-                      backgroundColor: filterSubject === subject.id ? subject.color + '40' : undefined,
+                      backgroundColor:
+                        filterSubject === subject.id ? subject.color + '40' : undefined,
                     }}
                   >
                     {subject.name}
@@ -287,24 +288,26 @@ function NotesPage() {
                       <input
                         type="text"
                         value={editForm.title}
-                        onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, title: e.target.value })}
                         className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white text-xl font-bold focus:border-amber-500 focus:outline-none"
                         placeholder="Название заметки"
                       />
 
                       <select
                         value={editForm.subject}
-                        onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, subject: e.target.value })}
                         className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-xl text-white focus:border-amber-500 focus:outline-none"
                       >
                         {SUBJECTS.map(subject => (
-                          <option key={subject.id} value={subject.id}>{subject.name}</option>
+                          <option key={subject.id} value={subject.id}>
+                            {subject.name}
+                          </option>
                         ))}
                       </select>
 
                       <textarea
                         value={editForm.content}
-                        onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, content: e.target.value })}
                         className="w-full h-[400px] px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white focus:border-amber-500 focus:outline-none resize-none font-mono"
                         placeholder="Текст заметки..."
                       />
@@ -328,7 +331,8 @@ function NotesPage() {
 
                       <div className="prose prose-invert max-w-none">
                         <pre className="whitespace-pre-wrap font-sans text-gray-300 leading-relaxed">
-                          {selectedNote.content || 'Заметка пуста. Нажмите "Редактировать" чтобы добавить текст.'}
+                          {selectedNote.content ||
+                            'Заметка пуста. Нажмите "Редактировать" чтобы добавить текст.'}
                         </pre>
                       </div>
                     </div>

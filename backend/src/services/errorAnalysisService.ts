@@ -80,46 +80,43 @@ const TYPE_ADVICE: Record<string, string[]> = {
 };
 
 const TOPIC_ADVICE: Record<string, string[]> = {
-  'Уравнения': [
+  Уравнения: [
     'Повторите правила переноса слагаемых',
     'Практикуйте решение линейных и квадратных уравнений',
     'Проверяйте корни подстановкой в исходное уравнение',
   ],
-  'Геометрия': [
+  Геометрия: [
     'Выучите основные формулы площадей и объёмов',
     'Рисуйте чертежи даже для простых задач',
     'Помните теоремы о подобии и равенстве треугольников',
   ],
-  'Функции': [
+  Функции: [
     'Повторите свойства линейной, квадратичной функций',
     'Практикуйте построение графиков',
     'Изучите связь между формулой и графиком',
   ],
-  'Арифметика': [
-    'Проверяйте вычисления дважды',
-    'Используйте прикидку для оценки ответа',
-  ],
-  'Механика': [
+  Арифметика: ['Проверяйте вычисления дважды', 'Используйте прикидку для оценки ответа'],
+  Механика: [
     'Выучите три закона Ньютона и их применение',
     'Практикуйте задачи на кинематику',
     'Рисуйте схемы с силами для каждой задачи',
   ],
-  'Электричество': [
+  Электричество: [
     'Повторите закон Ома и правила Кирхгофа',
     'Практикуйте расчёт цепей с резисторами',
     'Разберитесь с понятиями напряжения, силы тока, сопротивления',
   ],
-  'Орфография': [
+  Орфография: [
     'Повторите правила правописания корней с чередованием',
     'Изучите правила написания приставок',
     'Практикуйте словарные слова',
   ],
-  'Пунктуация': [
+  Пунктуация: [
     'Выучите правила постановки запятых при однородных членах',
     'Разберитесь с обособленными определениями и обстоятельствами',
     'Практикуйте сложные предложения',
   ],
-  'Грамматика': [
+  Грамматика: [
     'Повторите части речи и их признаки',
     'Изучите типы связи в словосочетаниях',
     'Практикуйте синтаксический разбор',
@@ -210,7 +207,6 @@ interface AnalysisResult {
 }
 
 class ErrorAnalysisService {
-
   async getDetailedAnalysis(userId: string): Promise<AnalysisResult> {
     const attempts = await prisma.testAttempt.findMany({
       where: {
@@ -247,7 +243,12 @@ class ErrorAnalysisService {
 
     const frequentMistakes = this.findFrequentMistakes(stats);
 
-    const recommendations = this.generateRecommendations(stats, weakTopics, byQuestionType, byDifficulty);
+    const recommendations = this.generateRecommendations(
+      stats,
+      weakTopics,
+      byQuestionType,
+      byDifficulty
+    );
 
     const progressOverTime = this.calculateProgressOverTime(attempts);
 
@@ -257,12 +258,14 @@ class ErrorAnalysisService {
         totalQuestions: stats.totalQuestions,
         totalCorrect: stats.totalCorrect,
         totalWrong: stats.totalQuestions - stats.totalCorrect,
-        overallAccuracy: stats.totalQuestions > 0
-          ? Math.round((stats.totalCorrect / stats.totalQuestions) * 100)
-          : 0,
-        averageTimePerQuestion: stats.totalTime > 0 && stats.questionsWithTime > 0
-          ? Math.round(stats.totalTime / stats.questionsWithTime / 1000)
-          : 0,
+        overallAccuracy:
+          stats.totalQuestions > 0
+            ? Math.round((stats.totalCorrect / stats.totalQuestions) * 100)
+            : 0,
+        averageTimePerQuestion:
+          stats.totalTime > 0 && stats.questionsWithTime > 0
+            ? Math.round(stats.totalTime / stats.questionsWithTime / 1000)
+            : 0,
       },
       byQuestionType,
       byDifficulty,
@@ -280,26 +283,35 @@ class ErrorAnalysisService {
       totalCorrect: 0,
       totalTime: 0,
       questionsWithTime: 0,
-      byType: {} as Record<string, { total: number; correct: number; totalTime: number; count: number }>,
+      byType: {} as Record<
+        string,
+        { total: number; correct: number; totalTime: number; count: number }
+      >,
       byDifficulty: {} as Record<string, { total: number; correct: number }>,
-      byTopic: {} as Record<string, {
-        total: number;
-        correct: number;
-        subject: string;
-        recentResults: boolean[];
-      }>,
-      byQuestion: {} as Record<string, {
-        questionText: string;
-        topic: string;
-        subject: string;
-        type: string;
-        attempts: number;
-        wrong: number;
-        wrongAnswers: string[];
-      }>,
+      byTopic: {} as Record<
+        string,
+        {
+          total: number;
+          correct: number;
+          subject: string;
+          recentResults: boolean[];
+        }
+      >,
+      byQuestion: {} as Record<
+        string,
+        {
+          questionText: string;
+          topic: string;
+          subject: string;
+          type: string;
+          attempts: number;
+          wrong: number;
+          wrongAnswers: string[];
+        }
+      >,
     };
 
-    attempts.forEach((attempt) => {
+    attempts.forEach(attempt => {
       try {
         const answers = JSON.parse(attempt.answers || '[]');
         const answerTimes = attempt.answerTimes ? JSON.parse(attempt.answerTimes) : [];
@@ -314,9 +326,7 @@ class ErrorAnalysisService {
           const subject = question.subject;
           const topicKey = `${subject}:${topic}`;
 
-          const questionIndex = questionsOrder
-            ? questionsOrder.indexOf(questionId)
-            : index;
+          const questionIndex = questionsOrder ? questionsOrder.indexOf(questionId) : index;
 
           let userAnswer = null;
           let isCorrect = false;
@@ -604,9 +614,8 @@ class ErrorAnalysisService {
       });
     }
 
-    const avgTime = stats.questionsWithTime > 0
-      ? stats.totalTime / stats.questionsWithTime / 1000
-      : 0;
+    const avgTime =
+      stats.questionsWithTime > 0 ? stats.totalTime / stats.questionsWithTime / 1000 : 0;
 
     if (avgTime > 180) {
       recommendations.push({
@@ -671,9 +680,7 @@ class ErrorAnalysisService {
 
         attempt.test.questions.forEach((tq: any, index: number) => {
           const question = tq.question;
-          const questionIndex = questionsOrder
-            ? questionsOrder.indexOf(question.id)
-            : index;
+          const questionIndex = questionsOrder ? questionsOrder.indexOf(question.id) : index;
 
           byDate[date].total++;
 
@@ -721,17 +728,19 @@ class ErrorAnalysisService {
       weakTopics: [],
       strongTopics: [],
       frequentMistakes: [],
-      recommendations: [{
-        priority: 'low',
-        category: 'Начало',
-        title: 'Пройдите первый тест',
-        description: 'Для анализа ошибок нужно сначала пройти хотя бы один тест.',
-        actionItems: [
-          'Выберите предмет на главной странице',
-          'Пройдите тест до конца',
-          'Вернитесь сюда для анализа результатов',
-        ],
-      }],
+      recommendations: [
+        {
+          priority: 'low',
+          category: 'Начало',
+          title: 'Пройдите первый тест',
+          description: 'Для анализа ошибок нужно сначала пройти хотя бы один тест.',
+          actionItems: [
+            'Выберите предмет на главной странице',
+            'Пройдите тест до конца',
+            'Вернитесь сюда для анализа результатов',
+          ],
+        },
+      ],
       progressOverTime: [],
     };
   }

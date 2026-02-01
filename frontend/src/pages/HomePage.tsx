@@ -1,8 +1,4 @@
 import { LYCEUM_INFO, DIRECTION_LABELS, Direction } from '@lyceum64/shared';
-import { Link } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
-import { useState, useMemo } from 'react';
-import { getGreetingWithName, getRandomMotivation } from '../utils/greetings';
 import {
   Code,
   Bot,
@@ -18,8 +14,13 @@ import {
   X,
   GraduationCap,
   Briefcase,
-  BookOpen
+  BookOpen,
 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+
+import { useAuthStore } from '../store/authStore';
+import { getGreetingWithName, getRandomMotivation } from '../utils/greetings';
 
 const DIRECTION_ICONS: Record<Direction, React.ElementType> = {
   [Direction.PROGRAMMING]: Code,
@@ -37,33 +38,41 @@ interface DirectionInfo {
 
 const DIRECTION_INFO: Record<Direction, DirectionInfo> = {
   [Direction.PROGRAMMING]: {
-    fullDescription: 'Направление для тех, кто хочет стать профессиональным разработчиком программного обеспечения. Изучение алгоритмов, структур данных, языков программирования и современных технологий разработки.',
+    fullDescription:
+      'Направление для тех, кто хочет стать профессиональным разработчиком программного обеспечения. Изучение алгоритмов, структур данных, языков программирования и современных технологий разработки.',
     subjects: ['Математика (профиль)', 'Информатика (профиль)', 'Физика (профиль)'],
     careers: ['Программист', 'Системный аналитик', 'Data Scientist'],
   },
   [Direction.ROBOTICS]: {
-    fullDescription: 'Направление объединяет программирование, электронику и механику. Вы научитесь собирать и программировать роботов.',
+    fullDescription:
+      'Направление объединяет программирование, электронику и механику. Вы научитесь собирать и программировать роботов.',
     subjects: ['Математика (профиль)', 'Физика (профиль)', 'Информатика (профиль)'],
     careers: ['Инженер-робототехник', 'Инженер автоматизации', 'Разработчик IoT'],
   },
   [Direction.MEDICINE]: {
-    fullDescription: 'Подготовка к поступлению в медицинские вузы. Углублённое изучение биологии, химии и основ медицины.',
+    fullDescription:
+      'Подготовка к поступлению в медицинские вузы. Углублённое изучение биологии, химии и основ медицины.',
     subjects: ['Биология (профиль)', 'Химия (профиль)', 'Русский язык'],
     careers: ['Врач', 'Фармацевт', 'Биотехнолог'],
   },
   [Direction.BIOTECHNOLOGY]: {
-    fullDescription: 'Направление на стыке биологии и технологий. Генетика, молекулярная биология, биоинформатика.',
+    fullDescription:
+      'Направление на стыке биологии и технологий. Генетика, молекулярная биология, биоинформатика.',
     subjects: ['Биология (профиль)', 'Химия (профиль)', 'Информатика'],
     careers: ['Генетик', 'Биоинженер', 'Биоинформатик'],
   },
   [Direction.CULTURE]: {
-    fullDescription: 'Направление для творческих личностей. Изучение истории искусств, культурологии и дизайна.',
+    fullDescription:
+      'Направление для творческих личностей. Изучение истории искусств, культурологии и дизайна.',
     subjects: ['Литература (профиль)', 'История (профиль)', 'Английский язык'],
     careers: ['Дизайнер', 'Искусствовед', 'Журналист'],
   },
 };
 
-const DIRECTION_COLORS: Record<Direction, { bg: string; border: string; text: string; iconBg: string }> = {
+const DIRECTION_COLORS: Record<
+  Direction,
+  { bg: string; border: string; text: string; iconBg: string }
+> = {
   [Direction.PROGRAMMING]: {
     bg: 'bg-blue-500/10',
     border: 'border-blue-500/30 hover:border-blue-500/50',
@@ -108,8 +117,8 @@ function getDirectionDescription(direction: Direction): string {
 }
 
 function HomePage() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const user = useAuthStore(state => state.user);
 
   const greeting = useMemo(() => getGreetingWithName(user?.name), [user?.name]);
   const motivation = useMemo(() => getRandomMotivation(), []);
@@ -127,9 +136,7 @@ function HomePage() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 bg-blue-500/10 border border-blue-500/30 rounded-full">
               <GraduationCap className="w-4 h-4 text-blue-400" />
-              <span className="text-sm font-medium text-blue-300">
-                Лицей-интернат №64
-              </span>
+              <span className="text-sm font-medium text-blue-300">Лицей-интернат №64</span>
             </div>
 
             {/* Headline */}
@@ -141,8 +148,7 @@ function HomePage() {
             <p className="text-lg sm:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
               {isAuthenticated
                 ? motivation
-                : 'Интерактивная платформа для подготовки к поступлению в один из лучших лицеев Саратова'
-              }
+                : 'Интерактивная платформа для подготовки к поступлению в один из лучших лицеев Саратова'}
             </p>
 
             {/* CTA Buttons */}
@@ -188,12 +194,8 @@ function HomePage() {
       {/* Directions Section */}
       <section className="container-wide py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Направления обучения
-          </h2>
-          <p className="text-slate-400 text-lg">
-            Выберите свой путь к успеху
-          </p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Направления обучения</h2>
+          <p className="text-slate-400 text-lg">Выберите свой путь к успеху</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -243,9 +245,7 @@ function HomePage() {
                 <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
                   <Globe className="w-5 h-5 text-blue-400" />
                 </div>
-                <span className="text-blue-400 group-hover:underline">
-                  Официальный сайт
-                </span>
+                <span className="text-blue-400 group-hover:underline">Официальный сайт</span>
               </a>
             </div>
           </div>
@@ -276,9 +276,7 @@ function HomePage() {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500 mb-1">Экзамены</p>
-                  <p className="text-white font-medium">
-                    {LYCEUM_INFO.admissionPeriod.exams}
-                  </p>
+                  <p className="text-white font-medium">{LYCEUM_INFO.admissionPeriod.exams}</p>
                 </div>
               </div>
             </div>
@@ -312,19 +310,19 @@ function DirectionCard({ direction, label, description, index }: DirectionCardPr
           hover:scale-[1.02] group
         `}
       >
-        <div className={`w-12 h-12 rounded-xl ${colors.iconBg} flex items-center justify-center mb-4`}>
+        <div
+          className={`w-12 h-12 rounded-xl ${colors.iconBg} flex items-center justify-center mb-4`}
+        >
           <Icon className={`w-6 h-6 ${colors.text}`} />
         </div>
 
-        <h3 className="text-xl font-bold text-white mb-2">
-          {label}
-        </h3>
+        <h3 className="text-xl font-bold text-white mb-2">{label}</h3>
 
-        <p className="text-slate-400 mb-4">
-          {description}
-        </p>
+        <p className="text-slate-400 mb-4">{description}</p>
 
-        <span className={`text-sm font-medium ${colors.text} inline-flex items-center gap-1 group-hover:gap-2 transition-all`}>
+        <span
+          className={`text-sm font-medium ${colors.text} inline-flex items-center gap-1 group-hover:gap-2 transition-all`}
+        >
           Подробнее
           <ChevronRight className="w-4 h-4" />
         </span>
@@ -338,12 +336,14 @@ function DirectionCard({ direction, label, description, index }: DirectionCardPr
         >
           <div
             className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-lg w-full animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-4">
-                <div className={`w-14 h-14 rounded-xl ${colors.iconBg} flex items-center justify-center`}>
+                <div
+                  className={`w-14 h-14 rounded-xl ${colors.iconBg} flex items-center justify-center`}
+                >
                   <Icon className={`w-7 h-7 ${colors.text}`} />
                 </div>
                 <div>
@@ -360,9 +360,7 @@ function DirectionCard({ direction, label, description, index }: DirectionCardPr
             </div>
 
             {/* Description */}
-            <p className="text-slate-300 mb-6 leading-relaxed">
-              {info.fullDescription}
-            </p>
+            <p className="text-slate-300 mb-6 leading-relaxed">{info.fullDescription}</p>
 
             {/* Subjects */}
             <div className="mb-6">

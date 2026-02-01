@@ -1,10 +1,12 @@
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 import crypto from 'crypto';
+
 import prisma from '../config/database';
-import { logger } from '../utils/logger';
 import { generateToken } from '../utils/jwt';
+import { logger } from '../utils/logger';
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 30;
 
@@ -167,12 +169,14 @@ class TokenService {
     return result.count;
   }
 
-  async getUserSessions(userId: string): Promise<{
-    id: string;
-    deviceInfo: string | null;
-    ipAddress: string | null;
-    createdAt: Date;
-  }[]> {
+  async getUserSessions(userId: string): Promise<
+    {
+      id: string;
+      deviceInfo: string | null;
+      ipAddress: string | null;
+      createdAt: Date;
+    }[]
+  > {
     const tokens = await prisma.refreshToken.findMany({
       where: {
         userId,

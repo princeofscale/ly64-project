@@ -4,9 +4,11 @@
  */
 
 import React from 'react';
-import { ITask } from '../../core/interfaces';
-import { QuestionRenderer } from '../questions';
+
 import { QUESTION_TYPE_INFO } from '../../core/constants';
+import { QuestionRenderer } from '../questions';
+
+import type { ITask } from '../../core/interfaces';
 
 interface TaskCardProps {
   task: ITask;
@@ -57,9 +59,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </div>
 
           {/* Тема */}
-          <div className="text-sm text-gray-500 font-sans">
-            {task.topic}
-          </div>
+          <div className="text-sm text-gray-500 font-sans">{task.topic}</div>
         </div>
 
         {/* Флаг для отметки */}
@@ -83,9 +83,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             flex items-center gap-2 px-4 py-2.5
             rounded-xl font-sans font-medium
             transition-all duration-200
-            ${isFirst || disabled
-              ? 'text-gray-600 cursor-not-allowed'
-              : 'text-gray-300 hover:text-white hover:bg-gray-800/50'
+            ${
+              isFirst || disabled
+                ? 'text-gray-600 cursor-not-allowed'
+                : 'text-gray-300 hover:text-white hover:bg-gray-800/50'
             }
           `}
         >
@@ -166,19 +167,40 @@ const FlagButton: React.FC = () => (
  * Иконки
  */
 const ArrowLeftIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="currentColor"
+    className={className}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
   </svg>
 );
 
 const ArrowRightIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="currentColor"
+    className={className}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
   </svg>
 );
 
 const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="currentColor"
+    className={className}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
   </svg>
 );

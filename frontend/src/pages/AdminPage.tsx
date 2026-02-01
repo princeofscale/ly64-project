@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+
+import { useAuthStore } from '../store/authStore';
 
 interface AdminUser {
   id: string;
@@ -161,7 +162,6 @@ export default function AdminPage() {
     }
   };
 
-
   if (user?.role !== 'ADMIN') {
     return null;
   }
@@ -187,7 +187,9 @@ export default function AdminPage() {
               <div className="text-xs text-green-400 mt-1">+{stats.testsToday} сегодня</div>
             </div>
             <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-5">
-              <div className="text-3xl font-bold text-amber-400">{stats.usersByRole?.ADMIN || 0}</div>
+              <div className="text-3xl font-bold text-amber-400">
+                {stats.usersByRole?.ADMIN || 0}
+              </div>
               <div className="text-sm text-gray-400">Администраторов</div>
               <div className="text-xs text-gray-500 mt-1">
                 {stats.usersByRole?.USER || 0} обычных пользователей
@@ -202,7 +204,7 @@ export default function AdminPage() {
             type="text"
             placeholder="Поиск по email, имени..."
             value={search}
-            onChange={(e) => {
+            onChange={e => {
               setSearch(e.target.value);
               setPage(1);
             }}
@@ -210,7 +212,7 @@ export default function AdminPage() {
           />
           <select
             value={roleFilter}
-            onChange={(e) => {
+            onChange={e => {
               setRoleFilter(e.target.value);
               setPage(1);
             }}
@@ -232,16 +234,28 @@ export default function AdminPage() {
                 <table className="w-full">
                   <thead className="bg-gray-800/50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Пользователь</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Роль</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Направление</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Тесты</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Дата</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Действия</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
+                        Пользователь
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
+                        Роль
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
+                        Направление
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
+                        Тесты
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
+                        Дата
+                      </th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">
+                        Действия
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800">
-                    {users.map((u) => (
+                    {users.map(u => (
                       <tr key={u.id} className="hover:bg-gray-800/30 transition-colors">
                         <td className="px-4 py-3">
                           <div className="font-medium text-white">{u.name}</div>
@@ -259,7 +273,9 @@ export default function AdminPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-300">
-                          {u.desiredDirection ? DIRECTION_LABELS[u.desiredDirection] || u.desiredDirection : '-'}
+                          {u.desiredDirection
+                            ? DIRECTION_LABELS[u.desiredDirection] || u.desiredDirection
+                            : '-'}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-300">{u._count.testAttempts}</td>
                         <td className="px-4 py-3 text-sm text-gray-400">
@@ -293,7 +309,7 @@ export default function AdminPage() {
               {totalPages > 1 && (
                 <div className="flex justify-center gap-2 p-4 border-t border-gray-800">
                   <button
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1}
                     className="px-4 py-2 bg-gray-800 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-700 transition-colors"
                   >
@@ -303,7 +319,7 @@ export default function AdminPage() {
                     Страница {page} из {totalPages}
                   </span>
                   <button
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
                     className="px-4 py-2 bg-gray-800 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-700 transition-colors"
                   >
@@ -327,7 +343,7 @@ export default function AdminPage() {
                   <label className="block text-sm font-medium text-gray-300 mb-2">Роль</label>
                   <select
                     value={editForm.role}
-                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                    onChange={e => setEditForm({ ...editForm, role: e.target.value })}
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:border-cyan-500 focus:outline-none"
                   >
                     <option value="USER">Пользователь</option>

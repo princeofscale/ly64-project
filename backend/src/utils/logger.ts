@@ -1,8 +1,10 @@
+import fs from 'fs';
+import path from 'path';
+
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import path from 'path';
-import fs from 'fs';
-import { Request } from 'express';
+
+import type { Request } from 'express';
 
 const logDir = process.env.LOG_DIR || 'logs';
 

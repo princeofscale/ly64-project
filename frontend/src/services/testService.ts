@@ -220,12 +220,12 @@ class TestService {
    */
   private mapQuestionType(backendType: string): TestQuestion['type'] {
     const typeMap: Record<string, TestQuestion['type']> = {
-      'SHORT_ANSWER': 'short',
-      'SINGLE_CHOICE': 'choice',
-      'MULTIPLE_CHOICE': 'multiple_choice',
-      'MATCHING': 'matching',
-      'DETAILED': 'detailed',
-      'PROOF': 'proof',
+      SHORT_ANSWER: 'short',
+      SINGLE_CHOICE: 'choice',
+      MULTIPLE_CHOICE: 'multiple_choice',
+      MATCHING: 'matching',
+      DETAILED: 'detailed',
+      PROOF: 'proof',
     };
     return typeMap[backendType] || 'short';
   }

@@ -1,7 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
 import prismaClient from '../config/database';
 import RoleService from '../services/roleService';
 import { logger } from '../utils/logger';
+
+import type { Request, Response, NextFunction } from 'express';
 
 const roleService = new RoleService(prismaClient);
 

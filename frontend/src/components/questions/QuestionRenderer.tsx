@@ -4,10 +4,12 @@
  */
 
 import React from 'react';
-import { ITask } from '../../core/interfaces';
-import { ShortAnswerQuestion } from './ShortAnswerQuestion';
+
 import { ChoiceQuestion } from './ChoiceQuestion';
 import { DetailedQuestion } from './DetailedQuestion';
+import { ShortAnswerQuestion } from './ShortAnswerQuestion';
+
+import type { ITask } from '../../core/interfaces';
 
 interface QuestionRendererProps {
   task: ITask;
@@ -75,9 +77,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       </div>
 
       {/* Поле для ответа */}
-      <div className="mt-6">
-        {renderQuestion()}
-      </div>
+      <div className="mt-6">{renderQuestion()}</div>
     </div>
   );
 };

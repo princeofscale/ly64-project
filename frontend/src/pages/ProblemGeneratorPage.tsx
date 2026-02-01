@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { Header } from '../components/Header';
 
 interface Problem {
@@ -200,8 +201,9 @@ function ProblemGeneratorPage() {
   const checkAnswer = () => {
     if (!currentProblem || !userAnswer.trim()) return;
 
-    const correct = String(currentProblem.answer).toLowerCase().replace(/\s/g, '') ===
-                   userAnswer.toLowerCase().replace(/\s/g, '');
+    const correct =
+      String(currentProblem.answer).toLowerCase().replace(/\s/g, '') ===
+      userAnswer.toLowerCase().replace(/\s/g, '');
 
     setIsCorrect(correct);
     setShowAnswer(true);
@@ -213,9 +215,7 @@ function ProblemGeneratorPage() {
 
   const toggleType = (typeId: string) => {
     setSelectedTypes(prev =>
-      prev.includes(typeId)
-        ? prev.filter(t => t !== typeId)
-        : [...prev, typeId]
+      prev.includes(typeId) ? prev.filter(t => t !== typeId) : [...prev, typeId]
     );
   };
 
@@ -224,9 +224,10 @@ function ProblemGeneratorPage() {
     setCurrentProblem(null);
   };
 
-  const accuracy = stats.correct + stats.wrong > 0
-    ? Math.round((stats.correct / (stats.correct + stats.wrong)) * 100)
-    : 0;
+  const accuracy =
+    stats.correct + stats.wrong > 0
+      ? Math.round((stats.correct / (stats.correct + stats.wrong)) * 100)
+      : 0;
 
   return (
     <>
@@ -234,16 +235,17 @@ function ProblemGeneratorPage() {
       <div className="min-h-screen bg-gray-950 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-transparent to-rose-500/5 opacity-30" />
         <div className="absolute top-20 left-10 w-72 h-72 bg-pink-500/20 rounded-full blur-[80px] animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-rose-500/20 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-rose-500/20 rounded-full blur-[80px] animate-pulse"
+          style={{ animationDelay: '1s' }}
+        />
 
         <main className="relative z-10 max-w-4xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-pink-400 via-rose-400 to-red-400 bg-clip-text text-transparent mb-4">
               Генератор задач
             </h1>
-            <p className="text-gray-400 text-lg">
-              Тренируйся решать задачи на скорость
-            </p>
+            <p className="text-gray-400 text-lg">Тренируйся решать задачи на скорость</p>
           </div>
 
           {/* Статистика */}
@@ -314,8 +316,8 @@ function ProblemGeneratorPage() {
                   <input
                     type="text"
                     value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && !showAnswer && checkAnswer()}
+                    onChange={e => setUserAnswer(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && !showAnswer && checkAnswer()}
                     placeholder="Ваш ответ"
                     disabled={showAnswer}
                     className="w-48 px-6 py-4 bg-gray-800 border border-gray-600 rounded-xl text-white text-2xl text-center font-bold focus:border-pink-500 focus:outline-none disabled:opacity-50"
@@ -325,7 +327,9 @@ function ProblemGeneratorPage() {
 
                 {showAnswer ? (
                   <div className="text-center space-y-4">
-                    <div className={`text-2xl font-bold ${isCorrect ? 'text-green-400' : 'text-red-400'}`}>
+                    <div
+                      className={`text-2xl font-bold ${isCorrect ? 'text-green-400' : 'text-red-400'}`}
+                    >
                       {isCorrect ? '✓ Верно!' : `✗ Неверно. Ответ: ${currentProblem.answer}`}
                     </div>
                     <button
@@ -349,9 +353,7 @@ function ProblemGeneratorPage() {
               </div>
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-400 mb-6">
-                  Выберите типы задач и нажмите кнопку
-                </p>
+                <p className="text-gray-400 mb-6">Выберите типы задач и нажмите кнопку</p>
                 <button
                   onClick={generateProblem}
                   disabled={selectedTypes.length === 0}

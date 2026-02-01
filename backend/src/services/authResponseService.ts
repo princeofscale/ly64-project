@@ -1,12 +1,13 @@
-import { Response } from 'express';
-import {
+import { HTTP_STATUS_CODES, AUTH_MESSAGES } from '../constants/authConstants';
+
+import type {
   AuthSuccessResponse,
   CurrentUserResponse,
   LogoutResponse,
   AuthResult,
   AuthUser,
 } from '../types/authTypes';
-import { HTTP_STATUS_CODES, AUTH_MESSAGES } from '../constants/authConstants';
+import type { Response } from 'express';
 
 export class AuthResponseService {
   public sendRegistrationSuccess(res: Response, result: AuthResult): void {

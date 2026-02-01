@@ -17,10 +17,7 @@ const CONFIG = {
   maxBackups: 10,
   getBackupName: () => {
     const now = new Date();
-    const timestamp = now.toISOString()
-      .replace(/[:.]/g, '-')
-      .replace('T', '_')
-      .slice(0, 19);
+    const timestamp = now.toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, 19);
     return `backup_${timestamp}.db`;
   },
 };
@@ -35,7 +32,8 @@ function ensureBackupDir(): void {
 function getBackupList(): { name: string; path: string; size: number; date: Date }[] {
   ensureBackupDir();
 
-  const files = fs.readdirSync(CONFIG.backupDir)
+  const files = fs
+    .readdirSync(CONFIG.backupDir)
     .filter(f => f.startsWith('backup_') && f.endsWith('.db'))
     .map(name => {
       const filePath = path.join(CONFIG.backupDir, name);
@@ -239,12 +237,6 @@ function main(): void {
   }
 }
 
-export {
-  createBackup,
-  listBackups,
-  restoreFromLatest,
-  restoreFromBackup,
-  getBackupList,
-};
+export { createBackup, listBackups, restoreFromLatest, restoreFromBackup, getBackupList };
 
 main();

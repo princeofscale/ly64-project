@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+
 import { TimerService } from '../../core/services';
 
 interface ExamHeaderProps {
@@ -56,17 +57,15 @@ export const ExamHeader: React.FC<ExamHeaderProps> = ({
             <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
               {title}
             </h1>
-            {subtitle && (
-              <span className="text-sm text-gray-400 font-sans">
-                {subtitle}
-              </span>
-            )}
+            {subtitle && <span className="text-sm text-gray-400 font-sans">{subtitle}</span>}
           </div>
 
           {/* Правая часть: таймер и прогресс */}
           <div className="flex items-center gap-6">
             {/* Таймер */}
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${getTimerBgColor()}`}>
+            <div
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${getTimerBgColor()}`}
+            >
               <TimerIcon className={`w-5 h-5 ${getTimerColor()}`} />
               <span className={`font-mono text-lg font-semibold ${getTimerColor()}`}>
                 {TimerService.formatTime(timeLeft)}

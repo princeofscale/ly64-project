@@ -4,10 +4,13 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { IExam, ITask } from '../interfaces';
-import { ExamType, Subject, Grade, ExamDTO } from '../types';
-import { Task } from './Task';
+
 import { EXAM_CONFIG, SUBJECT_NAMES } from '../constants';
+
+import { Task } from './Task';
+
+import type { IExam, ITask } from '../interfaces';
+import type { ExamType, Subject, Grade, ExamDTO } from '../types';
 
 /**
  * Абстрактный базовый класс экзамена

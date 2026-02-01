@@ -1,5 +1,7 @@
-import { InputHTMLAttributes, forwardRef } from 'react';
 import { AlertCircle } from 'lucide-react';
+import { forwardRef } from 'react';
+
+import type { InputHTMLAttributes } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -33,9 +35,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             placeholder:text-slate-400 dark:placeholder:text-slate-500
             transition-colors duration-200
             focus:outline-none focus:ring-2 focus:ring-blue-500/20
-            ${error
-              ? 'border-red-500 focus:border-red-500'
-              : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 focus:border-blue-500'
+            ${
+              error
+                ? 'border-red-500 focus:border-red-500'
+                : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 focus:border-blue-500'
             }
             ${className}
           `}
@@ -56,10 +59,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
 
         {hint && !error && (
-          <p
-            id={`${inputId}-hint`}
-            className="mt-1.5 text-sm text-slate-500"
-          >
+          <p id={`${inputId}-hint`} className="mt-1.5 text-sm text-slate-500">
             {hint}
           </p>
         )}

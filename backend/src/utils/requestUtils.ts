@@ -1,6 +1,7 @@
-import { Request } from 'express';
-import { AppError } from '../middlewares/errorHandler';
 import { HTTP_STATUS_CODES, AUTH_MESSAGES } from '../constants/authConstants';
+import { AppError } from '../middlewares/errorHandler';
+
+import type { Request } from 'express';
 
 export class RequestUtils {
   public static extractUserId(request: Request): string {

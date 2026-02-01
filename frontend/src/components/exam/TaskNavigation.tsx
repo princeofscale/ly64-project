@@ -22,23 +22,26 @@ export const TaskNavigation: React.FC<TaskNavigationProps> = ({
   onTaskSelect,
   columns = 10,
 }) => {
-  const getButtonStyles = useCallback((status: TaskStatus, number: number): string => {
-    const isCurrent = number === currentTaskNumber;
+  const getButtonStyles = useCallback(
+    (status: TaskStatus, number: number): string => {
+      const isCurrent = number === currentTaskNumber;
 
-    if (isCurrent) {
-      return 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white scale-110 shadow-lg shadow-cyan-500/30';
-    }
+      if (isCurrent) {
+        return 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white scale-110 shadow-lg shadow-cyan-500/30';
+      }
 
-    switch (status) {
-      case 'answered':
-        return 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30';
-      case 'flagged':
-        return 'bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30';
-      case 'unanswered':
-      default:
-        return 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-cyan-500/50 hover:text-white';
-    }
-  }, [currentTaskNumber]);
+      switch (status) {
+        case 'answered':
+          return 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30';
+        case 'flagged':
+          return 'bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30';
+        case 'unanswered':
+        default:
+          return 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-cyan-500/50 hover:text-white';
+      }
+    },
+    [currentTaskNumber]
+  );
 
   return (
     <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
@@ -53,7 +56,7 @@ export const TaskNavigation: React.FC<TaskNavigationProps> = ({
           gridTemplateColumns: `repeat(${Math.min(columns, tasks.length)}, minmax(0, 1fr))`,
         }}
       >
-        {tasks.map((task) => {
+        {tasks.map(task => {
           const status = getTaskStatus(task.number);
           const styles = getButtonStyles(status, task.number);
 

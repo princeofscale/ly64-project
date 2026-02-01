@@ -4,7 +4,8 @@
  */
 
 import React, { useCallback, useMemo } from 'react';
-import { ITask } from '../../core/interfaces';
+
+import type { ITask } from '../../core/interfaces';
 
 interface ChoiceQuestionProps {
   task: ITask;
@@ -29,35 +30,40 @@ export const ChoiceQuestion: React.FC<ChoiceQuestionProps> = ({
     return [];
   }, [currentAnswer, multiple]);
 
-  const handleSingleChoice = useCallback((option: string) => {
-    if (!disabled) {
-      onAnswer(option);
-    }
-  }, [onAnswer, disabled]);
+  const handleSingleChoice = useCallback(
+    (option: string) => {
+      if (!disabled) {
+        onAnswer(option);
+      }
+    },
+    [onAnswer, disabled]
+  );
 
-  const handleMultipleChoice = useCallback((option: string) => {
-    if (disabled) return;
+  const handleMultipleChoice = useCallback(
+    (option: string) => {
+      if (disabled) return;
 
-    const newSelected = selectedAnswers.includes(option)
-      ? selectedAnswers.filter(s => s !== option)
-      : [...selectedAnswers, option];
+      const newSelected = selectedAnswers.includes(option)
+        ? selectedAnswers.filter(s => s !== option)
+        : [...selectedAnswers, option];
 
-    onAnswer(newSelected.join(', '));
-  }, [selectedAnswers, onAnswer, disabled]);
+      onAnswer(newSelected.join(', '));
+    },
+    [selectedAnswers, onAnswer, disabled]
+  );
 
-  const isSelected = useCallback((option: string): boolean => {
-    if (multiple) {
-      return selectedAnswers.includes(option);
-    }
-    return currentAnswer === option;
-  }, [currentAnswer, selectedAnswers, multiple]);
+  const isSelected = useCallback(
+    (option: string): boolean => {
+      if (multiple) {
+        return selectedAnswers.includes(option);
+      }
+      return currentAnswer === option;
+    },
+    [currentAnswer, selectedAnswers, multiple]
+  );
 
   if (!task.options || task.options.length === 0) {
-    return (
-      <div className="text-gray-500 font-sans">
-        Варианты ответов отсутствуют
-      </div>
-    );
+    return <div className="text-gray-500 font-sans">Варианты ответов отсутствуют</div>;
   }
 
   return (
@@ -80,9 +86,10 @@ export const ChoiceQuestion: React.FC<ChoiceQuestionProps> = ({
                 w-full p-4 rounded-xl
                 border-2 text-left
                 transition-all duration-200
-                ${selected
-                  ? 'border-cyan-500 bg-cyan-500/10 text-white shadow-[0_0_20px_rgba(6,182,212,0.2)]'
-                  : 'border-gray-700 bg-gray-800/30 text-gray-300 hover:border-cyan-500/50 hover:bg-gray-800/50'
+                ${
+                  selected
+                    ? 'border-cyan-500 bg-cyan-500/10 text-white shadow-[0_0_20px_rgba(6,182,212,0.2)]'
+                    : 'border-gray-700 bg-gray-800/30 text-gray-300 hover:border-cyan-500/50 hover:bg-gray-800/50'
                 }
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 group
@@ -90,16 +97,19 @@ export const ChoiceQuestion: React.FC<ChoiceQuestionProps> = ({
             >
               <div className="flex items-center gap-4">
                 {/* Индикатор выбора */}
-                <div className={`
+                <div
+                  className={`
                   flex-shrink-0 w-6 h-6
                   border-2 rounded-${multiple ? 'md' : 'full'}
                   flex items-center justify-center
                   transition-all duration-200
-                  ${selected
-                    ? 'border-cyan-500 bg-cyan-500'
-                    : 'border-gray-600 group-hover:border-cyan-500/50'
+                  ${
+                    selected
+                      ? 'border-cyan-500 bg-cyan-500'
+                      : 'border-gray-600 group-hover:border-cyan-500/50'
                   }
-                `}>
+                `}
+                >
                   {selected && (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -117,9 +127,7 @@ export const ChoiceQuestion: React.FC<ChoiceQuestionProps> = ({
                 </div>
 
                 {/* Текст варианта */}
-                <span className="font-sans flex-1 leading-relaxed">
-                  {option}
-                </span>
+                <span className="font-sans flex-1 leading-relaxed">{option}</span>
               </div>
             </button>
           );

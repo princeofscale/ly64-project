@@ -1,25 +1,27 @@
 import bcrypt from 'bcrypt';
+
 import prisma from '../config/database';
 import { AppError } from '../middlewares/errorHandler';
-import { RegisterInput, LoginInput } from '../utils/validation';
-import emailValidationService from './emailValidationService';
+
 import achievementService from './achievementService';
+import emailValidationService from './emailValidationService';
 import { tokenService } from './tokenService';
+
+import type { RegisterInput, LoginInput } from '../utils/validation';
 
 const SALT_ROUNDS = 10;
 
 export class AuthService {
-  
   async generateUsername(email: string): Promise<string> {
-    
-    let baseUsername = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const baseUsername = email
+      .split('@')[0]
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '_');
 
-    
     const generateRandomSuffix = () => {
       return Math.random().toString(36).substring(2, 8);
     };
 
-    
     let username = `${baseUsername}_${generateRandomSuffix()}`;
     let attempts = 0;
     const maxAttempts = 10;
@@ -28,8 +30,6 @@ export class AuthService {
       username = `${baseUsername}_${generateRandomSuffix()}`;
       attempts++;
 
-      
-      
       if (attempts >= maxAttempts) {
         username = `${baseUsername}_${Date.now()}`;
         break;
@@ -39,7 +39,6 @@ export class AuthService {
     return username;
   }
 
-  
   async register(data: RegisterInput) {
     const {
       email,
@@ -53,7 +52,6 @@ export class AuthService {
       authProvider,
     } = data;
 
-    
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -62,10 +60,8 @@ export class AuthService {
       throw new AppError('Пользователь с таким email уже существует', 409);
     }
 
-    
     const username = await this.generateUsername(email);
 
-    
     const isValidEmail = await emailValidationService.validateEmail(email);
     if (!isValidEmail) {
       throw new AppError(
@@ -74,13 +70,11 @@ export class AuthService {
       );
     }
 
-    
     let hashedPassword: string | null = null;
     if (password) {
       hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     }
 
-    
     const user = await prisma.user.create({
       data: {
         email,
@@ -111,7 +105,6 @@ export class AuthService {
       },
     });
 
-
     await prisma.userProgress.create({
       data: {
         userId: user.id,
@@ -120,15 +113,15 @@ export class AuthService {
       },
     });
 
-
     achievementService
       .checkAndUnlockAchievements(user.id)
-      .catch((err) => console.error('Error unlocking achievements:', err));
+      .catch(err => console.error('Error unlocking achievements:', err));
 
-
-    const tokens = await tokenService.generateTokenPair(
-      { id: user.id, email: user.email, role: user.role }
-    );
+    const tokens = await tokenService.generateTokenPair({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
     return {
       user,
@@ -138,11 +131,9 @@ export class AuthService {
     };
   }
 
-  
   async login(data: LoginInput) {
     const { email, password } = data;
 
-    
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -151,22 +142,24 @@ export class AuthService {
       throw new AppError('Неверный email или пароль', 401);
     }
 
-    
     if (!user.password) {
-      throw new AppError('Этот аккаунт был создан через внешний сервис. Используйте соответствующий способ входа.', 401);
+      throw new AppError(
+        'Этот аккаунт был создан через внешний сервис. Используйте соответствующий способ входа.',
+        401
+      );
     }
 
-    
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new AppError('Неверный email или пароль', 401);
     }
 
-
-    const tokens = await tokenService.generateTokenPair(
-      { id: user.id, email: user.email, role: user.role }
-    );
+    const tokens = await tokenService.generateTokenPair({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
     return {
       user: {
@@ -190,7 +183,6 @@ export class AuthService {
     };
   }
 
-  
   async getCurrentUser(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },

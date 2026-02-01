@@ -5,8 +5,10 @@ export const AUTH_MESSAGES = {
   LOGIN_SUCCESS: 'Вход выполнен успешно',
   LOGOUT_SUCCESS: 'Выход выполнен успешно',
   UNAUTHORIZED: 'Не авторизован',
-  ACCOUNT_LOCKED_RETRY: 'Аккаунт временно заблокирован из-за множества неудачных попыток входа. Попробуйте через',
-  ACCOUNT_LOCKED_DURATION: 'Аккаунт заблокирован на 15 минут из-за множества неудачных попыток входа.',
+  ACCOUNT_LOCKED_RETRY:
+    'Аккаунт временно заблокирован из-за множества неудачных попыток входа. Попробуйте через',
+  ACCOUNT_LOCKED_DURATION:
+    'Аккаунт заблокирован на 15 минут из-за множества неудачных попыток входа.',
   REMAINING_ATTEMPTS: 'Осталось попыток:',
   UNKNOWN_ERROR: 'Unknown error',
   MINUTES: 'минут',

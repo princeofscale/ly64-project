@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import toast from 'react-hot-toast';
 import { SUBJECT_LABELS } from '@lyceum64/shared';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 import { Button } from '../components/Button';
-import { sdamgiaService, SdamgiaVariant } from '../services/sdamgiaService';
+import { sdamgiaService } from '../services/sdamgiaService';
+
+import type { SdamgiaVariant } from '../services/sdamgiaService';
 
 // Все поддерживаемые классы: 4-11 (кроме 9 - ОГЭ, 11 - ЕГЭ, остальные - ВПР)
 const SUPPORTED_GRADES = [4, 5, 6, 7, 8, 9, 10, 11];
@@ -117,7 +120,11 @@ export default function VariantSelectionPage() {
             stroke="currentColor"
             className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+            />
           </svg>
           Назад
         </button>
@@ -135,9 +142,7 @@ export default function VariantSelectionPage() {
           {unsupportedGrade ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-6">🚧</div>
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Класс не поддерживается
-              </h2>
+              <h2 className="text-2xl font-bold text-white mb-4">Класс не поддерживается</h2>
               <p className="text-gray-400 font-sans mb-6 max-w-md mx-auto">
                 Для {grade} класса варианты пока не доступны.
               </p>
@@ -148,12 +153,8 @@ export default function VariantSelectionPage() {
           ) : errorMessage ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-6">⚠️</div>
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Ошибка загрузки
-              </h2>
-              <p className="text-gray-400 font-sans mb-6 max-w-md mx-auto">
-                {errorMessage}
-              </p>
+              <h2 className="text-2xl font-bold text-white mb-4">Ошибка загрузки</h2>
+              <p className="text-gray-400 font-sans mb-6 max-w-md mx-auto">{errorMessage}</p>
               <Button variant="outline" onClick={() => navigate(-1)}>
                 Вернуться назад
               </Button>
@@ -209,11 +210,7 @@ export default function VariantSelectionPage() {
               </div>
 
               <div className="flex justify-center">
-                <Button
-                  onClick={handleStartTest}
-                  disabled={!selectedVariant}
-                  className="px-8 py-3"
-                >
+                <Button onClick={handleStartTest} disabled={!selectedVariant} className="px-8 py-3">
                   Начать тест
                 </Button>
               </div>

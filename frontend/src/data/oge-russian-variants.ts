@@ -36,8 +36,9 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         correctAnswer: '',
         points: 7,
         topic: 'Сжатое изложение',
-        audioUrl: 'https://oge.fipi.ru/bank/media/oge/audio/2024/russianLanguage/GIA_09_text001.mp3',
-        audioTitle: 'Текст о роли языка в жизни человека (Л.В. Успенский)'
+        audioUrl:
+          'https://oge.fipi.ru/bank/media/oge/audio/2024/russianLanguage/GIA_09_text001.mp3',
+        audioTitle: 'Текст о роли языка в жизни человека (Л.В. Успенский)',
       },
       {
         number: 2,
@@ -48,11 +49,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) мы слышим (предложение 2)',
           '(3) звучат машины, транспорт (предложение 3)',
           '(4) называется «акустика» (предложение 4)',
-          '(5) применяют приборы (предложение 5)'
+          '(5) применяют приборы (предложение 5)',
         ],
         correctAnswer: '345',
         points: 1,
-        topic: 'Грамматическая основа'
+        topic: 'Грамматическая основа',
       },
       {
         number: 3,
@@ -63,11 +64,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Предложение 2 содержит однородные члены',
           '(3) Предложение 3 осложнено причастным оборотом',
           '(4) Предложение 4 содержит вводную конструкцию',
-          '(5) Предложение 5 — двусоставное'
+          '(5) Предложение 5 — двусоставное',
         ],
         correctAnswer: '125',
         points: 1,
-        topic: 'Пунктуационный анализ'
+        topic: 'Пунктуационный анализ',
       },
       {
         number: 4,
@@ -75,7 +76,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'matching',
         correctAnswer: 'А-3, Б-1, В-2',
         points: 1,
-        topic: 'Соответствие правил'
+        topic: 'Соответствие правил',
       },
       {
         number: 5,
@@ -83,7 +84,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: '12359',
         points: 1,
-        topic: 'Пунктуация - запятые'
+        topic: 'Пунктуация - запятые',
       },
       {
         number: 6,
@@ -94,11 +95,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) ВИНЕГРЕТ — непроверяемые гласные',
           '(3) БРУСЬЯ — разделительный Ь перед Я',
           '(4) С ВРАЧОМ — в окончании после шипящей под ударением О',
-          '(5) ЗАГОРЕТЬ — чередование в корне ГОР/ГАР'
+          '(5) ЗАГОРЕТЬ — чередование в корне ГОР/ГАР',
         ],
         correctAnswer: '123',
         points: 1,
-        topic: 'Орфография - объяснение'
+        topic: 'Орфография - объяснение',
       },
       {
         number: 7,
@@ -106,7 +107,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: '125',
         points: 1,
-        topic: 'Орфография - буква Е'
+        topic: 'Орфография - буква Е',
       },
       {
         number: 8,
@@ -114,7 +115,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'пятьюдесятью',
         points: 1,
-        topic: 'Склонение числительных'
+        topic: 'Склонение числительных',
       },
       {
         number: 9,
@@ -122,7 +123,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'яичный белок',
         points: 1,
-        topic: 'Виды связи в словосочетании'
+        topic: 'Виды связи в словосочетании',
       },
       {
         number: 10,
@@ -133,11 +134,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Жека проявил настойчивость в достижении цели',
           '(3) Отец поддержал идею сына о собаке',
           '(4) Щенок стал настоящим другом семьи',
-          '(5) Жека ухаживал за собакой самостоятельно'
+          '(5) Жека ухаживал за собакой самостоятельно',
         ],
         correctAnswer: '145',
         points: 1,
-        topic: 'Анализ содержания'
+        topic: 'Анализ содержания',
       },
       {
         number: 11,
@@ -148,11 +149,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Щенок был похож на пушистый комочек',
           '(3) Мальчик радостно вскрикнул',
           '(4) Собака преданно смотрела на хозяина',
-          '(5) Хвост вилял, словно маятник'
+          '(5) Хвост вилял, словно маятник',
         ],
         correctAnswer: '12',
         points: 1,
-        topic: 'Средства выразительности'
+        topic: 'Средства выразительности',
       },
       {
         number: 12,
@@ -160,9 +161,9 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'короткий',
         points: 1,
-        topic: 'Антонимы'
-      }
-    ]
+        topic: 'Антонимы',
+      },
+    ],
   },
   {
     id: 2,
@@ -179,8 +180,9 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         correctAnswer: '',
         points: 7,
         topic: 'Сжатое изложение',
-        audioUrl: 'https://oge.fipi.ru/bank/media/oge/audio/2024/russianLanguage/GIA_09_text002.mp3',
-        audioTitle: 'Текст о преодолении трудностей и силе воли'
+        audioUrl:
+          'https://oge.fipi.ru/bank/media/oge/audio/2024/russianLanguage/GIA_09_text002.mp3',
+        audioTitle: 'Текст о преодолении трудностей и силе воли',
       },
       {
         number: 2,
@@ -191,11 +193,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) мы слышим (предложение 2)',
           '(3) звучат машины (предложение 3)',
           '(4) называется акустика (предложение 4)',
-          '(5) применяют приборы (предложение 5)'
+          '(5) применяют приборы (предложение 5)',
         ],
         correctAnswer: '123',
         points: 1,
-        topic: 'Грамматическая основа'
+        topic: 'Грамматическая основа',
       },
       {
         number: 3,
@@ -206,11 +208,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Предложение 2 с однородными членами',
           '(3) Предложение 3 осложнено деепричастным оборотом',
           '(4) Предложение 4 содержит вводное слово',
-          '(5) Предложение 5 простое'
+          '(5) Предложение 5 простое',
         ],
         correctAnswer: '124',
         points: 1,
-        topic: 'Характеристика предложений'
+        topic: 'Характеристика предложений',
       },
       {
         number: 4,
@@ -218,7 +220,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'matching',
         correctAnswer: '235',
         points: 1,
-        topic: 'Соответствие правил'
+        topic: 'Соответствие правил',
       },
       {
         number: 5,
@@ -226,7 +228,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: '1234567',
         points: 1,
-        topic: 'Пунктуация'
+        topic: 'Пунктуация',
       },
       {
         number: 6,
@@ -237,11 +239,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) ВИНЕГРЕТ — непроверяемые гласные',
           '(3) БРУСЬЯ — Ь разделительный',
           '(4) С ВРАЧОМ — окончание существительного',
-          '(5) ЗАГОРЕТЬ — чередование корня'
+          '(5) ЗАГОРЕТЬ — чередование корня',
         ],
         correctAnswer: '12',
         points: 1,
-        topic: 'Орфография'
+        topic: 'Орфография',
       },
       {
         number: 7,
@@ -249,7 +251,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: '12578',
         points: 1,
-        topic: 'Орфография - буква О'
+        topic: 'Орфография - буква О',
       },
       {
         number: 8,
@@ -257,7 +259,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'обеим',
         points: 1,
-        topic: 'Склонение числительных'
+        topic: 'Склонение числительных',
       },
       {
         number: 9,
@@ -265,7 +267,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'успешно прошло',
         points: 1,
-        topic: 'Виды связи'
+        topic: 'Виды связи',
       },
       {
         number: 10,
@@ -276,11 +278,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Она сохраняла спокойствие перед фашистами',
           '(3) Школьники помогали партизанам',
           '(4) Костя испугался и хотел предать',
-          '(5) Партизаны быстро обезоружили врагов'
+          '(5) Партизаны быстро обезоружили врагов',
         ],
         correctAnswer: '235',
         points: 1,
-        topic: 'Анализ содержания'
+        topic: 'Анализ содержания',
       },
       {
         number: 11,
@@ -291,11 +293,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Как будто начинался очередной урок',
           '(3) Чёрную гладь доски',
           '(4) Как за щитом',
-          '(5) Без толку палил'
+          '(5) Без толку палил',
         ],
         correctAnswer: '24',
         points: 1,
-        topic: 'Средства выразительности'
+        topic: 'Средства выразительности',
       },
       {
         number: 12,
@@ -303,9 +305,9 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'верзила',
         points: 1,
-        topic: 'Разговорная лексика'
-      }
-    ]
+        topic: 'Разговорная лексика',
+      },
+    ],
   },
   {
     id: 3,
@@ -322,8 +324,9 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         correctAnswer: '',
         points: 7,
         topic: 'Сжатое изложение',
-        audioUrl: 'https://oge.fipi.ru/bank/media/oge/audio/2024/russianLanguage/GIA_09_text003.mp3',
-        audioTitle: 'Текст о дружбе и взаимопомощи'
+        audioUrl:
+          'https://oge.fipi.ru/bank/media/oge/audio/2024/russianLanguage/GIA_09_text003.mp3',
+        audioTitle: 'Текст о дружбе и взаимопомощи',
       },
       {
         number: 2,
@@ -334,11 +337,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) солнце светило (предложение 2)',
           '(3) птицы пели (предложение 3)',
           '(4) это радовало (предложение 4)',
-          '(5) мы отправились (предложение 5)'
+          '(5) мы отправились (предложение 5)',
         ],
         correctAnswer: '25',
         points: 1,
-        topic: 'Грамматическая основа'
+        topic: 'Грамматическая основа',
       },
       {
         number: 3,
@@ -349,11 +352,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Предложение 2 осложнено обособленным определением',
           '(3) Предложение 3 — простое с однородными сказуемыми',
           '(4) Предложение 4 содержит обращение',
-          '(5) Предложение 5 — бессоюзное сложное'
+          '(5) Предложение 5 — бессоюзное сложное',
         ],
         correctAnswer: '124',
         points: 1,
-        topic: 'Характеристика предложений'
+        topic: 'Характеристика предложений',
       },
       {
         number: 4,
@@ -361,7 +364,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'matching',
         correctAnswer: '451',
         points: 1,
-        topic: 'Соответствие правил'
+        topic: 'Соответствие правил',
       },
       {
         number: 5,
@@ -369,7 +372,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: '1234',
         points: 1,
-        topic: 'Пунктуация - кавычки'
+        topic: 'Пунктуация - кавычки',
       },
       {
         number: 6,
@@ -380,11 +383,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) РАСЦВЕСТИ — приставка РАС- перед глухой',
           '(3) НОЧЁВКА — О в суффиксе после шипящей',
           '(4) НЕ ЗАКОНЧЕННЫЙ — с причастием раздельно',
-          '(5) СГОРЕТЬ — безударная гласная в корне'
+          '(5) СГОРЕТЬ — безударная гласная в корне',
         ],
         correctAnswer: '14',
         points: 1,
-        topic: 'Орфография'
+        topic: 'Орфография',
       },
       {
         number: 7,
@@ -392,7 +395,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: '13489',
         points: 1,
-        topic: 'Орфография - буква О'
+        topic: 'Орфография - буква О',
       },
       {
         number: 8,
@@ -400,7 +403,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'пламени',
         points: 1,
-        topic: 'Разносклоняемые существительные'
+        topic: 'Разносклоняемые существительные',
       },
       {
         number: 9,
@@ -408,7 +411,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'утренняя пробежка',
         points: 1,
-        topic: 'Виды связи'
+        topic: 'Виды связи',
       },
       {
         number: 10,
@@ -419,11 +422,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Война лишила его детства',
           '(3) Он мечтал стать лётчиком',
           '(4) Родители погибли в войну',
-          '(5) Он помогал взрослым как мог'
+          '(5) Он помогал взрослым как мог',
         ],
         correctAnswer: '235',
         points: 1,
-        topic: 'Анализ содержания'
+        topic: 'Анализ содержания',
       },
       {
         number: 11,
@@ -434,11 +437,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Он бежал словно заяц',
           '(3) Горькая правда открылась внезапно',
           '(4) Свинцовые тучи затянули небо',
-          '(5) Мальчик рассмеялся от радости'
+          '(5) Мальчик рассмеялся от радости',
         ],
         correctAnswer: '34',
         points: 1,
-        topic: 'Эпитеты'
+        topic: 'Эпитеты',
       },
       {
         number: 12,
@@ -446,9 +449,9 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'тыл',
         points: 1,
-        topic: 'Лексика'
-      }
-    ]
+        topic: 'Лексика',
+      },
+    ],
   },
   {
     id: 4,
@@ -465,8 +468,9 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         correctAnswer: '',
         points: 7,
         topic: 'Сжатое изложение',
-        audioUrl: 'https://oge.fipi.ru/bank/media/oge/audio/2024/russianLanguage/GIA_09_text004.mp3',
-        audioTitle: 'Текст о роли книги в жизни человека'
+        audioUrl:
+          'https://oge.fipi.ru/bank/media/oge/audio/2024/russianLanguage/GIA_09_text004.mp3',
+        audioTitle: 'Текст о роли книги в жизни человека',
       },
       {
         number: 2,
@@ -477,11 +481,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) они питаются (предложение 2)',
           '(3) берлога служит (предложение 3)',
           '(4) медвежата рождаются (предложение 4)',
-          '(5) это происходит (предложение 5)'
+          '(5) это происходит (предложение 5)',
         ],
         correctAnswer: '235',
         points: 1,
-        topic: 'Грамматическая основа'
+        topic: 'Грамматическая основа',
       },
       {
         number: 3,
@@ -492,11 +496,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Предложение 2 — сложносочинённое',
           '(3) Предложение 3 содержит обособленное обстоятельство',
           '(4) Предложение 4 — односоставное',
-          '(5) Предложение 5 — сложноподчинённое'
+          '(5) Предложение 5 — сложноподчинённое',
         ],
         correctAnswer: '13',
         points: 1,
-        topic: 'Характеристика предложений'
+        topic: 'Характеристика предложений',
       },
       {
         number: 4,
@@ -504,7 +508,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'matching',
         correctAnswer: '532',
         points: 1,
-        topic: 'Соответствие правил'
+        topic: 'Соответствие правил',
       },
       {
         number: 5,
@@ -512,7 +516,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: '17',
         points: 1,
-        topic: 'Пунктуация - тире'
+        topic: 'Пунктуация - тире',
       },
       {
         number: 6,
@@ -523,11 +527,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) ПРИОТКРЫТЬ — приставка ПРИ- (неполнота действия)',
           '(3) НЕ СМОТРЯ — частица НЕ с деепричастием',
           '(4) СЫГРАТЬ — Ы после приставки на согласную',
-          '(5) КОСНУТЬСЯ — безударная гласная в корне'
+          '(5) КОСНУТЬСЯ — безударная гласная в корне',
         ],
         correctAnswer: '24',
         points: 1,
-        topic: 'Орфография'
+        topic: 'Орфография',
       },
       {
         number: 7,
@@ -535,7 +539,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: '12345789',
         points: 1,
-        topic: 'Орфография - буква О'
+        topic: 'Орфография - буква О',
       },
       {
         number: 8,
@@ -543,7 +547,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'абрикосов',
         points: 1,
-        topic: 'Родительный падеж множественного числа'
+        topic: 'Родительный падеж множественного числа',
       },
       {
         number: 9,
@@ -551,7 +555,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'уши зайца',
         points: 1,
-        topic: 'Виды связи'
+        topic: 'Виды связи',
       },
       {
         number: 10,
@@ -562,11 +566,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Она любила помогать другим',
           '(3) Друзья уважали её за честность',
           '(4) Алка мечтала о славе',
-          '(5) Она всегда говорила правду'
+          '(5) Она всегда говорила правду',
         ],
         correctAnswer: '135',
         points: 1,
-        topic: 'Анализ содержания'
+        topic: 'Анализ содержания',
       },
       {
         number: 11,
@@ -577,11 +581,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Тихий голос едва слышался',
           '(3) Она была похожа на солнечный луч',
           '(4) Радость охватила всех',
-          '(5) Смех звенел колокольчиком'
+          '(5) Смех звенел колокольчиком',
         ],
         correctAnswer: '13',
         points: 1,
-        topic: 'Сравнения'
+        topic: 'Сравнения',
       },
       {
         number: 12,
@@ -589,9 +593,9 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'блестящий',
         points: 1,
-        topic: 'Антонимы'
-      }
-    ]
+        topic: 'Антонимы',
+      },
+    ],
   },
   {
     id: 5,
@@ -608,8 +612,9 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         correctAnswer: '',
         points: 7,
         topic: 'Сжатое изложение',
-        audioUrl: 'https://oge.fipi.ru/bank/media/oge/audio/2024/russianLanguage/GIA_09_text005.mp3',
-        audioTitle: 'Текст о сохранении природы'
+        audioUrl:
+          'https://oge.fipi.ru/bank/media/oge/audio/2024/russianLanguage/GIA_09_text005.mp3',
+        audioTitle: 'Текст о сохранении природы',
       },
       {
         number: 2,
@@ -620,11 +625,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) красота поражает (предложение 2)',
           '(3) туристы приезжают (предложение 3)',
           '(4) это известно (предложение 4)',
-          '(5) достопримечательности привлекают (предложение 5)'
+          '(5) достопримечательности привлекают (предложение 5)',
         ],
         correctAnswer: '235',
         points: 1,
-        topic: 'Грамматическая основа'
+        topic: 'Грамматическая основа',
       },
       {
         number: 3,
@@ -635,11 +640,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Предложение 2 — сложное бессоюзное',
           '(3) Предложение 3 осложнено однородными членами',
           '(4) Предложение 4 — вопросительное',
-          '(5) Предложение 5 — сложноподчинённое'
+          '(5) Предложение 5 — сложноподчинённое',
         ],
         correctAnswer: '35',
         points: 1,
-        topic: 'Характеристика предложений'
+        topic: 'Характеристика предложений',
       },
       {
         number: 4,
@@ -647,7 +652,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'matching',
         correctAnswer: '512',
         points: 1,
-        topic: 'Соответствие правил'
+        topic: 'Соответствие правил',
       },
       {
         number: 5,
@@ -655,7 +660,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: '23458',
         points: 1,
-        topic: 'Пунктуация'
+        topic: 'Пунктуация',
       },
       {
         number: 6,
@@ -666,11 +671,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) ПРЕГРАДА — приставка ПРЕ- (=ПЕРЕ)',
           '(3) ДЕРЕВЯННЫЙ — Н в отымённом прилагательном',
           '(4) НЕ ПРОЧИТАННАЯ — причастие с зависимым словом',
-          '(5) БЕСШУМНЫЙ — приставка БЕС- перед глухой'
+          '(5) БЕСШУМНЫЙ — приставка БЕС- перед глухой',
         ],
         correctAnswer: '12',
         points: 1,
-        topic: 'Орфография'
+        topic: 'Орфография',
       },
       {
         number: 7,
@@ -678,7 +683,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: '1589',
         points: 1,
-        topic: 'Орфография - буква А'
+        topic: 'Орфография - буква А',
       },
       {
         number: 8,
@@ -686,7 +691,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'сбережёт',
         points: 1,
-        topic: 'Спряжение глаголов'
+        topic: 'Спряжение глаголов',
       },
       {
         number: 9,
@@ -694,7 +699,7 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'каменистая почва',
         points: 1,
-        topic: 'Виды связи'
+        topic: 'Виды связи',
       },
       {
         number: 10,
@@ -705,11 +710,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Путь был лёгким и приятным',
           '(3) Они преодолели много трудностей',
           '(4) Природа края их разочаровала',
-          '(5) Поход запомнился надолго'
+          '(5) Поход запомнился надолго',
         ],
         correctAnswer: '125',
         points: 1,
-        topic: 'Анализ содержания'
+        topic: 'Анализ содержания',
       },
       {
         number: 11,
@@ -720,11 +725,11 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
           '(2) Высокие горы возвышались над долиной',
           '(3) Закат пылал огнём',
           '(4) Деревья шумели на ветру',
-          '(5) Облака плыли словно корабли'
+          '(5) Облака плыли словно корабли',
         ],
         correctAnswer: '15',
         points: 1,
-        topic: 'Сравнения'
+        topic: 'Сравнения',
       },
       {
         number: 12,
@@ -732,10 +737,10 @@ export const ogeRussianVariants: OgeRussianVariant[] = [
         type: 'short',
         correctAnswer: 'кузов',
         points: 1,
-        topic: 'Лексика'
-      }
-    ]
-  }
+        topic: 'Лексика',
+      },
+    ],
+  },
 ];
 
 export const getOgeRussianVariant = (variantId: number): OgeRussianVariant | undefined => {

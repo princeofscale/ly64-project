@@ -1,46 +1,40 @@
-
 export enum UserStatus {
-  STUDENT = 'STUDENT', 
-  APPLICANT = 'APPLICANT', 
+  STUDENT = 'STUDENT',
+  APPLICANT = 'APPLICANT',
 }
-
 
 export enum AuthProvider {
   EMAIL = 'EMAIL',
 }
-
 
 export interface User {
   id: string;
   email: string;
   name: string;
   status: UserStatus;
-  currentGrade: number; 
+  currentGrade: number;
   desiredDirection?: Direction;
-  motivation?: string; 
+  motivation?: string;
   authProvider: AuthProvider;
   avatar?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-
 export interface Achievement {
   id: string;
   name: string;
   description: string;
   icon: string;
-  condition: string; 
-  points: number; 
+  condition: string;
+  points: number;
 }
-
 
 export interface UserAchievement {
   userId: string;
   achievementId: string;
   unlockedAt: Date;
 }
-
 
 export enum Direction {
   PROGRAMMING = 'PROGRAMMING',
@@ -49,7 +43,6 @@ export enum Direction {
   BIOTECHNOLOGY = 'BIOTECHNOLOGY',
   CULTURE = 'CULTURE',
 }
-
 
 export enum Subject {
   RUSSIAN = 'RUSSIAN',
@@ -62,34 +55,29 @@ export enum Subject {
   ENGLISH = 'ENGLISH',
 }
 
-
 export enum TargetGrade {
   GRADE_8 = 'GRADE_8',
   GRADE_10 = 'GRADE_10',
 }
 
-
 export enum ExamType {
-  LYCEUM_ENTRANCE = 'LYCEUM_ENTRANCE', 
-  OGE = 'OGE', 
-  EGE = 'EGE', 
+  LYCEUM_ENTRANCE = 'LYCEUM_ENTRANCE',
+  OGE = 'OGE',
+  EGE = 'EGE',
 }
-
 
 export enum QuestionType {
-  SINGLE_CHOICE = 'SINGLE_CHOICE', 
-  MULTIPLE_CHOICE = 'MULTIPLE_CHOICE', 
-  TEXT_INPUT = 'TEXT_INPUT', 
-  DETAILED_ANSWER = 'DETAILED_ANSWER', 
+  SINGLE_CHOICE = 'SINGLE_CHOICE',
+  MULTIPLE_CHOICE = 'MULTIPLE_CHOICE',
+  TEXT_INPUT = 'TEXT_INPUT',
+  DETAILED_ANSWER = 'DETAILED_ANSWER',
 }
-
 
 export enum DifficultyLevel {
   EASY = 'EASY',
   MEDIUM = 'MEDIUM',
   HARD = 'HARD',
 }
-
 
 export interface Question {
   id: string;
@@ -99,14 +87,13 @@ export interface Question {
   type: QuestionType;
   difficulty: DifficultyLevel;
   question: string;
-  options?: string[]; 
-  correctAnswer: string | string[]; 
-  explanation?: string; 
-  topic?: string; 
+  options?: string[];
+  correctAnswer: string | string[];
+  explanation?: string;
+  topic?: string;
   createdAt: Date;
   updatedAt: Date;
 }
-
 
 export interface Test {
   id: string;
@@ -116,12 +103,11 @@ export interface Test {
   examType: ExamType;
   targetGrade?: TargetGrade;
   questions: Question[];
-  timeLimit?: number; 
-  passingScore?: number; 
+  timeLimit?: number;
+  passingScore?: number;
   createdAt: Date;
   updatedAt: Date;
 }
-
 
 export interface TestAttempt {
   id: string;
@@ -131,11 +117,10 @@ export interface TestAttempt {
     questionId: string;
     answer: string | string[];
   }[];
-  score?: number; 
+  score?: number;
   completedAt?: Date;
   startedAt: Date;
 }
-
 
 export interface UserStats {
   userId: string;
@@ -145,7 +130,6 @@ export interface UserStats {
   bestScore: number;
   lastAttemptDate?: Date;
 }
-
 
 export interface UserProgress {
   userId: string;

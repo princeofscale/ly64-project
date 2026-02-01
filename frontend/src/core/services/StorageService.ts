@@ -1,5 +1,6 @@
-import { IStorageService } from '../interfaces';
 import { STORAGE_KEYS } from '../constants';
+
+import type { IStorageService } from '../interfaces';
 
 export class StorageService implements IStorageService {
   private static instance: StorageService;
@@ -258,7 +259,9 @@ export class TestSessionStorage {
    * Восстановить ответы из бэкапа
    */
   public restoreAnswers(): Map<number, unknown> | null {
-    const data = this.storage.load<{ answers: [number, unknown][]; savedAt: number }>(STORAGE_KEYS.ANSWERS_BACKUP);
+    const data = this.storage.load<{ answers: [number, unknown][]; savedAt: number }>(
+      STORAGE_KEYS.ANSWERS_BACKUP
+    );
     if (!data) return null;
     return new Map(data.answers);
   }

@@ -22,7 +22,10 @@ export class StatisticsCalculator {
     return Math.max(...validScores);
   }
 
-  public static roundToDecimal(value: number, precision: number = SCORING_CONSTANTS.DECIMAL_PRECISION): number {
+  public static roundToDecimal(
+    value: number,
+    precision: number = SCORING_CONSTANTS.DECIMAL_PRECISION
+  ): number {
     return Math.round(value * precision) / precision;
   }
 
@@ -34,28 +37,24 @@ export class StatisticsCalculator {
   ): number {
     return Math.round(
       totalTests * SCORING_CONSTANTS.TESTS_MULTIPLIER +
-      averageScore * SCORING_CONSTANTS.AVERAGE_MULTIPLIER +
-      bestScore * SCORING_CONSTANTS.BEST_SCORE_MULTIPLIER +
-      achievementsCount * SCORING_CONSTANTS.ACHIEVEMENT_MULTIPLIER
+        averageScore * SCORING_CONSTANTS.AVERAGE_MULTIPLIER +
+        bestScore * SCORING_CONSTANTS.BEST_SCORE_MULTIPLIER +
+        achievementsCount * SCORING_CONSTANTS.ACHIEVEMENT_MULTIPLIER
     );
   }
 
-  public static calculatePercentile(
-    userScore: number,
-    allScores: ReadonlyArray<number>
-  ): number {
+  public static calculatePercentile(userScore: number, allScores: ReadonlyArray<number>): number {
     if (allScores.length <= 1) {
       return 50;
     }
 
     const scoresBelow = allScores.filter(score => score < userScore).length;
-    return Math.round((scoresBelow / (allScores.length - 1)) * SCORING_CONSTANTS.PERCENTAGE_MULTIPLIER);
+    return Math.round(
+      (scoresBelow / (allScores.length - 1)) * SCORING_CONSTANTS.PERCENTAGE_MULTIPLIER
+    );
   }
 
-  public static calculateWeightedAverage(
-    values: ReadonlyArray<number>,
-    decayRate: number
-  ): number {
+  public static calculateWeightedAverage(values: ReadonlyArray<number>, decayRate: number): number {
     if (values.length === 0) {
       return 0;
     }
@@ -72,10 +71,7 @@ export class StatisticsCalculator {
     return weightTotal > 0 ? weightedSum / weightTotal : 0;
   }
 
-  public static calculateVariance(
-    values: ReadonlyArray<number>,
-    mean: number
-  ): number {
+  public static calculateVariance(values: ReadonlyArray<number>, mean: number): number {
     if (values.length === 0) {
       return 0;
     }
@@ -87,18 +83,11 @@ export class StatisticsCalculator {
     return sumSquaredDiff / values.length;
   }
 
-  public static calculateStandardDeviation(
-    values: ReadonlyArray<number>,
-    mean: number
-  ): number {
+  public static calculateStandardDeviation(values: ReadonlyArray<number>, mean: number): number {
     return Math.sqrt(this.calculateVariance(values, mean));
   }
 
-  public static clampValue(
-    value: number,
-    min: number,
-    max: number
-  ): number {
+  public static clampValue(value: number, min: number, max: number): number {
     return Math.max(min, Math.min(max, value));
   }
 }

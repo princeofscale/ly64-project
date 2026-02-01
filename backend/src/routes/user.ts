@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticateToken } from '../middlewares/auth';
+
 import {
   getProfile,
   getPublicProfile,
@@ -14,6 +14,7 @@ import {
   getUserRank,
   getErrorAnalysis,
 } from '../controllers/userController';
+import { authenticateToken } from '../middlewares/auth';
 
 const router = Router();
 

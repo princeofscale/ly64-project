@@ -3,7 +3,7 @@
  * Централизованные константы приложения
  */
 
-import { Subject, Grade } from '../types';
+import type { Subject, Grade } from '../types';
 
 /**
  * Конфигурация экзаменов

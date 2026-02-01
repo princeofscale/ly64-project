@@ -1,13 +1,14 @@
-import { Request, Response, NextFunction } from 'express';
 import prisma from '../config/database';
+import { HTTP_STATUS, ERROR_MESSAGES } from '../constants/statsConstants';
+import { AppError } from '../middlewares/errorHandler';
 import achievementService from '../services/achievementService';
 import errorAnalysisService from '../services/errorAnalysisService';
-import { AppError } from '../middlewares/errorHandler';
-import { UserStatsService } from '../services/userStatsService';
-import { UserProfileService } from '../services/userProfileService';
 import { LeaderboardService } from '../services/leaderboardService';
-import { UpdateProfileData } from '../types/userTypes';
-import { HTTP_STATUS, ERROR_MESSAGES } from '../constants/statsConstants';
+import { UserProfileService } from '../services/userProfileService';
+import { UserStatsService } from '../services/userStatsService';
+
+import type { UpdateProfileData } from '../types/userTypes';
+import type { Request, Response, NextFunction } from 'express';
 
 const userStatsService = new UserStatsService(prisma);
 const userProfileService = new UserProfileService(prisma);

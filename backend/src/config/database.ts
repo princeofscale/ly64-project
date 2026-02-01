@@ -1,7 +1,14 @@
-import dotenv from 'dotenv';
-import { PrismaClient, Prisma } from '@prisma/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-import { DATABASE_CONSTANTS, DATABASE_LOG_LEVELS, LIFECYCLE_EVENTS } from '../constants/databaseConstants';
+import { PrismaClient } from '@prisma/client';
+import dotenv from 'dotenv';
+
+import {
+  DATABASE_CONSTANTS,
+  DATABASE_LOG_LEVELS,
+  LIFECYCLE_EVENTS,
+} from '../constants/databaseConstants';
+
+import type { Prisma } from '@prisma/client';
 
 dotenv.config();
 

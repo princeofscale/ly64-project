@@ -1,8 +1,10 @@
-import { Request, Response } from 'express';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+
 import { HTTP_STATUS_CODES, NOT_FOUND_MESSAGES, CONTENT_TYPES } from '../constants/httpConstants';
 import { logger } from '../utils/logger';
+
+import type { Request, Response } from 'express';
 
 interface NotFoundJsonResponse {
   readonly success: false;

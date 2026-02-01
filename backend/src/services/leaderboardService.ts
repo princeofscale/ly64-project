@@ -1,7 +1,13 @@
-import { PrismaClient } from '@prisma/client';
-import { LeaderboardResponse, LeaderboardEntry, UserRankResponse } from '../types/userTypes';
-import { STATS_CONSTANTS, TIME_CONSTANTS, DEFAULT_VALUES, ERROR_MESSAGES } from '../constants/statsConstants';
+import {
+  STATS_CONSTANTS,
+  TIME_CONSTANTS,
+  DEFAULT_VALUES,
+  ERROR_MESSAGES,
+} from '../constants/statsConstants';
 import { StatisticsCalculator } from '../utils/statisticsUtils';
+
+import type { LeaderboardResponse, LeaderboardEntry, UserRankResponse } from '../types/userTypes';
+import type { PrismaClient } from '@prisma/client';
 
 type LeaderboardPeriod = 'all' | 'week' | 'month';
 
@@ -120,11 +126,11 @@ export class LeaderboardService {
     if (period === 'week') {
       const weekAgo = new Date(
         now.getTime() -
-        TIME_CONSTANTS.DAYS_IN_WEEK *
-        TIME_CONSTANTS.HOURS_IN_DAY *
-        TIME_CONSTANTS.MINUTES_IN_HOUR *
-        TIME_CONSTANTS.SECONDS_IN_MINUTE *
-        TIME_CONSTANTS.MILLISECONDS_IN_SECOND
+          TIME_CONSTANTS.DAYS_IN_WEEK *
+            TIME_CONSTANTS.HOURS_IN_DAY *
+            TIME_CONSTANTS.MINUTES_IN_HOUR *
+            TIME_CONSTANTS.SECONDS_IN_MINUTE *
+            TIME_CONSTANTS.MILLISECONDS_IN_SECOND
       );
       return { completedAt: { gte: weekAgo } };
     }
@@ -132,11 +138,11 @@ export class LeaderboardService {
     if (period === 'month') {
       const monthAgo = new Date(
         now.getTime() -
-        TIME_CONSTANTS.DAYS_IN_MONTH *
-        TIME_CONSTANTS.HOURS_IN_DAY *
-        TIME_CONSTANTS.MINUTES_IN_HOUR *
-        TIME_CONSTANTS.SECONDS_IN_MINUTE *
-        TIME_CONSTANTS.MILLISECONDS_IN_SECOND
+          TIME_CONSTANTS.DAYS_IN_MONTH *
+            TIME_CONSTANTS.HOURS_IN_DAY *
+            TIME_CONSTANTS.MINUTES_IN_HOUR *
+            TIME_CONSTANTS.SECONDS_IN_MINUTE *
+            TIME_CONSTANTS.MILLISECONDS_IN_SECOND
       );
       return { completedAt: { gte: monthAgo } };
     }
@@ -194,10 +200,7 @@ export class LeaderboardService {
     });
   }
 
-  private applyRanking(
-    leaderboard: LeaderboardEntry[],
-    limit: number
-  ): LeaderboardEntry[] {
+  private applyRanking(leaderboard: LeaderboardEntry[], limit: number): LeaderboardEntry[] {
     const sorted = leaderboard.sort((a, b) => b.stats.points - a.stats.points);
 
     return sorted.slice(0, limit).map((user, index) => ({

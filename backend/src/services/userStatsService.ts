@@ -1,5 +1,9 @@
-import { PrismaClient } from '@prisma/client';
-import {
+import { STATS_CONSTANTS, TIME_CONSTANTS, DEFAULT_VALUES } from '../constants/statsConstants';
+import { StatisticsCalculator, DateCalculator } from '../utils/statisticsUtils';
+
+import predictionService from './predictionService';
+
+import type {
   UserStatsResponse,
   DailyActivity,
   TimeHeatmapEntry,
@@ -7,9 +11,7 @@ import {
   WeakTopic,
   RecentAttemptData,
 } from '../types/userTypes';
-import { STATS_CONSTANTS, TIME_CONSTANTS, DEFAULT_VALUES } from '../constants/statsConstants';
-import { StatisticsCalculator, DateCalculator } from '../utils/statisticsUtils';
-import predictionService from './predictionService';
+import type { PrismaClient } from '@prisma/client';
 
 interface TestAttemptWithDetails {
   readonly id: string;
@@ -129,7 +131,9 @@ export class UserStatsService {
     });
   }
 
-  private async fetchDetailedAttempts(userId: string): Promise<ReadonlyArray<TestAttemptWithDetails>> {
+  private async fetchDetailedAttempts(
+    userId: string
+  ): Promise<ReadonlyArray<TestAttemptWithDetails>> {
     return this.prisma.testAttempt.findMany({
       where: {
         userId,
@@ -150,7 +154,11 @@ export class UserStatsService {
   }
 
   private calculateStatsBySubject(
-    attempts: ReadonlyArray<{ score: number | null; completedAt: Date | null; test: { subject: string } }>
+    attempts: ReadonlyArray<{
+      score: number | null;
+      completedAt: Date | null;
+      test: { subject: string };
+    }>
   ): ReadonlyArray<SubjectStats> {
     const statsMap = new Map<string, SubjectStatsAccumulator>();
 
@@ -188,7 +196,13 @@ export class UserStatsService {
   }
 
   private getRecentAttempts(
-    attempts: ReadonlyArray<{ id: string; testId: string; score: number | null; completedAt: Date | null; test: { subject: string } }>
+    attempts: ReadonlyArray<{
+      id: string;
+      testId: string;
+      score: number | null;
+      completedAt: Date | null;
+      test: { subject: string };
+    }>
   ): ReadonlyArray<RecentAttemptData> {
     return attempts.slice(0, STATS_CONSTANTS.RECENT_ATTEMPTS_LIMIT).map(attempt => ({
       id: attempt.id,
@@ -226,9 +240,10 @@ export class UserStatsService {
       .map(([date, activity]) => ({
         date,
         count: activity.count,
-        avgScore: activity.count > 0
-          ? StatisticsCalculator.roundToDecimal(activity.totalScore / activity.count)
-          : 0,
+        avgScore:
+          activity.count > 0
+            ? StatisticsCalculator.roundToDecimal(activity.totalScore / activity.count)
+            : 0,
       }));
   }
 
@@ -253,9 +268,8 @@ export class UserStatsService {
     return Array.from(heatmap.entries()).map(([hour, stats]) => ({
       hour,
       testCount: stats.count,
-      avgScore: stats.count > 0
-        ? StatisticsCalculator.roundToDecimal(stats.totalScore / stats.count)
-        : 0,
+      avgScore:
+        stats.count > 0 ? StatisticsCalculator.roundToDecimal(stats.totalScore / stats.count) : 0,
     }));
   }
 
@@ -266,14 +280,13 @@ export class UserStatsService {
     });
 
     const scores = allAttempts.map(attempt => attempt.score);
-    return StatisticsCalculator.roundToDecimal(
-      StatisticsCalculator.calculateAverageScore(scores)
-    );
+    return StatisticsCalculator.roundToDecimal(StatisticsCalculator.calculateAverageScore(scores));
   }
 
-  private calculateStreaks(
-    dailyActivity: ReadonlyArray<DailyActivity>
-  ): { currentStreak: number; longestStreak: number } {
+  private calculateStreaks(dailyActivity: ReadonlyArray<DailyActivity>): {
+    currentStreak: number;
+    longestStreak: number;
+  } {
     const sortedDates = dailyActivity
       .filter(day => day.count > 0)
       .map(day => day.date)
@@ -324,8 +337,9 @@ export class UserStatsService {
     attempts: ReadonlyArray<{ test: { questions?: ReadonlyArray<unknown> | null } }>
   ): number {
     return attempts.reduce((sum, attempt) => {
-      const questionCount = attempt.test.questions?.length ?? STATS_CONSTANTS.DEFAULT_QUESTION_COUNT;
-      return sum + (questionCount * STATS_CONSTANTS.MINUTES_PER_QUESTION);
+      const questionCount =
+        attempt.test.questions?.length ?? STATS_CONSTANTS.DEFAULT_QUESTION_COUNT;
+      return sum + questionCount * STATS_CONSTANTS.MINUTES_PER_QUESTION;
     }, 0);
   }
 
@@ -335,9 +349,7 @@ export class UserStatsService {
     const weekAgo = DateCalculator.getDateDaysAgo(TIME_CONSTANTS.DAYS_IN_WEEK);
     const twoWeeksAgo = DateCalculator.getDateDaysAgo(TIME_CONSTANTS.DAYS_IN_TWO_WEEKS);
 
-    const thisWeekAttempts = attempts.filter(
-      a => a.completedAt && a.completedAt >= weekAgo
-    );
+    const thisWeekAttempts = attempts.filter(a => a.completedAt && a.completedAt >= weekAgo);
     const lastWeekAttempts = attempts.filter(
       a => a.completedAt && a.completedAt >= twoWeeksAgo && a.completedAt < weekAgo
     );
@@ -349,9 +361,7 @@ export class UserStatsService {
       lastWeekAttempts.map(a => a.score)
     );
 
-    return lastWeekAvg > 0
-      ? StatisticsCalculator.roundToDecimal(thisWeekAvg - lastWeekAvg)
-      : 0;
+    return lastWeekAvg > 0 ? StatisticsCalculator.roundToDecimal(thisWeekAvg - lastWeekAvg) : 0;
   }
 
   private findFavoriteSubject(statsBySubject: ReadonlyArray<SubjectStats>): string {
@@ -372,9 +382,7 @@ export class UserStatsService {
     attempts.forEach(attempt => {
       try {
         const answers = JSON.parse(attempt.answers ?? '[]');
-        const questionsOrder = attempt.questionsOrder
-          ? JSON.parse(attempt.questionsOrder)
-          : null;
+        const questionsOrder = attempt.questionsOrder ? JSON.parse(attempt.questionsOrder) : null;
 
         attempt.test.questions.forEach((tq, index) => {
           const question = tq.question;
@@ -390,9 +398,7 @@ export class UserStatsService {
 
           stats.total++;
 
-          const questionIndex = questionsOrder
-            ? questionsOrder.indexOf(question.id)
-            : index;
+          const questionIndex = questionsOrder ? questionsOrder.indexOf(question.id) : index;
 
           if (questionIndex >= 0 && answers[questionIndex] !== undefined) {
             const userAnswer = answers[questionIndex];

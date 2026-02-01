@@ -1,5 +1,6 @@
 import prisma from '../config/database';
 import { logger } from '../utils/logger';
+
 import { wsService } from './websocketService';
 
 interface StreakInfo {
@@ -89,9 +90,7 @@ class StreakService {
       return { updated: true, newStreak: 1 };
     }
 
-    const lastActivity = streak.lastActivityDate
-      ? new Date(streak.lastActivityDate)
-      : null;
+    const lastActivity = streak.lastActivityDate ? new Date(streak.lastActivityDate) : null;
 
     if (lastActivity) {
       lastActivity.setHours(0, 0, 0, 0);
@@ -360,7 +359,10 @@ class StreakService {
     };
   }
 
-  async getActivityStats(userId: string, days: number = 30): Promise<{
+  async getActivityStats(
+    userId: string,
+    days: number = 30
+  ): Promise<{
     totalPoints: number;
     activitiesByType: Record<string, number>;
     dailyActivity: { date: string; points: number }[];

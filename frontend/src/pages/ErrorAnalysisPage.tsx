@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
+
+import { useAuthStore } from '../store/authStore';
 
 interface AnalysisData {
   summary: {
@@ -95,7 +96,9 @@ export default function ErrorAnalysisPage() {
   const { token } = useAuthStore();
   const [data, setData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'types' | 'topics' | 'mistakes'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'types' | 'topics' | 'mistakes'>(
+    'overview'
+  );
 
   useEffect(() => {
     loadAnalysis();
@@ -183,7 +186,9 @@ export default function ErrorAnalysisPage() {
             <div className="text-sm text-gray-400">Общая точность</div>
           </div>
           <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-5">
-            <div className="text-3xl font-bold text-amber-400">{data.summary.averageTimePerQuestion}с</div>
+            <div className="text-3xl font-bold text-amber-400">
+              {data.summary.averageTimePerQuestion}с
+            </div>
             <div className="text-sm text-gray-400">Среднее время</div>
           </div>
         </div>
@@ -195,7 +200,7 @@ export default function ErrorAnalysisPage() {
             { id: 'types', label: 'По типам заданий' },
             { id: 'topics', label: 'По темам' },
             { id: 'mistakes', label: 'Частые ошибки' },
-          ].map((tab) => (
+          ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
@@ -227,11 +232,15 @@ export default function ErrorAnalysisPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                            rec.priority === 'high' ? 'bg-red-500/30 text-red-300' :
-                            rec.priority === 'medium' ? 'bg-amber-500/30 text-amber-300' :
-                            'bg-green-500/30 text-green-300'
-                          }`}>
+                          <span
+                            className={`text-xs font-medium px-2 py-0.5 rounded ${
+                              rec.priority === 'high'
+                                ? 'bg-red-500/30 text-red-300'
+                                : rec.priority === 'medium'
+                                  ? 'bg-amber-500/30 text-amber-300'
+                                  : 'bg-green-500/30 text-green-300'
+                            }`}
+                          >
                             {PRIORITY_LABELS[rec.priority]}
                           </span>
                           <span className="text-xs text-gray-500">{rec.category}</span>
@@ -259,7 +268,7 @@ export default function ErrorAnalysisPage() {
                 <span className="text-2xl">📊</span> По уровню сложности
               </h2>
               <div className="grid md:grid-cols-3 gap-4">
-                {data.byDifficulty.map((d) => (
+                {data.byDifficulty.map(d => (
                   <div key={d.difficulty} className="bg-gray-800/50 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-3">
                       <span className="font-medium">{d.difficultyLabel}</span>
@@ -277,9 +286,7 @@ export default function ErrorAnalysisPage() {
                       <span>✓ {d.correct} верно</span>
                       <span>✗ {d.wrong} ошибок</span>
                     </div>
-                    {d.advice && (
-                      <p className="text-xs text-gray-500 mt-2 italic">{d.advice}</p>
-                    )}
+                    {d.advice && <p className="text-xs text-gray-500 mt-2 italic">{d.advice}</p>}
                   </div>
                 ))}
               </div>
@@ -300,7 +307,10 @@ export default function ErrorAnalysisPage() {
                         title={`${day.date}: ${day.accuracy}% (${day.questionsCount} вопросов)`}
                       />
                       <span className="text-[10px] text-gray-500 mt-1 rotate-45 origin-left">
-                        {new Date(day.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                        {new Date(day.date).toLocaleDateString('ru-RU', {
+                          day: 'numeric',
+                          month: 'short',
+                        })}
                       </span>
                     </div>
                   ))}
@@ -339,8 +349,11 @@ export default function ErrorAnalysisPage() {
                 Недостаточно данных для анализа по типам заданий
               </div>
             ) : (
-              data.byQuestionType.map((type) => (
-                <div key={type.type} className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+              data.byQuestionType.map(type => (
+                <div
+                  key={type.type}
+                  className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6"
+                >
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-lg font-bold">{type.typeLabel}</h3>
@@ -367,7 +380,9 @@ export default function ErrorAnalysisPage() {
 
                   {type.accuracy < 70 && type.advice.length > 0 && (
                     <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-                      <p className="text-sm font-medium text-amber-400 mb-2">Советы по улучшению:</p>
+                      <p className="text-sm font-medium text-amber-400 mb-2">
+                        Советы по улучшению:
+                      </p>
                       <ul className="space-y-1">
                         {type.advice.map((a, i) => (
                           <li key={i} className="text-sm text-gray-300 flex items-start gap-2">
@@ -450,9 +465,7 @@ export default function ErrorAnalysisPage() {
               </div>
             ) : (
               <>
-                <p className="text-gray-400 mb-4">
-                  Вопросы, в которых вы чаще всего ошибаетесь
-                </p>
+                <p className="text-gray-400 mb-4">Вопросы, в которых вы чаще всего ошибаетесь</p>
                 {data.frequentMistakes.map((mistake, i) => (
                   <div key={i} className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
                     <div className="flex items-start justify-between gap-4 mb-3">

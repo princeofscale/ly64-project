@@ -1,11 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ITask, IAnswerValidationStrategy } from '../interfaces';
-import { QuestionType, ValidationResult, TaskDTO } from '../types';
+
 import {
   ShortAnswerStrategy,
   ChoiceAnswerStrategy,
   DetailedAnswerStrategy,
 } from '../strategies/AnswerValidationStrategies';
+
+import type { ITask, IAnswerValidationStrategy } from '../interfaces';
+import type { QuestionType, ValidationResult, TaskDTO } from '../types';
 
 export class Task implements ITask {
   public readonly id: string;

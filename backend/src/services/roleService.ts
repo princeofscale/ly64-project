@@ -1,9 +1,10 @@
-import { PrismaClient } from '@prisma/client';
-import { Request } from 'express';
-import { AppError } from '../middlewares/errorHandler';
 import { ROLE_TYPES, ROLE_ERROR_MESSAGES, ROLE_HTTP_STATUS } from '../constants/roleConstants';
-import { UserRole, RoleCheckResult } from '../types/roleTypes';
+import { AppError } from '../middlewares/errorHandler';
 import { logSecurityEvent, SecurityEvent } from '../utils/logger';
+
+import type { UserRole, RoleCheckResult } from '../types/roleTypes';
+import type { PrismaClient } from '@prisma/client';
+import type { Request } from 'express';
 
 export class RoleService {
   constructor(private readonly prisma: PrismaClient) {}

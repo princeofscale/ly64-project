@@ -1,5 +1,6 @@
-import api, { authApi } from './api';
 import { useAuthStore } from '../store/authStore';
+
+import api, { authApi } from './api';
 
 interface RegisterData {
   email: string;

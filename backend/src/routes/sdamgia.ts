@@ -1,10 +1,15 @@
-import { Router, Response } from 'express';
-import { authenticateToken, AuthRequest } from '../middlewares/auth';
 import { exec } from 'child_process';
-import { promisify } from 'util';
 import { writeFile, unlink } from 'fs/promises';
-import path from 'path';
 import os from 'os';
+import path from 'path';
+import { promisify } from 'util';
+
+import { Router } from 'express';
+
+import { authenticateToken } from '../middlewares/auth';
+
+import type { AuthRequest } from '../middlewares/auth';
+import type { Response } from 'express';
 
 const router = Router();
 const execAsync = promisify(exec);
@@ -361,8 +366,7 @@ except Exception as e:
     if (tempFile) {
       try {
         await unlink(tempFile);
-      } catch (err) {
-      }
+      } catch (err) {}
     }
   }
 });

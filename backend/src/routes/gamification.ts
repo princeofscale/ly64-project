@@ -1,7 +1,11 @@
-import { Router, Response } from 'express';
-import { authenticateToken, AuthRequest } from '../middlewares/auth';
+import { Router } from 'express';
+
+import { authenticateToken } from '../middlewares/auth';
 import { streakService } from '../services/streakService';
 import { logger } from '../utils/logger';
+
+import type { AuthRequest } from '../middlewares/auth';
+import type { Response } from 'express';
 
 const router = Router();
 

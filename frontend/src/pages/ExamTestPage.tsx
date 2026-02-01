@@ -1,11 +1,14 @@
+import { SUBJECT_LABELS } from '@lyceum64/shared';
 import { useState, useEffect, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
+
 import { Button } from '../components/Button';
 import { getActiveTestService } from '../core/services';
 import { ConfettiService } from '../core/services/ConfettiService';
-import toast from 'react-hot-toast';
-import testService, { TestVariant } from '../services/testService';
-import { SUBJECT_LABELS } from '@lyceum64/shared';
+import testService from '../services/testService';
+
+import type { TestVariant } from '../services/testService';
 
 interface Task {
   id: string;
@@ -29,7 +32,7 @@ export default function ExamTestPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const tasks = examVariant?.tasks as Task[] || [];
+  const tasks = (examVariant?.tasks as Task[]) || [];
 
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -103,7 +106,9 @@ export default function ExamTestPage() {
   const answeredCount = Object.keys(answers).filter(k => answers[parseInt(k)]?.trim()).length;
 
   const getExamTitle = () => {
-    const subjectName = subject ? SUBJECT_LABELS[subject as keyof typeof SUBJECT_LABELS] || subject : 'Предмет';
+    const subjectName = subject
+      ? SUBJECT_LABELS[subject as keyof typeof SUBJECT_LABELS] || subject
+      : 'Предмет';
     if (grade === 8) return `ВПР ${subjectName}`;
     if (grade === 9) return `ОГЭ ${subjectName}`;
     if (grade === 10) return `ВПР ${subjectName}`;
@@ -118,7 +123,7 @@ export default function ExamTestPage() {
     if (grade === 9) return 'OGE' as const;
     if (grade === 11) {
       if (subject === 'MATHEMATICS') {
-        return egeType === 'base' ? 'EGE_BASE' as const : 'EGE_PROFILE' as const;
+        return egeType === 'base' ? ('EGE_BASE' as const) : ('EGE_PROFILE' as const);
       }
       return 'EGE' as const;
     }
@@ -158,7 +163,7 @@ export default function ExamTestPage() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
+      setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
           handleFinish();
@@ -179,7 +184,7 @@ export default function ExamTestPage() {
   };
 
   const handleAnswer = (answer: string) => {
-    setAnswers((prev) => ({
+    setAnswers(prev => ({
       ...prev,
       [currentTask.number]: answer,
     }));
@@ -187,19 +192,19 @@ export default function ExamTestPage() {
 
   const handleNext = () => {
     if (currentTaskIndex < tasks.length - 1) {
-      setCurrentTaskIndex((prev) => prev + 1);
+      setCurrentTaskIndex(prev => prev + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentTaskIndex > 0) {
-      setCurrentTaskIndex((prev) => prev - 1);
+      setCurrentTaskIndex(prev => prev - 1);
     }
   };
 
   const calculateScore = useCallback(() => {
     const totalPoints = Object.entries(answers).reduce((sum, [num, ans]) => {
-      const task = tasks.find((t) => t.number === parseInt(num));
+      const task = tasks.find(t => t.number === parseInt(num));
       if (task && task.correctAnswer === ans) {
         return sum + task.points;
       }
@@ -215,7 +220,7 @@ export default function ExamTestPage() {
     try {
       // Format answers for API
       const formattedAnswers = Object.entries(answers).map(([num, ans]) => {
-        const task = tasks.find((t) => t.number === parseInt(num));
+        const task = tasks.find(t => t.number === parseInt(num));
         return {
           questionId: task?.id || '',
           answer: ans,
@@ -224,7 +229,7 @@ export default function ExamTestPage() {
         };
       });
 
-      const questionsOrder = tasks.map((t) => t.id);
+      const questionsOrder = tasks.map(t => t.id);
 
       // Submit test to server
       const result = await testService.submitTest(
@@ -299,20 +304,24 @@ export default function ExamTestPage() {
 
   if (showResults) {
     // Use results from server if available, otherwise calculate locally
-    const correctCount = testResults?.correctCount ?? Object.entries(answers).filter(
-      ([num, ans]) => tasks.find((t) => t.number === parseInt(num))?.correctAnswer === ans
-    ).length;
+    const correctCount =
+      testResults?.correctCount ??
+      Object.entries(answers).filter(
+        ([num, ans]) => tasks.find(t => t.number === parseInt(num))?.correctAnswer === ans
+      ).length;
 
-    const totalPoints = testResults?.questionResults?.reduce((sum: number, qr: any) => sum + qr.points, 0) ??
+    const totalPoints =
+      testResults?.questionResults?.reduce((sum: number, qr: any) => sum + qr.points, 0) ??
       Object.entries(answers).reduce((sum, [num, ans]) => {
-        const task = tasks.find((t) => t.number === parseInt(num));
+        const task = tasks.find(t => t.number === parseInt(num));
         if (task && task.correctAnswer === ans) {
           return sum + task.points;
         }
         return sum;
       }, 0);
 
-    const maxPoints = testResults?.totalQuestions ?? tasks.reduce((sum, task) => sum + task.points, 0);
+    const maxPoints =
+      testResults?.totalQuestions ?? tasks.reduce((sum, task) => sum + task.points, 0);
     const scorePercent = testResults?.score ?? Math.round((totalPoints / maxPoints) * 100);
 
     const getScoreEmoji = () => {
@@ -350,20 +359,26 @@ export default function ExamTestPage() {
               <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden mb-4">
                 <div
                   className={`h-full rounded-full transition-all duration-1000 ${
-                    scorePercent >= 80 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
-                    scorePercent >= 60 ? 'bg-gradient-to-r from-yellow-500 to-amber-500' :
-                    'bg-gradient-to-r from-red-500 to-orange-500'
+                    scorePercent >= 80
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                      : scorePercent >= 60
+                        ? 'bg-gradient-to-r from-yellow-500 to-amber-500'
+                        : 'bg-gradient-to-r from-red-500 to-orange-500'
                   }`}
                   style={{ width: `${scorePercent}%` }}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-cyan-400">{correctCount}/{tasks.length}</div>
+                  <div className="text-2xl font-bold text-cyan-400">
+                    {correctCount}/{tasks.length}
+                  </div>
                   <div className="text-sm text-gray-400">правильных ответов</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-purple-400">{totalPoints}/{maxPoints}</div>
+                  <div className="text-2xl font-bold text-purple-400">
+                    {totalPoints}/{maxPoints}
+                  </div>
                   <div className="text-sm text-gray-400">первичных баллов</div>
                 </div>
               </div>
@@ -373,14 +388,17 @@ export default function ExamTestPage() {
             <div className="mb-8">
               <h2 className="text-xl font-bold text-gray-200 mb-4 text-left">Детальный разбор</h2>
               <div className="space-y-3">
-                {(testResults?.questionResults || tasks.map((task) => ({
-                  number: task.number,
-                  userAnswer: answers[task.number] || null,
-                  correctAnswer: task.correctAnswer,
-                  isCorrect: task.correctAnswer === answers[task.number],
-                  points: task.points,
-                  topic: task.topic,
-                }))).map((result: any) => {
+                {(
+                  testResults?.questionResults ||
+                  tasks.map(task => ({
+                    number: task.number,
+                    userAnswer: answers[task.number] || null,
+                    correctAnswer: task.correctAnswer,
+                    isCorrect: task.correctAnswer === answers[task.number],
+                    points: task.points,
+                    topic: task.topic,
+                  }))
+                ).map((result: any) => {
                   const isAnswered = result.userAnswer !== null && result.userAnswer !== '';
 
                   return (
@@ -390,25 +408,34 @@ export default function ExamTestPage() {
                         result.isCorrect
                           ? 'bg-green-500/10 border-green-500/30'
                           : isAnswered
-                          ? 'bg-red-500/10 border-red-500/30'
-                          : 'bg-gray-800/50 border-gray-700/50'
+                            ? 'bg-red-500/10 border-red-500/30'
+                            : 'bg-gray-800/50 border-gray-700/50'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <div className={`text-2xl ${result.isCorrect ? '' : isAnswered ? '' : 'opacity-50'}`}>
+                            <div
+                              className={`text-2xl ${result.isCorrect ? '' : isAnswered ? '' : 'opacity-50'}`}
+                            >
                               {result.isCorrect ? '✓' : isAnswered ? '✗' : '○'}
                             </div>
                             <div>
                               <div className="font-semibold text-gray-200">
                                 Задание {result.number}
                                 {result.topic && !result.topic.match(/^(Д?\d+|[0-9]+)$/) && (
-                                  <span className="text-sm text-gray-500 ml-2">({result.topic})</span>
+                                  <span className="text-sm text-gray-500 ml-2">
+                                    ({result.topic})
+                                  </span>
                                 )}
                               </div>
                               <div className="text-sm text-gray-400">
-                                {result.points || 1} {result.points === 1 ? 'балл' : (result.points || 1) < 5 ? 'балла' : 'баллов'}
+                                {result.points || 1}{' '}
+                                {result.points === 1
+                                  ? 'балл'
+                                  : (result.points || 1) < 5
+                                    ? 'балла'
+                                    : 'баллов'}
                               </div>
                             </div>
                           </div>
@@ -417,7 +444,13 @@ export default function ExamTestPage() {
                             {isAnswered && (
                               <div>
                                 <span className="text-gray-500">Ваш ответ:</span>{' '}
-                                <span className={result.isCorrect ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>
+                                <span
+                                  className={
+                                    result.isCorrect
+                                      ? 'text-green-400 font-medium'
+                                      : 'text-red-400 font-medium'
+                                  }
+                                >
                                   {result.userAnswer}
                                 </span>
                               </div>
@@ -425,22 +458,24 @@ export default function ExamTestPage() {
                             {!result.isCorrect && (
                               <div>
                                 <span className="text-gray-500">Правильный ответ:</span>{' '}
-                                <span className="text-green-400 font-medium">{result.correctAnswer}</span>
+                                <span className="text-green-400 font-medium">
+                                  {result.correctAnswer}
+                                </span>
                               </div>
                             )}
-                            {!isAnswered && (
-                              <div className="text-gray-500 italic">Не отвечено</div>
-                            )}
+                            {!isAnswered && <div className="text-gray-500 italic">Не отвечено</div>}
                           </div>
                         </div>
 
-                        <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          result.isCorrect
-                            ? 'bg-green-500/20 text-green-400'
-                            : isAnswered
-                            ? 'bg-red-500/20 text-red-400'
-                            : 'bg-gray-700/50 text-gray-500'
-                        }`}>
+                        <div
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            result.isCorrect
+                              ? 'bg-green-500/20 text-green-400'
+                              : isAnswered
+                                ? 'bg-red-500/20 text-red-400'
+                                : 'bg-gray-700/50 text-gray-500'
+                          }`}
+                        >
                           {result.isCorrect ? `+${result.points || 1}` : '0'}
                         </div>
                       </div>
@@ -451,9 +486,7 @@ export default function ExamTestPage() {
             </div>
 
             <div className="flex gap-4 justify-center">
-              <Button onClick={() => navigate('/dashboard')}>
-                К панели управления
-              </Button>
+              <Button onClick={() => navigate('/dashboard')}>К панели управления</Button>
               <Button variant="outline" onClick={() => navigate('/leaderboard')}>
                 🏆 Таблица лидеров
               </Button>
@@ -475,15 +508,24 @@ export default function ExamTestPage() {
               <div className="text-2xl font-display font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                 {getExamTitle()}
               </div>
-              <div className="text-sm text-gray-400 font-sans">
-                {grade} класс
-              </div>
+              <div className="text-sm text-gray-400 font-sans">{grade} класс</div>
             </div>
 
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 ${getTimeColor()}`}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className={`w-5 h-5 ${getTimeColor()}`}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <span className={`font-mono text-lg font-semibold ${getTimeColor()}`}>
                   {formatTime(timeLeft)}
@@ -491,7 +533,8 @@ export default function ExamTestPage() {
               </div>
 
               <div className="text-sm font-sans text-gray-400">
-                <span className="text-cyan-400 font-semibold">{answeredCount}</span> / {tasks.length} отвечено
+                <span className="text-cyan-400 font-semibold">{answeredCount}</span> /{' '}
+                {tasks.length} отвечено
               </div>
 
               <button
@@ -521,7 +564,8 @@ export default function ExamTestPage() {
                   Задание {currentTask.number}
                 </span>
                 <span className="text-sm text-gray-400 font-sans">
-                  {currentTask.points} {currentTask.points === 1 ? 'балл' : currentTask.points < 5 ? 'балла' : 'баллов'}
+                  {currentTask.points}{' '}
+                  {currentTask.points === 1 ? 'балл' : currentTask.points < 5 ? 'балла' : 'баллов'}
                 </span>
               </div>
               {currentTask.topic && !currentTask.topic.match(/^(Д?\d+|[0-9]+)$/) && (
@@ -558,13 +602,11 @@ export default function ExamTestPage() {
 
             {currentTask.type === 'short' && (
               <div>
-                <label className="block text-sm font-sans text-gray-400 mb-2">
-                  Введите ответ:
-                </label>
+                <label className="block text-sm font-sans text-gray-400 mb-2">Введите ответ:</label>
                 <input
                   type="text"
                   value={answers[currentTask.number] || ''}
-                  onChange={(e) => handleAnswer(e.target.value)}
+                  onChange={e => handleAnswer(e.target.value)}
                   placeholder="Ваш ответ"
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all font-sans"
                 />
@@ -578,8 +620,12 @@ export default function ExamTestPage() {
                 </label>
                 <textarea
                   value={answers[currentTask.number] || ''}
-                  onChange={(e) => handleAnswer(e.target.value)}
-                  placeholder={currentTask.type === 'proof' ? 'Опишите доказательство...' : 'Опишите решение...'}
+                  onChange={e => handleAnswer(e.target.value)}
+                  placeholder={
+                    currentTask.type === 'proof'
+                      ? 'Опишите доказательство...'
+                      : 'Опишите решение...'
+                  }
                   rows={8}
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all resize-vertical font-sans"
                 />
@@ -588,23 +634,15 @@ export default function ExamTestPage() {
           </div>
 
           <div className="flex items-center justify-between pt-6 border-t border-gray-700/50">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentTaskIndex === 0}
-            >
+            <Button variant="outline" onClick={handlePrevious} disabled={currentTaskIndex === 0}>
               ← Предыдущее
             </Button>
 
             <div className="flex gap-3">
               {currentTaskIndex === tasks.length - 1 ? (
-                <Button onClick={handleFinish}>
-                  Завершить тест
-                </Button>
+                <Button onClick={handleFinish}>Завершить тест</Button>
               ) : (
-                <Button onClick={handleNext}>
-                  Следующее →
-                </Button>
+                <Button onClick={handleNext}>Следующее →</Button>
               )}
             </div>
           </div>
@@ -621,8 +659,8 @@ export default function ExamTestPage() {
                   currentTaskIndex === index
                     ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white scale-110'
                     : answers[task.number]
-                    ? 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-400'
-                    : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-cyan-500/50'
+                      ? 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-400'
+                      : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-cyan-500/50'
                 }`}
               >
                 {task.number}
@@ -635,11 +673,10 @@ export default function ExamTestPage() {
       {showExitConfirm && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 animate-scale-in">
-            <h4 className="text-xl font-semibold text-white mb-3">
-              Выйти из теста?
-            </h4>
+            <h4 className="text-xl font-semibold text-white mb-3">Выйти из теста?</h4>
             <p className="text-gray-400 mb-2">
-              Вы ответили на <span className="text-cyan-400 font-semibold">{answeredCount}</span> из <span className="text-white">{tasks.length}</span> вопросов.
+              Вы ответили на <span className="text-cyan-400 font-semibold">{answeredCount}</span> из{' '}
+              <span className="text-white">{tasks.length}</span> вопросов.
             </p>
             <p className="text-gray-400 mb-6">
               Вы можете вернуться и продолжить позже или завершить тест сейчас.

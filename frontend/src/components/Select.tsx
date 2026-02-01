@@ -1,4 +1,4 @@
-import { SelectHTMLAttributes } from 'react';
+import type { SelectHTMLAttributes } from 'react';
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
@@ -27,7 +27,7 @@ export function Select({ label, error, options, className = '', ...props }: Sele
         `}
         {...props}
       >
-        {options.map((opt) => (
+        {options.map(opt => (
           <option key={opt.value} value={opt.value} className="bg-gray-800 text-white">
             {opt.label}
           </option>

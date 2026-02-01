@@ -40,7 +40,7 @@ export class AntiCheatService {
 
     if (!test) return null;
 
-    let questions = test.questions.map((tq) => ({
+    let questions = test.questions.map(tq => ({
       id: tq.question.id,
       question: tq.question.question,
       type: tq.question.type,
@@ -52,7 +52,7 @@ export class AntiCheatService {
     if (test.randomizeQuestions) {
       questions = this.shuffleArray(questions);
 
-      questions = questions.map((q) => {
+      questions = questions.map(q => {
         if (q.options && Array.isArray(q.options)) {
           return { ...q, options: this.shuffleArray(q.options) };
         }
@@ -69,7 +69,7 @@ export class AntiCheatService {
         questionsCount: questions.length,
       },
       questions,
-      questionsOrder: questions.map((q) => q.id),
+      questionsOrder: questions.map(q => q.id),
     };
   }
 
@@ -84,9 +84,7 @@ export class AntiCheatService {
     }
 
     const averageTimeMs =
-      answerTimes.length > 0
-        ? answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length
-        : 0;
+      answerTimes.length > 0 ? answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length : 0;
 
     if (fastAnswersCount >= SUSPICIOUS_FAST_ANSWERS_THRESHOLD) {
       reasons.push(
@@ -95,9 +93,7 @@ export class AntiCheatService {
     }
 
     if (averageTimeMs < MIN_ANSWER_TIME_MS && answerTimes.length > 3) {
-      reasons.push(
-        `Среднее время ответа слишком низкое: ${(averageTimeMs / 1000).toFixed(1)} сек`
-      );
+      reasons.push(`Среднее время ответа слишком низкое: ${(averageTimeMs / 1000).toFixed(1)} сек`);
     }
 
     return {
@@ -123,14 +119,12 @@ export class AntiCheatService {
 
     if (!test) throw new Error('Test not found');
 
-    const answerTimes = answers.map((a) => a.timeSpent);
+    const answerTimes = answers.map(a => a.timeSpent);
     const analysis = this.analyzeAnswerTimes(answerTimes);
 
     let correctCount = 0;
     for (const answer of answers) {
-      const testQuestion = test.questions.find(
-        (tq) => tq.question.id === answer.questionId
-      );
+      const testQuestion = test.questions.find(tq => tq.question.id === answer.questionId);
       if (!testQuestion) continue;
 
       const correctAnswer = JSON.parse(testQuestion.question.correctAnswer);
@@ -138,11 +132,10 @@ export class AntiCheatService {
       if (Array.isArray(answer.answer) && Array.isArray(correctAnswer)) {
         const isCorrect =
           answer.answer.length === correctAnswer.length &&
-          answer.answer.every((a) => correctAnswer.includes(a));
+          answer.answer.every(a => correctAnswer.includes(a));
         if (isCorrect) correctCount++;
       } else if (
-        String(answer.answer).toLowerCase().trim() ===
-        String(correctAnswer).toLowerCase().trim()
+        String(answer.answer).toLowerCase().trim() === String(correctAnswer).toLowerCase().trim()
       ) {
         correctCount++;
       }

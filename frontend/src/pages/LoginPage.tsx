@@ -1,11 +1,15 @@
-import { useState, FormEvent, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import toast from 'react-hot-toast';
 import { Eye, EyeOff, ArrowLeft, LogIn } from 'lucide-react';
-import { Input } from '../components/Input';
-import { Button } from '../components/Button';
-import { authService } from '../services/authService';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+
 import { useAuthStore } from '@/store/authStore';
+
+import { Button } from '../components/Button';
+import { Input } from '../components/Input';
+import { authService } from '../services/authService';
+
+import type { FormEvent } from 'react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -56,9 +60,7 @@ export default function LoginPage() {
             <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50 mb-2">
               Вход в аккаунт
             </h1>
-            <p className="text-slate-500">
-              Введите ваши данные для входа
-            </p>
+            <p className="text-slate-500">Введите ваши данные для входа</p>
           </div>
 
           {/* Form */}
@@ -68,7 +70,7 @@ export default function LoginPage() {
               type="email"
               name="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={e => setFormData({ ...formData, email: e.target.value })}
               required
               autoComplete="email"
               placeholder="ivan@example.com"
@@ -77,10 +79,10 @@ export default function LoginPage() {
             <div className="relative">
               <Input
                 label="Пароль"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={e => setFormData({ ...formData, password: e.target.value })}
                 required
                 autoComplete="current-password"
                 placeholder="Введите пароль"
@@ -89,22 +91,13 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-9 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
               >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              size="lg"
-              isLoading={isLoading}
-            >
+            <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
               Войти
             </Button>
           </form>

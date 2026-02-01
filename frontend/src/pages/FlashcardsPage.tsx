@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+
 import { Header } from '../components/Header';
 
 interface Flashcard {
@@ -51,9 +52,17 @@ const DEFAULT_SETS: FlashcardSet[] = [
     name: 'Термины русского языка',
     subject: 'Русский язык',
     cards: [
-      { id: '1', front: 'Метафора', back: 'Скрытое сравнение, перенос свойств одного предмета на другой' },
+      {
+        id: '1',
+        front: 'Метафора',
+        back: 'Скрытое сравнение, перенос свойств одного предмета на другой',
+      },
       { id: '2', front: 'Эпитет', back: 'Образное определение, придающее выражению яркость' },
-      { id: '3', front: 'Олицетворение', back: 'Наделение неживых предметов человеческими качествами' },
+      {
+        id: '3',
+        front: 'Олицетворение',
+        back: 'Наделение неживых предметов человеческими качествами',
+      },
       { id: '4', front: 'Гипербола', back: 'Художественное преувеличение' },
       { id: '5', front: 'Литота', back: 'Художественное преуменьшение' },
       { id: '6', front: 'Анафора', back: 'Повторение слов в начале строк или предложений' },
@@ -209,9 +218,7 @@ function FlashcardsPage() {
     }
   };
 
-  const progress = selectedSet
-    ? Math.round((knownCards.size / selectedSet.cards.length) * 100)
-    : 0;
+  const progress = selectedSet ? Math.round((knownCards.size / selectedSet.cards.length) * 100) : 0;
 
   return (
     <>
@@ -220,7 +227,10 @@ function FlashcardsPage() {
         {/* Фон */}
         <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-blue-500/5 opacity-30" />
         <div className="absolute top-20 right-10 w-72 h-72 bg-green-500/20 rounded-full blur-[80px] animate-pulse" />
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-blue-500/20 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div
+          className="absolute bottom-20 left-10 w-96 h-96 bg-blue-500/20 rounded-full blur-[80px] animate-pulse"
+          style={{ animationDelay: '1s' }}
+        />
 
         <main className="relative z-10 max-w-6xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
@@ -258,11 +268,24 @@ function FlashcardsPage() {
                       </span>
                       {set.isCustom && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); deleteSet(set.id); }}
+                          onClick={e => {
+                            e.stopPropagation();
+                            deleteSet(set.id);
+                          }}
                           className="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
                           </svg>
                         </button>
                       )}
@@ -281,7 +304,12 @@ function FlashcardsPage() {
                 className="mb-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
                 Назад к наборам
               </button>
@@ -327,7 +355,9 @@ function FlashcardsPage() {
                           style={{ backfaceVisibility: 'hidden' }}
                         >
                           <p className="text-gray-400 text-sm mb-4">Вопрос</p>
-                          <p className="text-2xl font-bold text-white text-center">{currentCard?.front}</p>
+                          <p className="text-2xl font-bold text-white text-center">
+                            {currentCard?.front}
+                          </p>
                           <p className="text-gray-500 text-sm mt-6">Нажмите, чтобы перевернуть</p>
                         </div>
 
@@ -337,7 +367,9 @@ function FlashcardsPage() {
                           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
                         >
                           <p className="text-green-400 text-sm mb-4">Ответ</p>
-                          <p className="text-2xl font-bold text-white text-center">{currentCard?.back}</p>
+                          <p className="text-2xl font-bold text-white text-center">
+                            {currentCard?.back}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -349,8 +381,18 @@ function FlashcardsPage() {
                       onClick={prevCard}
                       className="p-3 bg-gray-800 border border-gray-700 rounded-xl text-gray-400 hover:text-white hover:border-gray-600 transition-colors"
                     >
-                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 19l-7-7 7-7"
+                        />
                       </svg>
                     </button>
 
@@ -372,8 +414,18 @@ function FlashcardsPage() {
                       onClick={nextCard}
                       className="p-3 bg-gray-800 border border-gray-700 rounded-xl text-gray-400 hover:text-white hover:border-gray-600 transition-colors"
                     >
-                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -428,7 +480,7 @@ function FlashcardsPage() {
                   <input
                     type="text"
                     value={newSetName}
-                    onChange={(e) => setNewSetName(e.target.value)}
+                    onChange={e => setNewSetName(e.target.value)}
                     placeholder="Например: Английские слова"
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:border-green-500 focus:outline-none"
                   />
@@ -440,8 +492,8 @@ function FlashcardsPage() {
                   </label>
                   <textarea
                     value={newCards}
-                    onChange={(e) => setNewCards(e.target.value)}
-                    placeholder={"Hello | Привет\nGoodbye | До свидания\nThank you | Спасибо"}
+                    onChange={e => setNewCards(e.target.value)}
+                    placeholder={'Hello | Привет\nGoodbye | До свидания\nThank you | Спасибо'}
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:border-green-500 focus:outline-none resize-none"
                     rows={6}
                   />

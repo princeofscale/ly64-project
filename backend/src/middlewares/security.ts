@@ -1,8 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
-import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import hpp from 'hpp';
 import { escape } from 'validator';
+
+import type { Request, Response, NextFunction } from 'express';
 
 export const securityHeaders = helmet({
   contentSecurityPolicy: {
@@ -10,9 +11,9 @@ export const securityHeaders = helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "blob:", "https:"],
-      connectSrc: ["'self'", "ws:", "wss:"],
-      fontSrc: ["'self'", "data:"],
+      imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+      connectSrc: ["'self'", 'ws:', 'wss:'],
+      fontSrc: ["'self'", 'data:'],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
@@ -177,7 +178,9 @@ export const sqlInjectionProtection = (req: Request, res: Response, next: NextFu
 
   const queryInjection = checkValue(req.query);
   if (queryInjection) {
-    console.warn(`[SECURITY] SQL Injection attempt in query: ${queryInjection.substring(0, 100)} from IP: ${req.ip}`);
+    console.warn(
+      `[SECURITY] SQL Injection attempt in query: ${queryInjection.substring(0, 100)} from IP: ${req.ip}`
+    );
     return res.status(400).json({
       error: 'Обнаружены недопустимые символы в запросе',
     });
@@ -190,7 +193,9 @@ export const sqlInjectionProtection = (req: Request, res: Response, next: NextFu
 
     const bodyInjection = checkValue(bodyToCheck);
     if (bodyInjection) {
-      console.warn(`[SECURITY] SQL Injection attempt in body: ${bodyInjection.substring(0, 100)} from IP: ${req.ip}`);
+      console.warn(
+        `[SECURITY] SQL Injection attempt in body: ${bodyInjection.substring(0, 100)} from IP: ${req.ip}`
+      );
       return res.status(400).json({
         error: 'Обнаружены недопустимые символы в запросе',
       });
@@ -268,15 +273,13 @@ export const clearFailedLogins = (email: string): void => {
 };
 
 export const securityLogger = (req: Request, _res: Response, next: NextFunction) => {
-  const suspiciousHeaders = [
-    'x-forwarded-host',
-    'x-original-url',
-    'x-rewrite-url',
-  ];
+  const suspiciousHeaders = ['x-forwarded-host', 'x-original-url', 'x-rewrite-url'];
 
   for (const header of suspiciousHeaders) {
     if (req.headers[header]) {
-      console.warn(`[SECURITY] Suspicious header detected: ${header}=${req.headers[header]} from IP: ${req.ip}`);
+      console.warn(
+        `[SECURITY] Suspicious header detected: ${header}=${req.headers[header]} from IP: ${req.ip}`
+      );
     }
   }
 
@@ -372,7 +375,10 @@ class AdvancedRateLimiter {
     }
   }
 
-  public check(ip: string, userId?: string): { allowed: boolean; retryAfter?: number; reason?: string } {
+  public check(
+    ip: string,
+    userId?: string
+  ): { allowed: boolean; retryAfter?: number; reason?: string } {
     const now = Date.now();
 
     const ipEntry = this.getOrCreate(this.ipStore, ip);
@@ -443,7 +449,10 @@ export const sensitiveActionsLimiter = new AdvancedRateLimiter({
   maxRequestsCombined: 10,
 });
 
-export const advancedRateLimitMiddleware = (limiter: AdvancedRateLimiter, customMessage?: string) => {
+export const advancedRateLimitMiddleware = (
+  limiter: AdvancedRateLimiter,
+  customMessage?: string
+) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const ip = req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
     const userId = (req as any).user?.id;
@@ -451,7 +460,9 @@ export const advancedRateLimitMiddleware = (limiter: AdvancedRateLimiter, custom
     const result = limiter.check(ip, userId);
 
     if (!result.allowed) {
-      console.warn(`[RATE_LIMIT] Blocked: IP=${ip}, User=${userId || 'anonymous'}, Reason=${result.reason}`);
+      console.warn(
+        `[RATE_LIMIT] Blocked: IP=${ip}, User=${userId || 'anonymous'}, Reason=${result.reason}`
+      );
 
       res.setHeader('Retry-After', result.retryAfter?.toString() || '60');
       res.setHeader('X-RateLimit-Reason', result.reason || 'Rate limit exceeded');

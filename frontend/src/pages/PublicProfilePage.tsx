@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+
 import { AchievementCard } from '../components/AchievementCard';
 import { useAuthStore } from '../store/authStore';
 
@@ -143,7 +144,11 @@ export default function PublicProfilePage() {
           <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-12 text-center">
             <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
               {profile.avatar ? (
-                <img src={profile.avatar} alt={profile.name} className="w-full h-full rounded-full object-cover" />
+                <img
+                  src={profile.avatar}
+                  alt={profile.name}
+                  className="w-full h-full rounded-full object-cover"
+                />
               ) : (
                 <span className="text-4xl">🔒</span>
               )}
@@ -162,7 +167,12 @@ export default function PublicProfilePage() {
               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
               Вернуться назад
             </Link>
@@ -186,7 +196,12 @@ export default function PublicProfilePage() {
             className="inline-flex items-center text-gray-400 hover:text-white transition-colors"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
             </svg>
             Назад
           </Link>
@@ -201,7 +216,11 @@ export default function PublicProfilePage() {
             <div className="relative">
               <div className="w-32 h-32 rounded-2xl border-4 border-gray-950 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden shadow-2xl">
                 {profile.avatar ? (
-                  <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
+                  <img
+                    src={profile.avatar}
+                    alt={profile.name}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-5xl">
                     {profile.name.charAt(0).toUpperCase()}
@@ -218,9 +237,7 @@ export default function PublicProfilePage() {
               <h1 className="text-3xl font-bold text-white mb-1">{profile.name}</h1>
               <p className="text-gray-400 text-lg mb-4">@{profile.username}</p>
 
-              {profile.bio && (
-                <p className="text-gray-300 max-w-xl mb-4">{profile.bio}</p>
-              )}
+              {profile.bio && <p className="text-gray-300 max-w-xl mb-4">{profile.bio}</p>}
 
               <div className="flex flex-wrap gap-3">
                 {profile.status && (
@@ -293,7 +310,7 @@ export default function PublicProfilePage() {
               </h2>
 
               <div className="grid grid-cols-1 gap-4">
-                {profile.achievements.slice(0, 6).map((achievement) => (
+                {profile.achievements.slice(0, 6).map(achievement => (
                   <AchievementCard
                     key={achievement.id}
                     achievement={achievement}
@@ -332,11 +349,15 @@ export default function PublicProfilePage() {
                         {new Date(test.completedAt).toLocaleDateString('ru-RU')}
                       </div>
                     </div>
-                    <div className={`text-2xl font-bold ${
-                      test.score >= 80 ? 'text-green-400' :
-                      test.score >= 60 ? 'text-yellow-400' :
-                      'text-red-400'
-                    }`}>
+                    <div
+                      className={`text-2xl font-bold ${
+                        test.score >= 80
+                          ? 'text-green-400'
+                          : test.score >= 60
+                            ? 'text-yellow-400'
+                            : 'text-red-400'
+                      }`}
+                    >
                       {test.score}%
                     </div>
                   </div>
@@ -347,13 +368,13 @@ export default function PublicProfilePage() {
         </div>
 
         {(!profile.achievements || profile.achievements.length === 0) &&
-         (!profile.recentTests || profile.recentTests.length === 0) && (
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-12 text-center">
-            <div className="text-5xl mb-4">📚</div>
-            <h3 className="text-xl font-bold text-white mb-2">Пока нет активности</h3>
-            <p className="text-gray-400">Этот пользователь ещё не прошёл ни одного теста</p>
-          </div>
-        )}
+          (!profile.recentTests || profile.recentTests.length === 0) && (
+            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-12 text-center">
+              <div className="text-5xl mb-4">📚</div>
+              <h3 className="text-xl font-bold text-white mb-2">Пока нет активности</h3>
+              <p className="text-gray-400">Этот пользователь ещё не прошёл ни одного теста</p>
+            </div>
+          )}
       </div>
     </div>
   );
@@ -369,11 +390,15 @@ interface StatCardProps {
 function StatCard({ icon, value, label, color }: StatCardProps) {
   return (
     <div className="group relative">
-      <div className={`absolute -inset-0.5 bg-gradient-to-r ${color} rounded-xl opacity-0 group-hover:opacity-100 blur transition-all duration-500`} />
+      <div
+        className={`absolute -inset-0.5 bg-gradient-to-r ${color} rounded-xl opacity-0 group-hover:opacity-100 blur transition-all duration-500`}
+      />
 
       <div className="relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 transition-all duration-500 group-hover:border-transparent">
         <div className="text-2xl mb-2">{icon}</div>
-        <div className={`text-2xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}>
+        <div
+          className={`text-2xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}
+        >
           {value}
         </div>
         <div className="text-sm text-gray-400">{label}</div>

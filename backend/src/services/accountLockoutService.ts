@@ -1,16 +1,13 @@
-import { Request } from 'express';
+import { LOCKOUT_SETTINGS, AUTH_MESSAGES } from '../constants/authConstants';
 import {
   checkAccountLockout as checkLockout,
   recordFailedLogin as recordFailed,
   clearFailedLogins as clearFailed,
 } from '../middlewares/security';
-import {
-  logSuccessfulLogin,
-  logFailedLogin,
-  logBlockedLogin,
-} from '../utils/logger';
-import { LockoutStatus, FailedLoginAttempt } from '../types/authTypes';
-import { LOCKOUT_SETTINGS, AUTH_MESSAGES } from '../constants/authConstants';
+import { logSuccessfulLogin, logFailedLogin, logBlockedLogin } from '../utils/logger';
+
+import type { LockoutStatus, FailedLoginAttempt } from '../types/authTypes';
+import type { Request } from 'express';
 
 export class AccountLockoutService {
   public checkLockout(email: string): LockoutStatus {

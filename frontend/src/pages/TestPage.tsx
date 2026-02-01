@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useParams, useNavigate } from 'react-router-dom';
+
 import { Button } from '../components/Button';
 import { useAuthStore } from '../store/authStore';
 
@@ -48,10 +49,9 @@ export default function TestPage() {
     try {
       let url = '';
       if (subject) {
-        const testsResponse = await fetch(
-          `/api/tests?subject=${subject}&isDiagnostic=true`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const testsResponse = await fetch(`/api/tests?subject=${subject}&isDiagnostic=true`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const testsData = await testsResponse.json();
         if (testsData.data && testsData.data.length > 0) {
           url = `/api/tests/${testsData.data[0].id}/start`;
@@ -94,7 +94,7 @@ export default function TestPage() {
     if (timeLeft === null || timeLeft <= 0) return;
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
+      setTimeLeft(prev => {
         if (prev === null || prev <= 1) {
           clearInterval(timer);
           handleSubmit();
@@ -124,12 +124,12 @@ export default function TestPage() {
       timestamp: Date.now(),
     };
 
-    setAnswers((prev) => [...prev, newAnswer]);
+    setAnswers(prev => [...prev, newAnswer]);
     setSelectedAnswer(null);
     setQuestionStartTime(Date.now());
 
     if (currentIndex < testData.questions.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
+      setCurrentIndex(prev => prev + 1);
     } else {
       handleSubmit([...answers, newAnswer]);
     }
@@ -159,15 +159,15 @@ export default function TestPage() {
       if (data.success) {
         if (subject) {
           // Собираем детали об ошибках для рекомендаций
-          const wrongAnswers = data.data.questionResults
-            ?.filter((q: any) => !q.isCorrect)
-            .map((q: any) => ({
-              questionId: q.questionId,
-              topic: q.topic,
-              userAnswer: q.userAnswer,
-              correctAnswer: q.correctAnswer,
-            })) || [];
-
+          const wrongAnswers =
+            data.data.questionResults
+              ?.filter((q: any) => !q.isCorrect)
+              .map((q: any) => ({
+                questionId: q.questionId,
+                topic: q.topic,
+                userAnswer: q.userAnswer,
+                correctAnswer: q.correctAnswer,
+              })) || [];
         }
 
         toast.success(`Тест завершён! Результат: ${data.data.score}%`);
@@ -209,9 +209,7 @@ export default function TestPage() {
       <div className="max-w-3xl mx-auto">
         <div className="bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-700">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-bold text-white">
-              {testData.test.title}
-            </h1>
+            <h1 className="text-xl font-bold text-white">{testData.test.title}</h1>
             {timeLeft !== null && (
               <div
                 className={`px-4 py-2 rounded-lg font-mono text-lg ${
@@ -265,22 +263,17 @@ export default function TestPage() {
 
           <div className="flex justify-between items-center pt-6 border-t border-gray-700">
             {testData.test.preventBackNavigation ? (
-              <span className="text-sm text-gray-500">
-                Возврат к предыдущим вопросам запрещён
-              </span>
+              <span className="text-sm text-gray-500">Возврат к предыдущим вопросам запрещён</span>
             ) : (
               <div />
             )}
 
-            <Button
-              onClick={handleNext}
-              disabled={selectedAnswer === null || submitting}
-            >
+            <Button onClick={handleNext} disabled={selectedAnswer === null || submitting}>
               {submitting
                 ? 'Отправка...'
                 : currentIndex < testData.questions.length - 1
-                ? 'Далее'
-                : 'Завершить'}
+                  ? 'Далее'
+                  : 'Завершить'}
             </Button>
           </div>
         </div>

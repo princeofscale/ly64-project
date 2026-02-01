@@ -1,4 +1,4 @@
-import prisma  from '../config/database';
+import prisma from '../config/database';
 
 interface TopicAnalysis {
   topic: string;
@@ -37,24 +37,23 @@ interface UserAnalysis {
   nextSteps: string[];
 }
 
-
 const topicDifficulty: Record<string, number> = {
-  'arithmetic': 1,
-  'fractions': 1,
-  'percent': 2,
-  'equations_linear': 2,
-  'equations_quadratic': 3,
-  'inequalities': 3,
-  'functions': 3,
-  'geometry_basic': 2,
-  'geometry_advanced': 4,
-  'trigonometry': 4,
-  'probability': 3,
-  'statistics': 2,
-  'sequences': 3,
-  'logarithms': 4,
-  'derivatives': 5,
-  'integrals': 5,
+  arithmetic: 1,
+  fractions: 1,
+  percent: 2,
+  equations_linear: 2,
+  equations_quadratic: 3,
+  inequalities: 3,
+  functions: 3,
+  geometry_basic: 2,
+  geometry_advanced: 4,
+  trigonometry: 4,
+  probability: 3,
+  statistics: 2,
+  sequences: 3,
+  logarithms: 4,
+  derivatives: 5,
+  integrals: 5,
 };
 
 class RecommendationService {
@@ -81,9 +80,10 @@ class RecommendationService {
       .filter(t => t.accuracy < 70)
       .sort((a, b) => a.accuracy - b.accuracy);
 
-    const overallAccuracy = topicAnalysis.length > 0
-      ? Math.round(topicAnalysis.reduce((sum, t) => sum + t.accuracy, 0) / topicAnalysis.length)
-      : 0;
+    const overallAccuracy =
+      topicAnalysis.length > 0
+        ? Math.round(topicAnalysis.reduce((sum, t) => sum + t.accuracy, 0) / topicAnalysis.length)
+        : 0;
 
     const recommendations = this.generateRecommendations(weakTopics, strongTopics);
     const nextSteps = this.generateNextSteps(weakTopics, overallAccuracy);
@@ -108,7 +108,10 @@ class RecommendationService {
         subject: 'MATHEMATICS',
         accuracy: t.accuracy,
         questionsAnalyzed: t.totalQuestions,
-        priority: (t.accuracy < 40 ? 'high' : t.accuracy < 60 ? 'medium' : 'low') as 'high' | 'medium' | 'low',
+        priority: (t.accuracy < 40 ? 'high' : t.accuracy < 60 ? 'medium' : 'low') as
+          | 'high'
+          | 'medium'
+          | 'low',
         recommendation: this.getTopicRecommendation(t),
       }))
       .sort((a, b) => {
@@ -151,9 +154,10 @@ class RecommendationService {
         return {
           id: test.id,
           title: test.title,
-          reason: weakTopicsCount > 0
-            ? `Содержит ${weakTopicsCount} вопросов по вашим слабым темам`
-            : 'Общая практика',
+          reason:
+            weakTopicsCount > 0
+              ? `Содержит ${weakTopicsCount} вопросов по вашим слабым темам`
+              : 'Общая практика',
           priority,
         };
       })
@@ -192,11 +196,14 @@ class RecommendationService {
   }
 
   private async analyzeTopics(attempts: any[]): Promise<TopicAnalysis[]> {
-    const topicStats = new Map<string, {
-      total: number;
-      correct: number;
-      dates: Date[];
-    }>();
+    const topicStats = new Map<
+      string,
+      {
+        total: number;
+        correct: number;
+        dates: Date[];
+      }
+    >();
 
     for (const attempt of attempts) {
       if (!attempt.answers) continue;
@@ -231,9 +238,8 @@ class RecommendationService {
 
     for (const [topic, stats] of topicStats.entries()) {
       const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
-      const lastAttempt = stats.dates.length > 0
-        ? new Date(Math.max(...stats.dates.map(d => d.getTime())))
-        : null;
+      const lastAttempt =
+        stats.dates.length > 0 ? new Date(Math.max(...stats.dates.map(d => d.getTime()))) : null;
 
       let trend: 'improving' | 'stable' | 'declining' = 'stable';
       if (stats.dates.length >= 4) {
@@ -325,7 +331,9 @@ class RecommendationService {
 
     if (weakTopics.length > 0) {
       const topWeakTopic = weakTopics[0];
-      steps.push(`Приоритет: улучшите "${this.formatTopicName(topWeakTopic.topic)}" (${topWeakTopic.accuracy}%)`);
+      steps.push(
+        `Приоритет: улучшите "${this.formatTopicName(topWeakTopic.topic)}" (${topWeakTopic.accuracy}%)`
+      );
     }
 
     return steps;
@@ -346,23 +354,23 @@ class RecommendationService {
 
   private formatTopicName(topic: string): string {
     const names: Record<string, string> = {
-      'arithmetic': 'Арифметика',
-      'fractions': 'Дроби',
-      'percent': 'Проценты',
-      'equations_linear': 'Линейные уравнения',
-      'equations_quadratic': 'Квадратные уравнения',
-      'inequalities': 'Неравенства',
-      'functions': 'Функции',
-      'geometry_basic': 'Базовая геометрия',
-      'geometry_advanced': 'Продвинутая геометрия',
-      'trigonometry': 'Тригонометрия',
-      'probability': 'Вероятность',
-      'statistics': 'Статистика',
-      'sequences': 'Последовательности',
-      'logarithms': 'Логарифмы',
-      'derivatives': 'Производные',
-      'integrals': 'Интегралы',
-      'general': 'Общее',
+      arithmetic: 'Арифметика',
+      fractions: 'Дроби',
+      percent: 'Проценты',
+      equations_linear: 'Линейные уравнения',
+      equations_quadratic: 'Квадратные уравнения',
+      inequalities: 'Неравенства',
+      functions: 'Функции',
+      geometry_basic: 'Базовая геометрия',
+      geometry_advanced: 'Продвинутая геометрия',
+      trigonometry: 'Тригонометрия',
+      probability: 'Вероятность',
+      statistics: 'Статистика',
+      sequences: 'Последовательности',
+      logarithms: 'Логарифмы',
+      derivatives: 'Производные',
+      integrals: 'Интегралы',
+      general: 'Общее',
     };
     return names[topic] || topic;
   }

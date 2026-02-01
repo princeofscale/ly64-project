@@ -1,7 +1,8 @@
 import { exec } from 'child_process';
-import { promisify } from 'util';
-import path from 'path';
 import os from 'os';
+import path from 'path';
+import { promisify } from 'util';
+
 import prisma from '../config/database';
 
 const execAsync = promisify(exec);

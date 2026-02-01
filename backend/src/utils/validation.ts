@@ -127,13 +127,13 @@ class ValidationSchemas {
     return z
       .string()
       .email({ message: this.messages.email.invalid })
-      .refine((email) => !this.constants.email.cyrillicPattern.test(email), {
+      .refine(email => !this.constants.email.cyrillicPattern.test(email), {
         message: this.messages.email.cyrillic,
       })
-      .refine((email) => this.constants.email.formatPattern.test(email), {
+      .refine(email => this.constants.email.formatPattern.test(email), {
         message: this.messages.email.format,
       })
-      .refine((email) => this.validateEmailLocalPart(email), {
+      .refine(email => this.validateEmailLocalPart(email), {
         message: this.messages.email.localPartTooShort,
       });
   }
@@ -147,7 +147,7 @@ class ValidationSchemas {
     return z
       .string()
       .email({ message: this.messages.email.invalid })
-      .refine((email) => !this.constants.email.cyrillicPattern.test(email), {
+      .refine(email => !this.constants.email.cyrillicPattern.test(email), {
         message: this.messages.email.cyrillic,
       });
   }
@@ -157,8 +157,12 @@ class ValidationSchemas {
       .string()
       .min(this.constants.password.minLength, { message: this.messages.password.tooShort })
       .max(this.constants.password.maxLength, { message: this.messages.password.tooLong })
-      .regex(this.constants.password.lowercasePattern, { message: this.messages.password.missingLowercase })
-      .regex(this.constants.password.uppercasePattern, { message: this.messages.password.missingUppercase })
+      .regex(this.constants.password.lowercasePattern, {
+        message: this.messages.password.missingLowercase,
+      })
+      .regex(this.constants.password.uppercasePattern, {
+        message: this.messages.password.missingUppercase,
+      })
       .regex(this.constants.password.digitPattern, { message: this.messages.password.missingDigit })
       .optional();
   }
@@ -195,7 +199,7 @@ class ValidationSchemas {
   }
 
   private createTermsValidator() {
-    return z.boolean().refine((val) => val === true, {
+    return z.boolean().refine(val => val === true, {
       message: this.messages.terms.notAccepted,
     });
   }

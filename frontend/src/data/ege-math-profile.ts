@@ -10,7 +10,7 @@ export const egeMathProfile = {
       type: 'short',
       correctAnswer: '10',
       points: 1,
-      topic: 'Практические задачи'
+      topic: 'Практические задачи',
     },
     {
       number: 2,
@@ -18,7 +18,7 @@ export const egeMathProfile = {
       type: 'short',
       correctAnswer: '2520',
       points: 1,
-      topic: 'Анализ графиков'
+      topic: 'Анализ графиков',
     },
     {
       number: 3,
@@ -26,7 +26,7 @@ export const egeMathProfile = {
       type: 'short',
       correctAnswer: '12',
       points: 1,
-      topic: 'Планиметрия на клетчатой бумаге'
+      topic: 'Планиметрия на клетчатой бумаге',
     },
     {
       number: 4,
@@ -34,7 +34,7 @@ export const egeMathProfile = {
       type: 'short',
       correctAnswer: '0,5',
       points: 1,
-      topic: 'Теория вероятностей'
+      topic: 'Теория вероятностей',
     },
     {
       number: 5,
@@ -42,7 +42,7 @@ export const egeMathProfile = {
       type: 'short',
       correctAnswer: '3',
       points: 1,
-      topic: 'Показательные уравнения'
+      topic: 'Показательные уравнения',
     },
     {
       number: 6,
@@ -50,7 +50,7 @@ export const egeMathProfile = {
       type: 'short',
       correctAnswer: '10',
       points: 1,
-      topic: 'Прямоугольный треугольник'
+      topic: 'Прямоугольный треугольник',
     },
     {
       number: 7,
@@ -58,7 +58,7 @@ export const egeMathProfile = {
       type: 'short',
       correctAnswer: '0,5',
       points: 1,
-      topic: 'Производная функции'
+      topic: 'Производная функции',
     },
     {
       number: 8,
@@ -66,7 +66,7 @@ export const egeMathProfile = {
       type: 'short',
       correctAnswer: '96',
       points: 1,
-      topic: 'Стереометрия - объёмы'
+      topic: 'Стереометрия - объёмы',
     },
     {
       number: 9,
@@ -74,7 +74,7 @@ export const egeMathProfile = {
       type: 'short',
       correctAnswer: '9',
       points: 1,
-      topic: 'Преобразование выражений'
+      topic: 'Преобразование выражений',
     },
     {
       number: 10,
@@ -82,7 +82,7 @@ export const egeMathProfile = {
       type: 'short',
       correctAnswer: '36',
       points: 1,
-      topic: 'Физические задачи'
+      topic: 'Физические задачи',
     },
     {
       number: 11,
@@ -90,7 +90,7 @@ export const egeMathProfile = {
       type: 'short',
       correctAnswer: '20',
       points: 1,
-      topic: 'Задачи на движение'
+      topic: 'Задачи на движение',
     },
     {
       number: 12,
@@ -98,7 +98,7 @@ export const egeMathProfile = {
       type: 'short',
       correctAnswer: '-2',
       points: 1,
-      topic: 'Исследование функций'
+      topic: 'Исследование функций',
     },
     {
       number: 13,
@@ -106,7 +106,7 @@ export const egeMathProfile = {
       type: 'detailed',
       correctAnswer: 'а) x = (-1)^(n+1) · π/6 + πn, n ∈ Z; x = π/2 + 2πk, k ∈ Z\nб) 11π/6, 5π/2',
       points: 2,
-      topic: 'Тригонометрические уравнения'
+      topic: 'Тригонометрические уравнения',
     },
     {
       number: 14,
@@ -114,7 +114,7 @@ export const egeMathProfile = {
       type: 'detailed',
       correctAnswer: 'а) доказательство\nб) 3√3',
       points: 3,
-      topic: 'Стереометрия'
+      topic: 'Стереометрия',
     },
     {
       number: 15,
@@ -122,7 +122,7 @@ export const egeMathProfile = {
       type: 'detailed',
       correctAnswer: 'x ∈ (3; 4]',
       points: 2,
-      topic: 'Логарифмические неравенства'
+      topic: 'Логарифмические неравенства',
     },
     {
       number: 16,
@@ -130,7 +130,7 @@ export const egeMathProfile = {
       type: 'detailed',
       correctAnswer: 'а) доказательство\nб) 20',
       points: 3,
-      topic: 'Планиметрия'
+      topic: 'Планиметрия',
     },
     {
       number: 17,
@@ -138,7 +138,7 @@ export const egeMathProfile = {
       type: 'detailed',
       correctAnswer: '1200',
       points: 3,
-      topic: 'Финансовая математика'
+      topic: 'Финансовая математика',
     },
     {
       number: 18,
@@ -146,7 +146,7 @@ export const egeMathProfile = {
       type: 'detailed',
       correctAnswer: 'a = ±1',
       points: 4,
-      topic: 'Задачи с параметром'
+      topic: 'Задачи с параметром',
     },
     {
       number: 19,
@@ -154,7 +154,7 @@ export const egeMathProfile = {
       type: 'detailed',
       correctAnswer: 'а) да\nб) нет\nв) 6',
       points: 4,
-      topic: 'Числа и их свойства'
-    }
-  ]
+      topic: 'Числа и их свойства',
+    },
+  ],
 };

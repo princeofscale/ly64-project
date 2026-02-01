@@ -1,6 +1,5 @@
 import { Direction, Subject, TargetGrade, UserStatus, AuthProvider } from '../types';
 
-
 export const DIRECTION_LABELS: Record<Direction, string> = {
   [Direction.PROGRAMMING]: 'Программирование',
   [Direction.ROBOTICS]: 'Робототехника',
@@ -8,7 +7,6 @@ export const DIRECTION_LABELS: Record<Direction, string> = {
   [Direction.BIOTECHNOLOGY]: 'Биотехнологии',
   [Direction.CULTURE]: 'Культура',
 };
-
 
 export const SUBJECT_LABELS: Record<Subject, string> = {
   [Subject.RUSSIAN]: 'Русский язык',
@@ -21,9 +19,7 @@ export const SUBJECT_LABELS: Record<Subject, string> = {
   [Subject.ENGLISH]: 'Английский язык',
 };
 
-
 export const REQUIRED_SUBJECTS: Subject[] = [Subject.RUSSIAN, Subject.MATHEMATICS];
-
 
 export const DIRECTION_SUBJECTS: Record<Direction, Subject[]> = {
   [Direction.PROGRAMMING]: [Subject.PHYSICS, Subject.INFORMATICS],
@@ -33,12 +29,10 @@ export const DIRECTION_SUBJECTS: Record<Direction, Subject[]> = {
   [Direction.CULTURE]: [Subject.HISTORY],
 };
 
-
 export const GRADE_LABELS: Record<TargetGrade, string> = {
   [TargetGrade.GRADE_8]: '8 класс',
   [TargetGrade.GRADE_10]: '10 класс',
 };
-
 
 export const LYCEUM_INFO = {
   name: 'Лицей-интернат №64',
@@ -55,7 +49,6 @@ export const LYCEUM_INFO = {
   availableGrades: [8, 10],
 };
 
-
 export const CURRENT_GRADE_LABELS: Record<number, string> = {
   8: '8 класс',
   9: '9 класс',
@@ -63,15 +56,12 @@ export const CURRENT_GRADE_LABELS: Record<number, string> = {
   11: '11 класс',
 };
 
-
 export const AVAILABLE_GRADES = [8, 9, 10, 11];
-
 
 export const USER_STATUS_LABELS: Record<UserStatus, string> = {
   [UserStatus.STUDENT]: 'Уже учусь в лицее',
   [UserStatus.APPLICANT]: 'Хочу поступить',
 };
-
 
 export const AUTH_PROVIDER_LABELS: Record<AuthProvider, string> = {
   [AuthProvider.EMAIL]: 'Email и пароль',

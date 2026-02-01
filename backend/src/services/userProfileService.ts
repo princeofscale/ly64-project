@@ -1,5 +1,7 @@
-import { PrismaClient } from '@prisma/client';
-import {
+import { STATS_CONSTANTS, ERROR_MESSAGES } from '../constants/statsConstants';
+import { StatisticsCalculator } from '../utils/statisticsUtils';
+
+import type {
   PublicProfileResponse,
   PrivateProfileResponse,
   ProfileStats,
@@ -7,8 +9,7 @@ import {
   RecentTestData,
   SearchUserResult,
 } from '../types/userTypes';
-import { STATS_CONSTANTS, ERROR_MESSAGES } from '../constants/statsConstants';
-import { StatisticsCalculator } from '../utils/statisticsUtils';
+import type { PrismaClient } from '@prisma/client';
 
 export class UserProfileService {
   constructor(private readonly prisma: PrismaClient) {}

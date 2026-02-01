@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+
 import { Header } from '../components/Header';
 
 interface WheelSegment {
@@ -49,7 +50,8 @@ function SpinWheelPage() {
       // - Сегмент 0 уходит вправо
       // - Под указатель приходит сегмент, который был слева (против часовой)
       // - Это сегмент с индексом (n - R/segmentAngle) mod n
-      const winnerIndex = Math.floor((360 - normalizedRotation) / segmentAngle + segments.length) % segments.length;
+      const winnerIndex =
+        Math.floor((360 - normalizedRotation) / segmentAngle + segments.length) % segments.length;
       setWinner(segments[winnerIndex].label);
       setIsSpinning(false);
     }, 5000);
@@ -69,7 +71,18 @@ function SpinWheelPage() {
       return;
     }
 
-    const colors = ['#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1', '#14b8a6', '#84cc16', '#f97316'];
+    const colors = [
+      '#06b6d4',
+      '#8b5cf6',
+      '#10b981',
+      '#f59e0b',
+      '#ef4444',
+      '#ec4899',
+      '#6366f1',
+      '#14b8a6',
+      '#84cc16',
+      '#f97316',
+    ];
 
     const newSegments = newLabels.map((label, i) => ({
       label,
@@ -149,7 +162,10 @@ function SpinWheelPage() {
         {/* Фоновые эффекты */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-cyan-500/5 opacity-30" />
         <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/20 rounded-full blur-[80px] animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[80px] animate-pulse"
+          style={{ animationDelay: '1s' }}
+        />
 
         <main className="relative z-10 max-w-6xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
@@ -171,7 +187,9 @@ function SpinWheelPage() {
                 </div>
 
                 {/* Внешнее свечение */}
-                <div className={`absolute inset-0 rounded-full blur-xl transition-all duration-300 ${isSpinning ? 'bg-gradient-to-r from-purple-500/50 to-cyan-500/50 scale-110' : 'bg-gradient-to-r from-purple-500/20 to-cyan-500/20'}`} />
+                <div
+                  className={`absolute inset-0 rounded-full blur-xl transition-all duration-300 ${isSpinning ? 'bg-gradient-to-r from-purple-500/50 to-cyan-500/50 scale-110' : 'bg-gradient-to-r from-purple-500/20 to-cyan-500/20'}`}
+                />
 
                 {/* Колесо */}
                 <div
@@ -179,15 +197,31 @@ function SpinWheelPage() {
                   className="relative"
                   style={{
                     transform: `rotate(${rotation}deg)`,
-                    transition: isSpinning ? 'transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
+                    transition: isSpinning
+                      ? 'transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99)'
+                      : 'none',
                   }}
                 >
                   <svg width="400" height="400" viewBox="0 0 400 400">
                     {/* Внешний круг */}
-                    <circle cx="200" cy="200" r="198" fill="none" stroke="#6366f1" strokeWidth="4" />
+                    <circle
+                      cx="200"
+                      cy="200"
+                      r="198"
+                      fill="none"
+                      stroke="#6366f1"
+                      strokeWidth="4"
+                    />
                     {renderWheel()}
                     {/* Центральный круг */}
-                    <circle cx="200" cy="200" r="30" fill="#1f2937" stroke="#6366f1" strokeWidth="3" />
+                    <circle
+                      cx="200"
+                      cy="200"
+                      r="30"
+                      fill="#1f2937"
+                      stroke="#6366f1"
+                      strokeWidth="3"
+                    />
                     <circle cx="200" cy="200" r="15" fill="#6366f1" />
                   </svg>
                 </div>
@@ -229,14 +263,22 @@ function SpinWheelPage() {
                     </label>
                     <textarea
                       value={customInput}
-                      onChange={(e) => setCustomInput(e.target.value)}
-                      placeholder={"Иванов\nПетров\nСидоров\nКозлова\n\nили: Иванов, Петров, Сидоров"}
+                      onChange={e => setCustomInput(e.target.value)}
+                      placeholder={
+                        'Иванов\nПетров\nСидоров\nКозлова\n\nили: Иванов, Петров, Сидоров'
+                      }
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none transition-colors resize-none"
                       rows={4}
                     />
                     {customInput.trim() && (
                       <p className="text-sm text-gray-500 mt-2">
-                        Распознано вариантов: {customInput.split(/[,;\n]+/).map(s => s.trim()).filter(s => s.length > 0).length}
+                        Распознано вариантов:{' '}
+                        {
+                          customInput
+                            .split(/[,;\n]+/)
+                            .map(s => s.trim())
+                            .filter(s => s.length > 0).length
+                        }
                       </p>
                     )}
                   </div>
@@ -268,7 +310,11 @@ function SpinWheelPage() {
                     <span
                       key={index}
                       className="px-3 py-1.5 rounded-full text-sm font-medium text-white"
-                      style={{ backgroundColor: segment.color + '40', borderColor: segment.color, borderWidth: 1 }}
+                      style={{
+                        backgroundColor: segment.color + '40',
+                        borderColor: segment.color,
+                        borderWidth: 1,
+                      }}
                     >
                       {segment.label}
                     </span>

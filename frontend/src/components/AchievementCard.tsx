@@ -1,5 +1,6 @@
-import { Achievement } from '@lyceum64/shared';
 import { ProgressBar } from './ProgressBar';
+
+import type { Achievement } from '@lyceum64/shared';
 
 interface AchievementCardProps {
   achievement: Achievement;
@@ -81,9 +82,7 @@ export function AchievementCard({
 
       {!isUnlocked && (
         <div className="absolute top-3 right-3">
-          <div className="bg-gray-700 text-gray-400 text-xs px-2 py-1 rounded-full">
-            🔒
-          </div>
+          <div className="bg-gray-700 text-gray-400 text-xs px-2 py-1 rounded-full">🔒</div>
         </div>
       )}
     </div>

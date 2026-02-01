@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+
 import { Header } from '../components/Header';
 
 interface Challenge {
@@ -54,7 +55,8 @@ const CHALLENGES_POOL: Challenge[] = [
     question: 'В каком году произошла Куликовская битва?',
     options: ['1240', '1380', '1480', '1612'],
     answer: '1380',
-    explanation: 'Куликовская битва состоялась 8 сентября 1380 года под предводительством Дмитрия Донского.',
+    explanation:
+      'Куликовская битва состоялась 8 сентября 1380 года под предводительством Дмитрия Донского.',
     difficulty: 'easy',
     points: 10,
   },
@@ -98,7 +100,7 @@ const CHALLENGES_POOL: Challenge[] = [
     question: 'Найдите производную функции f(x) = x³ + 2x',
     options: ['3x² + 2', 'x² + 2', '3x + 2', '3x²'],
     answer: '3x² + 2',
-    explanation: 'f\'(x) = (x³)\' + (2x)\' = 3x² + 2',
+    explanation: "f'(x) = (x³)' + (2x)' = 3x² + 2",
     difficulty: 'medium',
     points: 15,
   },
@@ -120,7 +122,8 @@ const CHALLENGES_POOL: Challenge[] = [
     question: 'Какая река является самой длинной в России?',
     options: ['Волга', 'Обь', 'Лена', 'Енисей'],
     answer: 'Лена',
-    explanation: 'Лена — 4400 км (с притоками). Часто путают с Волгой (3530 км), которая самая длинная в Европе.',
+    explanation:
+      'Лена — 4400 км (с притоками). Часто путают с Волгой (3530 км), которая самая длинная в Европе.',
     difficulty: 'medium',
     points: 15,
   },
@@ -128,7 +131,9 @@ const CHALLENGES_POOL: Challenge[] = [
 
 function getDailyChallenge(): Challenge {
   const today = new Date();
-  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+  const dayOfYear = Math.floor(
+    (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000
+  );
   const index = dayOfYear % CHALLENGES_POOL.length;
   return CHALLENGES_POOL[index];
 }
@@ -170,12 +175,15 @@ function DailyChallengePage() {
     setStreak(newStreak);
     setTotalPoints(newPoints);
 
-    localStorage.setItem('daily-challenge-progress', JSON.stringify({
-      streak: newStreak,
-      totalPoints: newPoints,
-      lastAnswered: today,
-      lastAnswer: answer,
-    }));
+    localStorage.setItem(
+      'daily-challenge-progress',
+      JSON.stringify({
+        streak: newStreak,
+        totalPoints: newPoints,
+        lastAnswered: today,
+        lastAnswer: answer,
+      })
+    );
   };
 
   const isCorrect = selectedAnswer === challenge.answer;
@@ -187,7 +195,10 @@ function DailyChallengePage() {
       <div className="min-h-screen bg-gray-950 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-transparent to-orange-500/5 opacity-30" />
         <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-500/20 rounded-full blur-[80px] animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500/20 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500/20 rounded-full blur-[80px] animate-pulse"
+          style={{ animationDelay: '1s' }}
+        />
 
         <main className="relative z-10 max-w-3xl mx-auto px-4 py-12">
           <div className="text-center mb-8">
@@ -198,9 +209,7 @@ function DailyChallengePage() {
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 bg-clip-text text-transparent mb-4">
               Задача дня
             </h1>
-            <p className="text-gray-400">
-              Решай одну задачу каждый день и набирай очки!
-            </p>
+            <p className="text-gray-400">Решай одну задачу каждый день и набирай очки!</p>
           </div>
 
           <div className="flex justify-center gap-4 mb-8">
@@ -224,7 +233,8 @@ function DailyChallengePage() {
                     {challenge.difficulty === 'easy' && '🟢 Легко'}
                     {challenge.difficulty === 'medium' && '🟡 Средне'}
                     {challenge.difficulty === 'hard' && '🔴 Сложно'}
-                    {' · '}{challenge.points} очков
+                    {' · '}
+                    {challenge.points} очков
                   </p>
                 </div>
               </div>
@@ -277,14 +287,18 @@ function DailyChallengePage() {
                       <span className="font-bold mr-3">{letter}.</span>
                       {option}
                       {isAnswered && isCorrectOption && <span className="float-right">✓</span>}
-                      {isAnswered && isSelected && !isCorrectOption && <span className="float-right">✗</span>}
+                      {isAnswered && isSelected && !isCorrectOption && (
+                        <span className="float-right">✗</span>
+                      )}
                     </button>
                   );
                 })}
               </div>
 
               {isAnswered && (
-                <div className={`mt-6 p-4 rounded-xl ${isCorrect ? 'bg-green-500/20 border border-green-500/30' : 'bg-red-500/20 border border-red-500/30'}`}>
+                <div
+                  className={`mt-6 p-4 rounded-xl ${isCorrect ? 'bg-green-500/20 border border-green-500/30' : 'bg-red-500/20 border border-red-500/30'}`}
+                >
                   <p className={`font-bold mb-2 ${isCorrect ? 'text-green-400' : 'text-red-400'}`}>
                     {isCorrect ? '🎉 Отлично! +' + challenge.points + ' очков' : '😔 Неверно'}
                   </p>

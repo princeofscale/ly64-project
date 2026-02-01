@@ -1,8 +1,5 @@
-import { useEffect, useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
-  Star,
   Trophy,
   ChevronRight,
   Calculator,
@@ -12,15 +9,19 @@ import {
   BookOpen,
   Landmark,
   Award,
-  TrendingUp
+  TrendingUp,
 } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import toast from 'react-hot-toast';
+import { Link, useNavigate } from 'react-router-dom';
+
 import { AchievementCard } from '../components/AchievementCard';
 import { UnfinishedTestBanner } from '../components/UnfinishedTestBanner';
-import { Achievement } from '@lyceum64/shared';
-import { useAuthStore } from '../store/authStore';
 import { getActiveTestService } from '../core/services';
-import toast from 'react-hot-toast';
+import { useAuthStore } from '../store/authStore';
 import { getGreetingWithName, getRandomMotivation } from '../utils/greetings';
+
+import type { Achievement } from '@lyceum64/shared';
 
 interface DashboardStats {
   totalTests: number;
@@ -39,42 +40,42 @@ const SUBJECTS = [
     icon: Calculator,
     description: 'Подготовка к вступительным экзаменам',
     color: 'blue',
-    subjectKey: 'MATHEMATICS'
+    subjectKey: 'MATHEMATICS',
   },
   {
     name: 'Физика',
     icon: Atom,
     description: 'Профильный предмет для техн. направлений',
     color: 'violet',
-    subjectKey: 'PHYSICS'
+    subjectKey: 'PHYSICS',
   },
   {
     name: 'Информатика',
     icon: Code,
     description: 'Подготовка для программистов',
     color: 'emerald',
-    subjectKey: 'INFORMATICS'
+    subjectKey: 'INFORMATICS',
   },
   {
     name: 'Биология',
     icon: Dna,
     description: 'Для направлений медицина и биотехнологии',
     color: 'pink',
-    subjectKey: 'BIOLOGY'
+    subjectKey: 'BIOLOGY',
   },
   {
     name: 'Русский язык',
     icon: BookOpen,
     description: 'Обязательный предмет для всех',
     color: 'amber',
-    subjectKey: 'RUSSIAN'
+    subjectKey: 'RUSSIAN',
   },
   {
     name: 'История',
     icon: Landmark,
     description: 'Для направления культура',
     color: 'orange',
-    subjectKey: 'HISTORY'
+    subjectKey: 'HISTORY',
   },
 ];
 
@@ -143,14 +144,14 @@ export default function DashboardPage() {
       const token = useAuthStore.getState().token;
 
       const statsRes = await fetch('/api/users/stats', {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (statsRes.ok) {
         setStats(await statsRes.json());
       }
 
       const achievementsRes = await fetch('/api/users/achievements', {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (achievementsRes.ok) {
         const data = await achievementsRes.json();
@@ -189,9 +190,13 @@ export default function DashboardPage() {
         {/* Header */}
         <header className="mb-10 animate-fade-in">
           <h1 className="text-3xl lg:text-4xl font-semibold text-slate-900 dark:text-slate-50 mb-2">
-            {isAuthenticated ? `${greeting}!` : (
+            {isAuthenticated ? (
+              `${greeting}!`
+            ) : (
               <>
-                <Link to="/login" className="text-blue-600 hover:text-blue-700 dark:text-blue-400">Войдите</Link>
+                <Link to="/login" className="text-blue-600 hover:text-blue-700 dark:text-blue-400">
+                  Войдите
+                </Link>
                 <span className="text-slate-400"> в систему</span>
               </>
             )}
@@ -235,9 +240,7 @@ export default function DashboardPage() {
               <Trophy className="w-6 h-6 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-slate-50">
-                Таблица лидеров
-              </h3>
+              <h3 className="font-semibold text-slate-900 dark:text-slate-50">Таблица лидеров</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 Соревнуйся с другими учениками
               </p>
@@ -264,7 +267,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {recentAchievements.map((achievement) => (
+              {recentAchievements.map(achievement => (
                 <AchievementCard
                   key={achievement.id}
                   achievement={achievement}
@@ -283,12 +286,14 @@ export default function DashboardPage() {
               Начать подготовку
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {hasActiveTest ? 'Завершите текущий тест, чтобы начать новый' : 'Выберите предмет для тренировки'}
+              {hasActiveTest
+                ? 'Завершите текущий тест, чтобы начать новый'
+                : 'Выберите предмет для тренировки'}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {SUBJECTS.map((subject) => (
+            {SUBJECTS.map(subject => (
               <SubjectCard
                 key={subject.subjectKey}
                 subject={subject}
@@ -313,23 +318,27 @@ interface StatCardProps {
 
 function StatCard({ title, value, icon: Icon, trend, highlight }: StatCardProps) {
   return (
-    <div className={`
+    <div
+      className={`
       p-5 rounded-xl border transition-shadow
-      ${highlight
-        ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'
-        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+      ${
+        highlight
+          ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'
+          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
       }
       shadow-sm hover:shadow-md
-    `}>
+    `}
+    >
       <div className="flex items-start justify-between mb-3">
-        <div className={`
+        <div
+          className={`
           w-10 h-10 rounded-lg flex items-center justify-center
-          ${highlight
-            ? 'bg-blue-100 dark:bg-blue-900/50'
-            : 'bg-slate-100 dark:bg-slate-700'
-          }
-        `}>
-          <Icon className={`w-5 h-5 ${highlight ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500'}`} />
+          ${highlight ? 'bg-blue-100 dark:bg-blue-900/50' : 'bg-slate-100 dark:bg-slate-700'}
+        `}
+        >
+          <Icon
+            className={`w-5 h-5 ${highlight ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500'}`}
+          />
         </div>
         {trend && (
           <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 px-2 py-0.5 rounded-full">
@@ -338,7 +347,9 @@ function StatCard({ title, value, icon: Icon, trend, highlight }: StatCardProps)
         )}
       </div>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">{title}</p>
-      <p className={`text-2xl font-semibold ${highlight ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-slate-50'}`}>
+      <p
+        className={`text-2xl font-semibold ${highlight ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-slate-50'}`}
+      >
         {value}
       </p>
     </div>
@@ -346,7 +357,7 @@ function StatCard({ title, value, icon: Icon, trend, highlight }: StatCardProps)
 }
 
 interface SubjectCardProps {
-  subject: typeof SUBJECTS[0];
+  subject: (typeof SUBJECTS)[0];
   disabled?: boolean;
   onClick: () => void;
 }
@@ -366,26 +377,28 @@ function SubjectCard({ subject, disabled, onClick }: SubjectCardProps) {
         group
       `}
     >
-      <div className={`
+      <div
+        className={`
         w-11 h-11 rounded-lg flex items-center justify-center mb-4
         bg-white/60 dark:bg-white/10 border border-white/80 dark:border-white/5
-      `}>
+      `}
+      >
         <Icon className={`w-5 h-5 ${colors.icon}`} />
       </div>
 
-      <h3 className="font-semibold text-slate-900 dark:text-slate-50 mb-1">
-        {subject.name}
-      </h3>
+      <h3 className="font-semibold text-slate-900 dark:text-slate-50 mb-1">{subject.name}</h3>
 
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">
         {subject.description}
       </p>
 
-      <span className={`
+      <span
+        className={`
         text-sm font-medium ${colors.icon}
         inline-flex items-center gap-1
         ${!disabled && 'group-hover:gap-2'} transition-all
-      `}>
+      `}
+      >
         {disabled ? 'Недоступно' : 'Начать'}
         {!disabled && <ChevronRight className="w-4 h-4" />}
       </span>

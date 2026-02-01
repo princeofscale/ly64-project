@@ -1,4 +1,4 @@
-import { IAnswerValidationStrategy } from '../interfaces';
+import type { IAnswerValidationStrategy } from '../interfaces';
 
 abstract class BaseAnswerValidationStrategy implements IAnswerValidationStrategy {
   public abstract validate(userAnswer: string, correctAnswer: string): boolean;
@@ -33,9 +33,7 @@ export class ShortAnswerStrategy extends BaseAnswerValidationStrategy {
   }
 
   public normalize(answer: string): string {
-    return this.trimWhitespace(answer)
-      .replace(/,/g, '.')
-      .replace(/\s/g, '');
+    return this.trimWhitespace(answer).replace(/,/g, '.').replace(/\s/g, '');
   }
 
   private parseNumber(str: string): number | null {
@@ -121,10 +119,7 @@ export class MatchingAnswerStrategy extends BaseAnswerValidationStrategy {
     let match;
 
     while ((match = regex.exec(answer)) !== null) {
-      pairs.set(
-        this.trimWhitespace(match[1]).toUpperCase(),
-        this.trimWhitespace(match[2])
-      );
+      pairs.set(this.trimWhitespace(match[1]).toUpperCase(), this.trimWhitespace(match[2]));
     }
 
     return pairs;

@@ -1,6 +1,8 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios from 'axios';
+
 import { useAuthStore } from '../store/authStore';
-import toast from 'react-hot-toast';
+
+import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -19,7 +21,7 @@ let failedQueue: Array<{
 }> = [];
 
 const processQueue = (error: Error | null, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
+  failedQueue.forEach(prom => {
     if (error) {
       prom.reject(error);
     } else {
@@ -28,7 +30,6 @@ const processQueue = (error: Error | null, token: string | null = null) => {
   });
   failedQueue = [];
 };
-
 
 async function refreshAccessToken(): Promise<string | null> {
   const { refreshToken, setTokens, logout } = useAuthStore.getState();
@@ -55,7 +56,6 @@ async function refreshAccessToken(): Promise<string | null> {
     return null;
   }
 }
-
 
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
@@ -175,7 +175,11 @@ export const testApi = {
     return response.data;
   },
 
-  async submitTest(testId: string, answers: Array<{ questionId: string; answer: string }>, questionsOrder: string[]) {
+  async submitTest(
+    testId: string,
+    answers: Array<{ questionId: string; answer: string }>,
+    questionsOrder: string[]
+  ) {
     const response = await api.post(`/tests/${testId}/submit`, { answers, questionsOrder });
     return response.data;
   },

@@ -1,8 +1,10 @@
 import { useState, useCallback, useMemo } from 'react';
-import { ExamFactory, ExamNotFoundError } from '../core/factories';
-import { IExam } from '../core/interfaces';
-import { ExamType, Subject, Grade } from '../core/types';
+
 import { SUBJECT_NAMES, EXAM_CONFIG } from '../core/constants';
+import { ExamFactory, ExamNotFoundError } from '../core/factories';
+
+import type { IExam } from '../core/interfaces';
+import type { ExamType, Subject, Grade } from '../core/types';
 
 interface UseExamOptions {
   subject: Subject;
@@ -44,35 +46,41 @@ export function useExam(options: UseExamOptions): UseExamReturn {
     return factory.isExamAvailable(currentType, subject, grade);
   }, [factory, currentType, subject, grade, availableExamTypes]);
 
-  const loadExam = useCallback((type?: ExamType) => {
-    setIsLoading(true);
-    setError(null);
+  const loadExam = useCallback(
+    (type?: ExamType) => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const targetType = type || currentType || availableExamTypes[0];
-      if (!targetType) {
-        throw new Error('Нет доступных типов экзаменов');
+      try {
+        const targetType = type || currentType || availableExamTypes[0];
+        if (!targetType) {
+          throw new Error('Нет доступных типов экзаменов');
+        }
+
+        const loadedExam = factory.create(targetType, subject, grade);
+        setExam(loadedExam);
+        setCurrentType(targetType);
+      } catch (err) {
+        if (err instanceof ExamNotFoundError) {
+          setError(err.message);
+        } else {
+          setError('Ошибка загрузки экзамена');
+        }
+        setExam(null);
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [factory, subject, grade, currentType, availableExamTypes]
+  );
 
-      const loadedExam = factory.create(targetType, subject, grade);
-      setExam(loadedExam);
-      setCurrentType(targetType);
-    } catch (err) {
-      if (err instanceof ExamNotFoundError) {
-        setError(err.message);
-      } else {
-        setError('Ошибка загрузки экзамена');
-      }
-      setExam(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [factory, subject, grade, currentType, availableExamTypes]);
-
-  const changeExamType = useCallback((type: ExamType) => {
-    setCurrentType(type);
-    loadExam(type);
-  }, [loadExam]);
+  const changeExamType = useCallback(
+    (type: ExamType) => {
+      setCurrentType(type);
+      loadExam(type);
+    },
+    [loadExam]
+  );
 
   const title = useMemo(() => {
     if (exam) return exam.title;

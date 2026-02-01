@@ -119,7 +119,7 @@ export async function seedAchievements() {
 
 if (require.main === module) {
   seedAchievements()
-    .catch((e) => {
+    .catch(e => {
       console.error('Error seeding achievements:', e);
       process.exit(1);
     })
