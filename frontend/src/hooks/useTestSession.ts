@@ -1,14 +1,17 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { TestSession } from '../core/models';
 import { IExam, ITask } from '../core/interfaces';
 import { TestStatus, UserAnswer, TestResults } from '../core/types';
-import { TestSessionStorage } from '../core/services';
+import { TestSessionStorage, SavedTestSession } from '../core/services';
 
 interface UseTestSessionOptions {
   exam: IExam;
   autoSave?: boolean;
+  restoreSession?: boolean;
+  sessionMetadata?: Partial<SavedTestSession>;
   onComplete?: (results: TestResults) => void;
   onTimeExpired?: () => void;
+  onSessionRestored?: () => void;
 }
 
 interface UseTestSessionReturn {
@@ -35,22 +38,97 @@ interface UseTestSessionReturn {
 }
 
 export function useTestSession(options: UseTestSessionOptions): UseTestSessionReturn {
-  const { exam, autoSave = true, onComplete, onTimeExpired } = options;
+  const {
+    exam,
+    autoSave = true,
+    restoreSession = true,
+    sessionMetadata,
+    onComplete,
+    onTimeExpired,
+    onSessionRestored
+  } = options;
 
-  const [session] = useState(() => new TestSession(exam));
-  const [, forceUpdate] = useState({});
   const storage = useMemo(() => new TestSessionStorage(), []);
+  const isInitialized = useRef(false);
+
+  // Попытка восстановить сессию или создать новую
+  const [session] = useState(() => {
+    if (restoreSession) {
+      const savedData = storage.loadSessionData();
+      if (savedData) {
+        try {
+          const restored = TestSession.deserialize(savedData, exam);
+          console.log('[useTestSession] Сессия восстановлена из localStorage');
+          return restored;
+        } catch (e) {
+          console.warn('[useTestSession] Не удалось восстановить сессию:', e);
+          storage.clearSession();
+        }
+      }
+    }
+    return new TestSession(exam);
+  });
+
+  const [, forceUpdate] = useState({});
 
   const triggerUpdate = useCallback(() => {
     forceUpdate({});
   }, []);
 
-  useEffect(() => {
-    if (autoSave && session.status === 'in_progress') {
+  // Функция сохранения сессии
+  const saveSession = useCallback(() => {
+    if (session.status === 'in_progress' || session.status === 'paused') {
       const serialized = session.serialize();
-      storage.saveSession(serialized);
+      storage.saveSession(serialized, {
+        examId: exam.id,
+        examType: exam.type,
+        subject: exam.subject,
+        grade: exam.grade,
+        ...sessionMetadata,
+      });
     }
-  }, [session, autoSave, storage, session.status]);
+  }, [session, storage, exam, sessionMetadata]);
+
+  // Инициализация и автосохранение
+  useEffect(() => {
+    if (!isInitialized.current) {
+      isInitialized.current = true;
+
+      // Проверяем была ли сессия восстановлена
+      const savedSession = storage.loadSession();
+      if (savedSession && onSessionRestored) {
+        onSessionRestored();
+      }
+    }
+
+    if (autoSave) {
+      // Сохраняем при первой загрузке
+      saveSession();
+
+      // Запускаем автосохранение каждые 5 секунд
+      storage.startAutoSave(saveSession);
+
+      // Сохраняем при закрытии страницы
+      const handleBeforeUnload = () => {
+        saveSession();
+      };
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
+      // Сохраняем при потере фокуса (переключение вкладки)
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          saveSession();
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        storage.stopAutoSave();
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
+    }
+  }, [autoSave, saveSession, storage, onSessionRestored]);
 
   const currentTask = session.getCurrentTask();
   const currentTaskIndex = session.getCurrentTaskIndex();
@@ -75,11 +153,14 @@ export function useTestSession(options: UseTestSessionOptions): UseTestSessionRe
     if (task) {
       session.submitAnswer(task.number, answer);
       if (autoSave) {
+        // Сохраняем ответы сразу
         storage.backupAnswers(session.getAllAnswers() as Map<number, unknown>);
+        // Сохраняем всю сессию
+        saveSession();
       }
       triggerUpdate();
     }
-  }, [session, autoSave, storage, triggerUpdate]);
+  }, [session, autoSave, storage, triggerUpdate, saveSession]);
 
   const getAnswer = useCallback((taskNumber: number) => {
     return session.getAnswer(taskNumber);

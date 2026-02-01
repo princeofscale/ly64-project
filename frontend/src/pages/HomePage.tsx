@@ -3,164 +3,31 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useState, useMemo } from 'react';
 import { getGreetingWithName, getRandomMotivation } from '../utils/greetings';
+import {
+  Code,
+  Bot,
+  Stethoscope,
+  Dna,
+  Palette,
+  ChevronRight,
+  Phone,
+  Mail,
+  Globe,
+  CalendarDays,
+  FileText,
+  X,
+  GraduationCap,
+  Briefcase,
+  BookOpen
+} from 'lucide-react';
 
-function HomePage() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const user = useAuthStore((state) => state.user);
-
-  const greeting = useMemo(() => getGreetingWithName(user?.name), [user?.name]);
-  const motivation = useMemo(() => getRandomMotivation(), []);
-
-  return (
-    <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-30 gpu-accelerated" />
-
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20 gpu-accelerated" />
-
-      <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-[80px] animate-pulse gpu-accelerated" style={{ willChange: 'opacity' }} />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[80px] animate-pulse gpu-accelerated" style={{ animationDelay: '1s', willChange: 'opacity' }} />
-
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="text-center mb-20 animate-fade-in">
-          <div className="inline-block mb-6">
-            <span className="px-4 py-2 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 rounded-full text-cyan-400 text-sm font-mono font-medium backdrop-blur-sm">
-              ГАПОУ СО «Саратовский областной образовательный комплекс — Политехнический колледж — Лицей-интернат 64»
-            </span>
-          </div>
-
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-display font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent leading-tight">
-            {isAuthenticated ? greeting : 'Будущее начинается здесь'}
-          </h1>
-
-          <p className="mt-6 max-w-3xl mx-auto text-xl md:text-2xl text-gray-400 font-sans leading-relaxed">
-            {isAuthenticated
-              ? motivation
-              : 'Интерактивная платформа нового поколения для подготовки к поступлению'
-            }
-          </p>
-
-          {!isAuthenticated && (
-            <div className="mt-12 flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
-              <Link
-                to="/register"
-                className="group relative px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl font-display font-semibold overflow-hidden transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] gpu-accelerated"
-                style={{ willChange: 'transform' }}
-              >
-                <span className="relative z-10">Начать подготовку</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </Link>
-              <Link
-                to="/login"
-                className="px-8 py-4 border-2 border-cyan-500/50 text-cyan-400 rounded-xl font-display font-semibold hover:bg-cyan-500/10 hover:border-cyan-400 transition-[transform,background-color,border-color,box-shadow] duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] gpu-accelerated"
-                style={{ willChange: 'transform' }}
-              >
-                Войти в систему
-              </Link>
-            </div>
-          )}
-
-          {isAuthenticated && (
-            <div className="mt-12 flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
-              <Link
-                to="/dashboard"
-                className="group relative px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl font-display font-semibold overflow-hidden transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] gpu-accelerated"
-                style={{ willChange: 'transform' }}
-              >
-                <span className="relative z-10">Панель управления</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </Link>
-              <Link
-                to="/profile"
-                className="px-8 py-4 border-2 border-cyan-500/50 text-cyan-400 rounded-xl font-display font-semibold hover:bg-cyan-500/10 hover:border-cyan-400 transition-[transform,background-color,border-color,box-shadow] duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] gpu-accelerated"
-                style={{ willChange: 'transform' }}
-              >
-                Личный кабинет
-              </Link>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-24">
-          <h2 className="text-4xl md:text-5xl font-display font-bold text-center mb-4 text-white">
-            Направления обучения
-          </h2>
-          <p className="text-center text-gray-400 text-lg mb-12 font-sans">Выбери свой путь к успеху</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Object.entries(DIRECTION_LABELS).map(([key, label], index) => (
-              <DirectionCard
-                key={key}
-                direction={key as Direction}
-                label={label}
-                description={getDirectionDescription(key as Direction)}
-                index={index}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-32 grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="group relative bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 rounded-2xl p-8 hover:border-cyan-500/50 transition-[border-color,box-shadow] duration-500 hover:shadow-[0_0_50px_rgba(6,182,212,0.15)] contain-layout gpu-accelerated">
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-purple-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative z-10">
-              <h3 className="text-2xl font-display font-bold text-white mb-6 flex items-center">
-                <span className="w-2 h-2 bg-cyan-400 rounded-full mr-3 animate-pulse" style={{ willChange: 'opacity' }} />
-                Контакты
-              </h3>
-              <div className="space-y-3 text-gray-300">
-                <p className="flex items-center">
-                  <span className="text-cyan-400 font-mono mr-3">📞</span>
-                  <span className="font-sans">{LYCEUM_INFO.phone}</span>
-                </p>
-                <p className="flex items-center">
-                  <span className="text-cyan-400 font-mono mr-3">✉️</span>
-                  <span className="font-sans">{LYCEUM_INFO.email}</span>
-                </p>
-                <a
-                  href={LYCEUM_INFO.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center text-cyan-400 hover:text-cyan-300 transition-colors group/link"
-                >
-                  <span className="mr-3">🌐</span>
-                  <span className="font-sans border-b border-cyan-400/0 group-hover/link:border-cyan-400/100 transition-[border-color]">
-                    Официальный сайт
-                  </span>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div className="group relative bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 rounded-2xl p-8 hover:border-purple-500/50 transition-[border-color,box-shadow] duration-500 hover:shadow-[0_0_50px_rgba(168,85,247,0.15)] contain-layout gpu-accelerated">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-cyan-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative z-10">
-              <h3 className="text-2xl font-display font-bold text-white mb-6 flex items-center">
-                <span className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse" style={{ animationDelay: '0.5s', willChange: 'opacity' }} />
-                Сроки приема
-              </h3>
-              <div className="space-y-3 text-gray-300">
-                <p className="flex items-start">
-                  <span className="text-purple-400 font-mono mr-3 mt-1">📄</span>
-                  <span className="font-sans">
-                    <span className="text-gray-400 text-sm block">Прием документов</span>
-                    {LYCEUM_INFO.admissionPeriod.documentSubmission}
-                  </span>
-                </p>
-                <p className="flex items-start">
-                  <span className="text-purple-400 font-mono mr-3 mt-1">📝</span>
-                  <span className="font-sans">
-                    <span className="text-gray-400 text-sm block">Экзамены</span>
-                    {LYCEUM_INFO.admissionPeriod.exams}
-                  </span>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
+const DIRECTION_ICONS: Record<Direction, React.ElementType> = {
+  [Direction.PROGRAMMING]: Code,
+  [Direction.ROBOTICS]: Bot,
+  [Direction.MEDICINE]: Stethoscope,
+  [Direction.BIOTECHNOLOGY]: Dna,
+  [Direction.CULTURE]: Palette,
+};
 
 interface DirectionInfo {
   fullDescription: string;
@@ -172,29 +39,255 @@ const DIRECTION_INFO: Record<Direction, DirectionInfo> = {
   [Direction.PROGRAMMING]: {
     fullDescription: 'Направление для тех, кто хочет стать профессиональным разработчиком программного обеспечения. Изучение алгоритмов, структур данных, языков программирования и современных технологий разработки.',
     subjects: ['Математика (профиль)', 'Информатика (профиль)', 'Физика (профиль)'],
-    careers: ['Программист', 'Системный аналитик', 'Python разработчик', 'Data Scientist'],
+    careers: ['Программист', 'Системный аналитик', 'Data Scientist'],
   },
   [Direction.ROBOTICS]: {
-    fullDescription: 'Направление объединяет программирование, электронику и механику. Вы научитесь собирать и программировать роботов с помощью Lego Mindstorm, EV3.',
+    fullDescription: 'Направление объединяет программирование, электронику и механику. Вы научитесь собирать и программировать роботов.',
     subjects: ['Математика (профиль)', 'Физика (профиль)', 'Информатика (профиль)'],
-    careers: ['Инженер-робототехник', 'Конструктор', 'Инженер автоматизации', 'Разработчик IoT'],
+    careers: ['Инженер-робототехник', 'Инженер автоматизации', 'Разработчик IoT'],
   },
   [Direction.MEDICINE]: {
-    fullDescription: 'Подготовка к поступлению в медицинские вузы. Углублённое изучение биологии, химии и основ медицины. Практические занятия и знакомство с современными медицинскими технологиями.',
-    subjects: ['Биология (профиль)', 'Химия (профиль)', 'Русский язык', 'Математика'],
-    careers: ['Врач', 'Фармацевт', 'Биотехнолог', 'Мед.сестра'],
+    fullDescription: 'Подготовка к поступлению в медицинские вузы. Углублённое изучение биологии, химии и основ медицины.',
+    subjects: ['Биология (профиль)', 'Химия (профиль)', 'Русский язык'],
+    careers: ['Врач', 'Фармацевт', 'Биотехнолог'],
   },
   [Direction.BIOTECHNOLOGY]: {
-    fullDescription: 'Направление на стыке биологии и технологий. Генетика, молекулярная биология, биоинформатика и современные методы исследований живых систем.',
-    subjects: ['Биология (профиль)', 'Химия (профиль)', 'Математика', 'Информатика'],
-    careers: ['Генетик', 'Биоинженер', 'Биоинформатик', 'Эколог'],
+    fullDescription: 'Направление на стыке биологии и технологий. Генетика, молекулярная биология, биоинформатика.',
+    subjects: ['Биология (профиль)', 'Химия (профиль)', 'Информатика'],
+    careers: ['Генетик', 'Биоинженер', 'Биоинформатик'],
   },
   [Direction.CULTURE]: {
-    fullDescription: 'Направление для творческих личностей. Изучение истории искусств, культурологии, дизайна и современных творческих практик.',
-    subjects: ['Литература (профиль)', 'История (профиль)', 'Русский язык', 'Английский язык (профиль)'],
-    careers: ['Дизайнер', 'Искусствовед', 'Культуролог', 'Журналист'],
+    fullDescription: 'Направление для творческих личностей. Изучение истории искусств, культурологии и дизайна.',
+    subjects: ['Литература (профиль)', 'История (профиль)', 'Английский язык'],
+    careers: ['Дизайнер', 'Искусствовед', 'Журналист'],
   },
 };
+
+const DIRECTION_COLORS: Record<Direction, { bg: string; border: string; text: string; iconBg: string }> = {
+  [Direction.PROGRAMMING]: {
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/30 hover:border-blue-500/50',
+    text: 'text-blue-400',
+    iconBg: 'bg-blue-500/20',
+  },
+  [Direction.ROBOTICS]: {
+    bg: 'bg-violet-500/10',
+    border: 'border-violet-500/30 hover:border-violet-500/50',
+    text: 'text-violet-400',
+    iconBg: 'bg-violet-500/20',
+  },
+  [Direction.MEDICINE]: {
+    bg: 'bg-rose-500/10',
+    border: 'border-rose-500/30 hover:border-rose-500/50',
+    text: 'text-rose-400',
+    iconBg: 'bg-rose-500/20',
+  },
+  [Direction.BIOTECHNOLOGY]: {
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/30 hover:border-emerald-500/50',
+    text: 'text-emerald-400',
+    iconBg: 'bg-emerald-500/20',
+  },
+  [Direction.CULTURE]: {
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/30 hover:border-amber-500/50',
+    text: 'text-amber-400',
+    iconBg: 'bg-amber-500/20',
+  },
+};
+
+function getDirectionDescription(direction: Direction): string {
+  const descriptions: Record<Direction, string> = {
+    [Direction.PROGRAMMING]: 'Углубленное изучение программирования и информатики',
+    [Direction.ROBOTICS]: 'Робототехника и автоматизация',
+    [Direction.MEDICINE]: 'Медицинские технологии будущего',
+    [Direction.BIOTECHNOLOGY]: 'Биотехнологии и генетика',
+    [Direction.CULTURE]: 'Культура и искусство',
+  };
+  return descriptions[direction];
+}
+
+function HomePage() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
+
+  const greeting = useMemo(() => getGreetingWithName(user?.name), [user?.name]);
+  const motivation = useMemo(() => getRandomMotivation(), []);
+
+  return (
+    <div className="min-h-screen bg-slate-900">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-600/10 via-transparent to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-500/20 rounded-full blur-[120px]" />
+
+        <div className="relative container-wide py-20 lg:py-28">
+          <div className="max-w-3xl mx-auto text-center animate-fade-in">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 bg-blue-500/10 border border-blue-500/30 rounded-full">
+              <GraduationCap className="w-4 h-4 text-blue-400" />
+              <span className="text-sm font-medium text-blue-300">
+                Лицей-интернат №64
+              </span>
+            </div>
+
+            {/* Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+              {isAuthenticated ? greeting : 'Будущее начинается здесь'}
+            </h1>
+
+            {/* Subheadline */}
+            <p className="text-lg sm:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
+              {isAuthenticated
+                ? motivation
+                : 'Интерактивная платформа для подготовки к поступлению в один из лучших лицеев Саратова'
+              }
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              {!isAuthenticated ? (
+                <>
+                  <Link
+                    to="/register"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
+                  >
+                    Начать подготовку
+                    <ChevronRight className="w-5 h-5" />
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl border border-slate-700 transition-colors"
+                  >
+                    Войти в систему
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/dashboard"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
+                  >
+                    Панель управления
+                    <ChevronRight className="w-5 h-5" />
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl border border-slate-700 transition-colors"
+                  >
+                    Личный кабинет
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Directions Section */}
+      <section className="container-wide py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            Направления обучения
+          </h2>
+          <p className="text-slate-400 text-lg">
+            Выберите свой путь к успеху
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Object.entries(DIRECTION_LABELS).map(([key, label], index) => (
+            <DirectionCard
+              key={key}
+              direction={key as Direction}
+              label={label}
+              description={getDirectionDescription(key as Direction)}
+              index={index}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Info Section */}
+      <section className="container-wide py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Contacts Card */}
+          <div className="p-6 bg-slate-800/50 border border-slate-700 rounded-2xl">
+            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-blue-500" />
+              Контакты
+            </h3>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-slate-700/50 flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-slate-400" />
+                </div>
+                <span className="text-slate-300">{LYCEUM_INFO.phone}</span>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-slate-700/50 flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-slate-400" />
+                </div>
+                <span className="text-slate-300">{LYCEUM_INFO.email}</span>
+              </div>
+
+              <a
+                href={LYCEUM_INFO.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-blue-400" />
+                </div>
+                <span className="text-blue-400 group-hover:underline">
+                  Официальный сайт
+                </span>
+              </a>
+            </div>
+          </div>
+
+          {/* Admission Card */}
+          <div className="p-6 bg-slate-800/50 border border-slate-700 rounded-2xl">
+            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-amber-500" />
+              Сроки приёма
+            </h3>
+
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-slate-700/50 flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5 text-slate-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500 mb-1">Приём документов</p>
+                  <p className="text-white font-medium">
+                    {LYCEUM_INFO.admissionPeriod.documentSubmission}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-slate-700/50 flex items-center justify-center shrink-0">
+                  <CalendarDays className="w-5 h-5 text-slate-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500 mb-1">Экзамены</p>
+                  <p className="text-white font-medium">
+                    {LYCEUM_INFO.admissionPeriod.exams}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
 
 interface DirectionCardProps {
   direction: Direction;
@@ -204,104 +297,84 @@ interface DirectionCardProps {
 }
 
 function DirectionCard({ direction, label, description, index }: DirectionCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
-  const icons = ['💻', '🤖', '🏥', '🧬', '🎨'];
-  const gradients = [
-    'from-cyan-500/20 to-blue-500/20',
-    'from-blue-500/20 to-purple-500/20',
-    'from-purple-500/20 to-pink-500/20',
-    'from-pink-500/20 to-red-500/20',
-    'from-red-500/20 to-orange-500/20',
-  ];
-  const borderGradients = [
-    'from-cyan-500/50 to-blue-500/50',
-    'from-blue-500/50 to-purple-500/50',
-    'from-purple-500/50 to-pink-500/50',
-    'from-pink-500/50 to-red-500/50',
-    'from-red-500/50 to-orange-500/50',
-  ];
-
+  const Icon = DIRECTION_ICONS[direction];
+  const colors = DIRECTION_COLORS[direction];
   const info = DIRECTION_INFO[direction];
 
   return (
     <>
-      <div
-        className="group relative contain-layout cursor-pointer"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+      <button
         onClick={() => setShowModal(true)}
-        style={{ animationDelay: `${index * 100}ms` }}
+        className={`
+          w-full text-left p-6 rounded-2xl border transition-all duration-300
+          ${colors.bg} ${colors.border}
+          hover:scale-[1.02] group
+        `}
       >
-        <div className={`absolute -inset-0.5 bg-gradient-to-r ${borderGradients[index]} rounded-2xl opacity-0 group-hover:opacity-100 blur transition-opacity duration-500`} />
-
-        <div className={`relative bg-gradient-to-br ${gradients[index]} border border-gray-700/50 rounded-2xl p-8 transition-[border-color] duration-500 group-hover:border-transparent gpu-accelerated`}>
-          <div className={`absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-
-          <div className="relative z-10">
-            <div className="text-5xl mb-4 transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12 gpu-accelerated" style={{ willChange: 'transform' }}>
-              {icons[index]}
-            </div>
-
-            <h3 className="text-2xl font-display font-bold text-white mb-3">
-              {label}
-            </h3>
-
-            <p className="text-gray-400 font-sans leading-relaxed">
-              {description}
-            </p>
-
-            <div className={`mt-6 flex items-center text-cyan-400 font-sans font-medium transition-transform duration-300 gpu-accelerated ${isHovered ? 'translate-x-2' : ''}`} style={{ willChange: 'transform' }}>
-              <span>Узнать больше</span>
-              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </div>
-          </div>
+        <div className={`w-12 h-12 rounded-xl ${colors.iconBg} flex items-center justify-center mb-4`}>
+          <Icon className={`w-6 h-6 ${colors.text}`} />
         </div>
-      </div>
 
+        <h3 className="text-xl font-bold text-white mb-2">
+          {label}
+        </h3>
+
+        <p className="text-slate-400 mb-4">
+          {description}
+        </p>
+
+        <span className={`text-sm font-medium ${colors.text} inline-flex items-center gap-1 group-hover:gap-2 transition-all`}>
+          Подробнее
+          <ChevronRight className="w-4 h-4" />
+        </span>
+      </button>
+
+      {/* Modal */}
       {showModal && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
           onClick={() => setShowModal(false)}
         >
           <div
-            className={`bg-gray-900 border border-gray-700 rounded-2xl p-8 max-w-lg w-full animate-scale-in`}
+            className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-lg w-full animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Header */}
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-4">
-                <span className="text-5xl">{icons[index]}</span>
+                <div className={`w-14 h-14 rounded-xl ${colors.iconBg} flex items-center justify-center`}>
+                  <Icon className={`w-7 h-7 ${colors.text}`} />
+                </div>
                 <div>
                   <h2 className="text-2xl font-bold text-white">{label}</h2>
-                  <p className="text-gray-400 text-sm">Направление обучения</p>
+                  <p className="text-slate-500">Направление обучения</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-white transition-colors p-1"
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-gray-300 leading-relaxed mb-6">
+            {/* Description */}
+            <p className="text-slate-300 mb-6 leading-relaxed">
               {info.fullDescription}
             </p>
 
+            {/* Subjects */}
             <div className="mb-6">
-              <h3 className="text-cyan-400 font-semibold mb-3 flex items-center gap-2">
-                <span>📚</span> Профильные предметы
-              </h3>
+              <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-blue-400" />
+                Профильные предметы
+              </h4>
               <div className="flex flex-wrap gap-2">
                 {info.subjects.map((subject, i) => (
                   <span
                     key={i}
-                    className="px-3 py-1.5 bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 rounded-lg text-sm"
+                    className="px-3 py-1.5 text-sm bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-lg"
                   >
                     {subject}
                   </span>
@@ -309,15 +382,17 @@ function DirectionCard({ direction, label, description, index }: DirectionCardPr
               </div>
             </div>
 
+            {/* Careers */}
             <div>
-              <h3 className="text-purple-400 font-semibold mb-3 flex items-center gap-2">
-                <span>💼</span> Возможные профессии
-              </h3>
+              <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-amber-400" />
+                Возможные профессии
+              </h4>
               <div className="flex flex-wrap gap-2">
                 {info.careers.map((career, i) => (
                   <span
                     key={i}
-                    className="px-3 py-1.5 bg-purple-500/20 border border-purple-500/30 text-purple-300 rounded-lg text-sm"
+                    className="px-3 py-1.5 text-sm bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg"
                   >
                     {career}
                   </span>
@@ -329,17 +404,6 @@ function DirectionCard({ direction, label, description, index }: DirectionCardPr
       )}
     </>
   );
-}
-
-function getDirectionDescription(direction: Direction): string {
-  const descriptions: Record<Direction, string> = {
-    [Direction.PROGRAMMING]: 'Углубленное изучение программирования и информатики',
-    [Direction.ROBOTICS]: 'Робототехника и автоматизация',
-    [Direction.MEDICINE]: 'Медицинские технологии будущего',
-    [Direction.BIOTECHNOLOGY]: 'Биотехнологии и генетика',
-    [Direction.CULTURE]: 'Культура и искусство',
-  };
-  return descriptions[direction];
 }
 
 export default HomePage;

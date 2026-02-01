@@ -36,7 +36,6 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
 
     req.userId = decoded.userId;
 
-    // Загружаем данные пользователя для AuthRequest
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {

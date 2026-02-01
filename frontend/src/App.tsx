@@ -7,7 +7,6 @@ import ProfilePage from './pages/ProfilePage';
 import PublicProfilePage from './pages/PublicProfilePage';
 import DashboardPage from './pages/DashboardPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
-import DiagnosticPage from './pages/DiagnosticPage';
 import TestPage from './pages/TestPage';
 import TestSetupPage from './pages/TestSetupPage';
 import LearningPlanPage from './pages/LearningPlanPage';
@@ -85,10 +84,6 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/terms" element={<><Header /><TermsOfServicePage /></>} />
-
-          {/* Диагностика - только аутентификация */}
-          <Route path="/diagnostic" element={<ProtectedRoute><Header /><DiagnosticPage /></ProtectedRoute>} />
-          <Route path="/diagnostic/test/:subject" element={<ProtectedRoute><TestPage /></ProtectedRoute>} />
 
           {/* Защищенные роуты - только аутентификация */}
           <Route path="/dashboard" element={<ProtectedRoute><Header /><DashboardPage /></ProtectedRoute>} />

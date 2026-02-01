@@ -6,7 +6,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 // Модель пользователя
@@ -195,4 +194,90 @@ model UserAchievement {
   achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
   @@unique([userId, achievementId])
+}
+
+// ==========================================
+// Streak System (Серии активности)
+// ==========================================
+
+model UserStreak {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  currentStreak     Int      @default(0)  // Текущая серия дней
+  longestStreak     Int      @default(0)  // Максимальная серия за всё время
+  lastActivityDate  DateTime?            // Дата последней активности
+  totalActiveDays   Int      @default(0)  // Всего активных дней
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// ==========================================
+// Daily Challenges (Ежедневные задания)
+// ==========================================
+
+model DailyChallenge {
+  id          String   @id @default(uuid())
+  date        DateTime @unique // Один челлендж на день
+  title       String
+  description String
+  type        String   // 'complete_tests', 'score_percentage', 'time_spent', 'correct_answers'
+  target      Int      // Целевое значение
+  reward      Int      // Баллы за выполнение
+  subject     String?  // Опционально - конкретный предмет
+
+  completions DailyChallengeCompletion[]
+
+  createdAt   DateTime @default(now())
+}
+
+model DailyChallengeCompletion {
+  id          String   @id @default(uuid())
+  userId      String
+  challengeId String
+  progress    Int      @default(0)  // Текущий прогресс
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+
+  challenge   DailyChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, challengeId])
+}
+
+// ==========================================
+// Activity Log (Лог активности для streak)
+// ==========================================
+
+model UserActivity {
+  id         String   @id @default(uuid())
+  userId     String
+  type       String   // 'test_completed', 'login', 'theory_viewed', etc.
+  points     Int      @default(0)
+  metadata   String?  // JSON с доп. данными
+
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// ==========================================
+// Refresh Tokens
+// ==========================================
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  userId      String
+  token       String   @unique
+  expiresAt   DateTime
+  deviceInfo  String?  // User-Agent или описание устройства
+  ipAddress   String?
+  isRevoked   Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
 }

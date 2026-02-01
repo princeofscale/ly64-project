@@ -57,7 +57,7 @@ export default function TestPage() {
           url = `/api/tests/${testsData.data[0].id}/start`;
         } else {
           toast.error('Тест не найден');
-          navigate('/diagnostic');
+          navigate('/dashboard');
           return;
         }
       } else if (testId) {
@@ -168,22 +168,6 @@ export default function TestPage() {
               correctAnswer: q.correctAnswer,
             })) || [];
 
-          await fetch('/api/diagnostic/submit', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              subject,
-              score: data.data.score,
-              details: {
-                wrongAnswers,
-                totalQuestions: data.data.totalQuestions,
-                correctCount: data.data.correctCount,
-              },
-            }),
-          });
         }
 
         toast.success(`Тест завершён! Результат: ${data.data.score}%`);
@@ -192,11 +176,7 @@ export default function TestPage() {
           toast.error('Обнаружена подозрительная активность', { duration: 5000 });
         }
 
-        if (subject) {
-          navigate('/diagnostic');
-        } else {
-          navigate('/dashboard');
-        }
+        navigate('/dashboard');
       }
     } catch (error) {
       toast.error('Ошибка отправки');

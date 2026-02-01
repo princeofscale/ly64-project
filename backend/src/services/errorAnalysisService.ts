@@ -1,6 +1,5 @@
 import prisma from '../config/database';
 
-// Названия типов вопросов
 const QUESTION_TYPE_LABELS: Record<string, string> = {
   SINGLE_CHOICE: 'Выбор одного ответа',
   MULTIPLE_CHOICE: 'Множественный выбор',
@@ -14,14 +13,12 @@ const QUESTION_TYPE_LABELS: Record<string, string> = {
   table: 'Таблица',
 };
 
-// Названия уровней сложности
 const DIFFICULTY_LABELS: Record<string, string> = {
   EASY: 'Лёгкий',
   MEDIUM: 'Средний',
   HARD: 'Сложный',
 };
 
-// Названия предметов
 const SUBJECT_LABELS: Record<string, string> = {
   MATHEMATICS: 'Математика',
   PHYSICS: 'Физика',
@@ -33,7 +30,6 @@ const SUBJECT_LABELS: Record<string, string> = {
   ENGLISH: 'Английский язык',
 };
 
-// Советы по типам вопросов
 const TYPE_ADVICE: Record<string, string[]> = {
   SINGLE_CHOICE: [
     'Внимательно читайте все варианты ответа перед выбором',
@@ -83,9 +79,7 @@ const TYPE_ADVICE: Record<string, string[]> = {
   ],
 };
 
-// Советы по темам
 const TOPIC_ADVICE: Record<string, string[]> = {
-  // Математика
   'Уравнения': [
     'Повторите правила переноса слагаемых',
     'Практикуйте решение линейных и квадратных уравнений',
@@ -105,7 +99,6 @@ const TOPIC_ADVICE: Record<string, string[]> = {
     'Проверяйте вычисления дважды',
     'Используйте прикидку для оценки ответа',
   ],
-  // Физика
   'Механика': [
     'Выучите три закона Ньютона и их применение',
     'Практикуйте задачи на кинематику',
@@ -116,7 +109,6 @@ const TOPIC_ADVICE: Record<string, string[]> = {
     'Практикуйте расчёт цепей с резисторами',
     'Разберитесь с понятиями напряжения, силы тока, сопротивления',
   ],
-  // Русский язык
   'Орфография': [
     'Повторите правила правописания корней с чередованием',
     'Изучите правила написания приставок',
@@ -134,7 +126,6 @@ const TOPIC_ADVICE: Record<string, string[]> = {
   ],
 };
 
-// Общие советы по сложности
 const DIFFICULTY_ADVICE: Record<string, string> = {
   EASY: 'Базовые задания требуют знания определений и простых формул. Убедитесь, что вы понимаете основы.',
   MEDIUM: 'Задания среднего уровня требуют применения знаний. Практикуйте решение типовых задач.',
@@ -142,7 +133,6 @@ const DIFFICULTY_ADVICE: Record<string, string> = {
 };
 
 interface AnalysisResult {
-  // Общая статистика
   summary: {
     totalAttempts: number;
     totalQuestions: number;
@@ -152,7 +142,6 @@ interface AnalysisResult {
     averageTimePerQuestion: number;
   };
 
-  // Анализ по типам вопросов
   byQuestionType: {
     type: string;
     typeLabel: string;
@@ -164,7 +153,6 @@ interface AnalysisResult {
     advice: string[];
   }[];
 
-  // Анализ по сложности
   byDifficulty: {
     difficulty: string;
     difficultyLabel: string;
@@ -175,7 +163,6 @@ interface AnalysisResult {
     advice: string;
   }[];
 
-  // Анализ по темам (слабые места)
   weakTopics: {
     topic: string;
     subject: string;
@@ -188,7 +175,6 @@ interface AnalysisResult {
     advice: string[];
   }[];
 
-  // Сильные темы
   strongTopics: {
     topic: string;
     subject: string;
@@ -197,7 +183,6 @@ interface AnalysisResult {
     total: number;
   }[];
 
-  // Частые ошибки (конкретные вопросы)
   frequentMistakes: {
     questionId: string;
     questionText: string;
@@ -209,7 +194,6 @@ interface AnalysisResult {
     commonWrongAnswer: string | null;
   }[];
 
-  // Персональные рекомендации
   recommendations: {
     priority: 'high' | 'medium' | 'low';
     category: string;
@@ -218,7 +202,6 @@ interface AnalysisResult {
     actionItems: string[];
   }[];
 
-  // Прогресс по времени
   progressOverTime: {
     date: string;
     accuracy: number;
@@ -229,7 +212,6 @@ interface AnalysisResult {
 class ErrorAnalysisService {
 
   async getDetailedAnalysis(userId: string): Promise<AnalysisResult> {
-    // Получаем все попытки с детальной информацией
     const attempts = await prisma.testAttempt.findMany({
       where: {
         userId,
@@ -253,28 +235,20 @@ class ErrorAnalysisService {
       return this.getEmptyResult();
     }
 
-    // Собираем статистику
     const stats = this.collectStats(attempts);
 
-    // Анализируем по типам вопросов
     const byQuestionType = this.analyzeByQuestionType(stats);
 
-    // Анализируем по сложности
     const byDifficulty = this.analyzeByDifficulty(stats);
 
-    // Находим слабые темы
     const weakTopics = this.findWeakTopics(stats);
 
-    // Находим сильные темы
     const strongTopics = this.findStrongTopics(stats);
 
-    // Находим частые ошибки
     const frequentMistakes = this.findFrequentMistakes(stats);
 
-    // Генерируем рекомендации
     const recommendations = this.generateRecommendations(stats, weakTopics, byQuestionType, byDifficulty);
 
-    // Прогресс по времени
     const progressOverTime = this.calculateProgressOverTime(attempts);
 
     return {
@@ -340,7 +314,6 @@ class ErrorAnalysisService {
           const subject = question.subject;
           const topicKey = `${subject}:${topic}`;
 
-          // Находим ответ пользователя
           const questionIndex = questionsOrder
             ? questionsOrder.indexOf(questionId)
             : index;
@@ -372,7 +345,6 @@ class ErrorAnalysisService {
           stats.totalQuestions++;
           if (isCorrect) stats.totalCorrect++;
 
-          // По типу
           if (!stats.byType[type]) {
             stats.byType[type] = { total: 0, correct: 0, totalTime: 0, count: 0 };
           }
@@ -383,26 +355,22 @@ class ErrorAnalysisService {
             stats.byType[type].count++;
           }
 
-          // По сложности
           if (!stats.byDifficulty[difficulty]) {
             stats.byDifficulty[difficulty] = { total: 0, correct: 0 };
           }
           stats.byDifficulty[difficulty].total++;
           if (isCorrect) stats.byDifficulty[difficulty].correct++;
 
-          // По теме
           if (!stats.byTopic[topicKey]) {
             stats.byTopic[topicKey] = { total: 0, correct: 0, subject, recentResults: [] };
           }
           stats.byTopic[topicKey].total++;
           if (isCorrect) stats.byTopic[topicKey].correct++;
           stats.byTopic[topicKey].recentResults.push(isCorrect);
-          // Храним только последние 10 результатов для определения тренда
           if (stats.byTopic[topicKey].recentResults.length > 10) {
             stats.byTopic[topicKey].recentResults.shift();
           }
 
-          // По вопросу (для частых ошибок)
           if (!stats.byQuestion[questionId]) {
             stats.byQuestion[questionId] = {
               questionText: question.question.substring(0, 200),
@@ -546,7 +514,6 @@ class ErrorAnalysisService {
     return Object.entries(stats.byQuestion)
       .filter(([_, data]: [string, any]) => data.wrong >= 2 && data.attempts >= 2)
       .map(([questionId, data]: [string, any]) => {
-        // Находим самый частый неправильный ответ
         const wrongCounts: Record<string, number> = {};
         data.wrongAnswers.forEach((ans: string) => {
           wrongCounts[ans] = (wrongCounts[ans] || 0) + 1;
@@ -584,7 +551,6 @@ class ErrorAnalysisService {
   ) {
     const recommendations: any[] = [];
 
-    // Рекомендации по слабым темам
     if (weakTopics.length > 0) {
       const worstTopic = weakTopics[0];
       recommendations.push({
@@ -596,7 +562,6 @@ class ErrorAnalysisService {
       });
     }
 
-    // Рекомендации по типам вопросов
     const worstType = byType.find(t => t.accuracy < 60);
     if (worstType) {
       recommendations.push({
@@ -608,7 +573,6 @@ class ErrorAnalysisService {
       });
     }
 
-    // Рекомендации по сложности
     const easyStats = byDifficulty.find(d => d.difficulty === 'EASY');
     const hardStats = byDifficulty.find(d => d.difficulty === 'HARD');
 
@@ -640,12 +604,11 @@ class ErrorAnalysisService {
       });
     }
 
-    // Общие рекомендации по времени
     const avgTime = stats.questionsWithTime > 0
       ? stats.totalTime / stats.questionsWithTime / 1000
       : 0;
 
-    if (avgTime > 180) { // больше 3 минут на вопрос
+    if (avgTime > 180) {
       recommendations.push({
         priority: 'medium',
         category: 'Тайм-менеджмент',
@@ -659,7 +622,6 @@ class ErrorAnalysisService {
       });
     }
 
-    // Рекомендация по ухудшающимся темам
     const decliningTopics = weakTopics.filter(t => t.trend === 'declining');
     if (decliningTopics.length > 0) {
       recommendations.push({
@@ -675,7 +637,6 @@ class ErrorAnalysisService {
       });
     }
 
-    // Если мало рекомендаций — добавляем общую
     if (recommendations.length === 0) {
       recommendations.push({
         priority: 'low',
@@ -742,7 +703,7 @@ class ErrorAnalysisService {
         questionsCount: data.total,
       }))
       .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(-30); // последние 30 дней
+      .slice(-30);
   }
 
   private getEmptyResult(): AnalysisResult {

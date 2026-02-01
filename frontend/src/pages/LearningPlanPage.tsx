@@ -43,7 +43,7 @@ export default function LearningPlanPage() {
       if (data.success) {
         setPlan(data.data);
       } else if (response.status === 404) {
-        navigate('/diagnostic');
+        navigate('/dashboard');
       }
     } catch (error) {
       toast.error('Ошибка загрузки плана');
@@ -98,10 +98,10 @@ export default function LearningPlanPage() {
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-2xl font-bold mb-4">План обучения не найден</h1>
           <p className="text-gray-600 mb-6">
-            Сначала пройдите входную диагностику
+            План обучения будет доступен позже
           </p>
-          <Button onClick={() => navigate('/diagnostic')}>
-            Пройти диагностику
+          <Button onClick={() => navigate('/dashboard')}>
+            Перейти на дашборд
           </Button>
         </div>
       </div>

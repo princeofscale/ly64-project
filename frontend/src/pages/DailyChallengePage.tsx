@@ -13,7 +13,6 @@ interface Challenge {
   points: number;
 }
 
-// Пул задач для ежедневного челленджа
 const CHALLENGES_POOL: Challenge[] = [
   {
     id: '1',
@@ -128,7 +127,6 @@ const CHALLENGES_POOL: Challenge[] = [
 ];
 
 function getDailyChallenge(): Challenge {
-  // Используем дату как seed для выбора задачи
   const today = new Date();
   const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
   const index = dayOfYear % CHALLENGES_POOL.length;
@@ -142,7 +140,6 @@ function DailyChallengePage() {
   const [streak, setStreak] = useState(0);
   const [totalPoints, setTotalPoints] = useState(0);
 
-  // Загрузка прогресса из localStorage
   useEffect(() => {
     const saved = localStorage.getItem('daily-challenge-progress');
     if (saved) {
@@ -150,7 +147,6 @@ function DailyChallengePage() {
       setStreak(data.streak || 0);
       setTotalPoints(data.totalPoints || 0);
 
-      // Проверяем, отвечал ли уже сегодня
       const today = new Date().toDateString();
       if (data.lastAnswered === today) {
         setIsAnswered(true);
@@ -168,14 +164,12 @@ function DailyChallengePage() {
     const isCorrect = answer === challenge.answer;
     const today = new Date().toDateString();
 
-    // Обновляем статистику
     const newStreak = isCorrect ? streak + 1 : 0;
     const newPoints = isCorrect ? totalPoints + challenge.points : totalPoints;
 
     setStreak(newStreak);
     setTotalPoints(newPoints);
 
-    // Сохраняем в localStorage
     localStorage.setItem('daily-challenge-progress', JSON.stringify({
       streak: newStreak,
       totalPoints: newPoints,
@@ -196,7 +190,6 @@ function DailyChallengePage() {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500/20 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
 
         <main className="relative z-10 max-w-3xl mx-auto px-4 py-12">
-          {/* Заголовок */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-full text-yellow-400 text-sm mb-4">
               <span className="animate-pulse">🔥</span>
@@ -210,7 +203,6 @@ function DailyChallengePage() {
             </p>
           </div>
 
-          {/* Статистика */}
           <div className="flex justify-center gap-4 mb-8">
             <div className="bg-orange-500/20 border border-orange-500/30 rounded-xl px-6 py-3 text-center">
               <p className="text-2xl font-bold text-orange-400">🔥 {streak}</p>
@@ -222,9 +214,7 @@ function DailyChallengePage() {
             </div>
           </div>
 
-          {/* Карточка задачи */}
           <div className="bg-gray-900/80 border border-gray-700 rounded-2xl overflow-hidden">
-            {/* Шапка */}
             <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{challenge.subjectIcon}</span>
@@ -244,13 +234,11 @@ function DailyChallengePage() {
               </div>
             </div>
 
-            {/* Вопрос */}
             <div className="p-6">
               <p className="text-xl text-white font-medium mb-6 leading-relaxed">
                 {challenge.question}
               </p>
 
-              {/* Варианты ответов */}
               <div className="space-y-3">
                 {challenge.options?.map((option, index) => {
                   const letter = String.fromCharCode(65 + index);
@@ -295,7 +283,6 @@ function DailyChallengePage() {
                 })}
               </div>
 
-              {/* Результат */}
               {isAnswered && (
                 <div className={`mt-6 p-4 rounded-xl ${isCorrect ? 'bg-green-500/20 border border-green-500/30' : 'bg-red-500/20 border border-red-500/30'}`}>
                   <p className={`font-bold mb-2 ${isCorrect ? 'text-green-400' : 'text-red-400'}`}>

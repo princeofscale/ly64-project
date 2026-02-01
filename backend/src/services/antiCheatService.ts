@@ -1,7 +1,7 @@
-import { prisma } from '../config/database';
+import prisma from '../config/database';
 
-const MIN_ANSWER_TIME_MS = 2000;
-const SUSPICIOUS_FAST_ANSWERS_THRESHOLD = 3;
+const MIN_ANSWER_TIME_MS = 4000;
+const SUSPICIOUS_FAST_ANSWERS_THRESHOLD = 5;
 
 interface AnswerData {
   questionId: string;

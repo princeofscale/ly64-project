@@ -12,11 +12,9 @@ interface AdminUser {
   status: string;
   currentGrade: number;
   desiredDirection: string | null;
-  diagnosticCompleted: boolean;
   createdAt: string;
   _count: {
     testAttempts: number;
-    diagnosticResults: number;
   };
 }
 
@@ -25,7 +23,6 @@ interface PlatformStats {
   usersToday: number;
   totalTests: number;
   testsToday: number;
-  diagnosticCompleted: number;
   usersByRole: Record<string, number>;
 }
 
@@ -55,7 +52,6 @@ export default function AdminPage() {
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [editForm, setEditForm] = useState({
     role: '',
-    diagnosticCompleted: false,
   });
 
   useEffect(() => {
@@ -116,7 +112,6 @@ export default function AdminPage() {
     setEditingUser(u);
     setEditForm({
       role: u.role,
-      diagnosticCompleted: u.diagnosticCompleted,
     });
   };
 
@@ -166,25 +161,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleResetDiagnostic = async (userId: string) => {
-    if (!confirm('Сбросить диагностику пользователя?')) return;
-
-    try {
-      const res = await fetch(`/api/admin/users/${userId}/reset-diagnostic`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.ok) {
-        toast.success('Диагностика сброшена');
-        loadUsers();
-      } else {
-        toast.error('Ошибка сброса');
-      }
-    } catch (error) {
-      toast.error('Ошибка сети');
-    }
-  };
 
   if (user?.role !== 'ADMIN') {
     return null;
@@ -209,15 +185,6 @@ export default function AdminPage() {
               <div className="text-3xl font-bold text-purple-400">{stats.totalTests}</div>
               <div className="text-sm text-gray-400">Всего тестов пройдено</div>
               <div className="text-xs text-green-400 mt-1">+{stats.testsToday} сегодня</div>
-            </div>
-            <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-5">
-              <div className="text-3xl font-bold text-green-400">{stats.diagnosticCompleted}</div>
-              <div className="text-sm text-gray-400">Диагностика пройдена</div>
-              <div className="text-xs text-gray-500 mt-1">
-                {stats.totalUsers > 0
-                  ? Math.round((stats.diagnosticCompleted / stats.totalUsers) * 100)
-                  : 0}% пользователей
-              </div>
             </div>
             <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-5">
               <div className="text-3xl font-bold text-amber-400">{stats.usersByRole?.ADMIN || 0}</div>
@@ -268,7 +235,6 @@ export default function AdminPage() {
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Пользователь</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Роль</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Направление</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Диагностика</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Тесты</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Дата</th>
                       <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Действия</th>
@@ -295,17 +261,6 @@ export default function AdminPage() {
                         <td className="px-4 py-3 text-sm text-gray-300">
                           {u.desiredDirection ? DIRECTION_LABELS[u.desiredDirection] || u.desiredDirection : '-'}
                         </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              u.diagnosticCompleted
-                                ? 'bg-green-500/20 text-green-400'
-                                : 'bg-red-500/20 text-red-400'
-                            }`}
-                          >
-                            {u.diagnosticCompleted ? 'Пройдена' : 'Не пройдена'}
-                          </span>
-                        </td>
                         <td className="px-4 py-3 text-sm text-gray-300">{u._count.testAttempts}</td>
                         <td className="px-4 py-3 text-sm text-gray-400">
                           {new Date(u.createdAt).toLocaleDateString('ru-RU')}
@@ -318,14 +273,6 @@ export default function AdminPage() {
                             >
                               Изменить
                             </button>
-                            {!u.diagnosticCompleted && (
-                              <button
-                                onClick={() => handleResetDiagnostic(u.id)}
-                                className="px-3 py-1.5 text-xs font-medium bg-amber-500/20 text-amber-400 rounded-lg hover:bg-amber-500/30 transition-colors"
-                              >
-                                Сбросить
-                              </button>
-                            )}
                             {u.id !== user?.id && (
                               <button
                                 onClick={() => handleDeleteUser(u.id)}
@@ -386,20 +333,6 @@ export default function AdminPage() {
                     <option value="USER">Пользователь</option>
                     <option value="ADMIN">Администратор</option>
                   </select>
-                </div>
-
-                <div>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={editForm.diagnosticCompleted}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, diagnosticCompleted: e.target.checked })
-                      }
-                      className="w-5 h-5 rounded bg-gray-800 border-gray-600 text-cyan-500 focus:ring-cyan-500"
-                    />
-                    <span className="text-gray-300">Диагностика пройдена</span>
-                  </label>
                 </div>
               </div>
 

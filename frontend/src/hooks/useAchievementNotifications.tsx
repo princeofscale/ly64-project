@@ -19,7 +19,11 @@ export const useAchievementNotifications = () => {
   const hasInitialized = useRef(false);
 
   useEffect(() => {
-    if (!isAuthenticated || !token) return;
+    if (!isAuthenticated || !token) {
+      hasInitialized.current = false;
+      previousAchievements.current.clear();
+      return;
+    }
 
     const checkNewAchievements = async () => {
       try {
@@ -42,14 +46,19 @@ export const useAchievementNotifications = () => {
             previousAchievements.current.add(achievement.id);
           }
         }
-      } catch (error) {
-        console.error('Error checking achievements:', error);
+      } catch (error: any) {
+        if (error?.response?.status === 401) {
+          hasInitialized.current = false;
+          previousAchievements.current.clear();
+          return;
+        }
+        // Игнорируем другие ошибки (429, сетевые и т.д.)
       }
     };
 
     checkNewAchievements();
 
-    const interval = setInterval(checkNewAchievements, 10000);
+    const interval = setInterval(checkNewAchievements, 30000);
 
     return () => clearInterval(interval);
   }, [isAuthenticated, token]);

@@ -1,11 +1,23 @@
 import { Router, Response } from 'express';
 import { authenticateToken, AuthRequest } from '../middlewares/auth';
 import { requireAdmin } from '../middlewares/requireAdmin';
+import { adminLimiter } from '../middlewares/security';
+import { logAdminAction } from '../utils/logger';
 import prisma from '../config/database';
+import { z } from 'zod';
+import { cacheService, invalidateCache } from '../services/cacheService';
 
 const router = Router();
 
-// Получить всех пользователей
+router.use(adminLimiter);
+
+const updateUserSchema = z.object({
+  role: z.enum(['USER', 'ADMIN']).optional(),
+  status: z.enum(['pending', 'active', 'inactive']).optional(),
+  currentGrade: z.number().min(8).max(11).optional(),
+  desiredDirection: z.enum(['math', 'physics', 'it', 'chemistry', 'biology']).optional(),
+}).strict();
+
 router.get('/users', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const { search, role, page = '1', limit = '20' } = req.query;
@@ -39,12 +51,10 @@ router.get('/users', authenticateToken, requireAdmin, async (req: AuthRequest, r
           status: true,
           currentGrade: true,
           desiredDirection: true,
-          diagnosticCompleted: true,
           createdAt: true,
           _count: {
             select: {
               testAttempts: true,
-              diagnosticResults: true,
             },
           },
         },
@@ -73,10 +83,9 @@ router.get('/users', authenticateToken, requireAdmin, async (req: AuthRequest, r
   }
 });
 
-// Получить одного пользователя
 router.get('/users/:userId', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.params as { userId: string };
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -90,10 +99,8 @@ router.get('/users/:userId', authenticateToken, requireAdmin, async (req: AuthRe
         currentGrade: true,
         desiredDirection: true,
         motivation: true,
-        diagnosticCompleted: true,
         createdAt: true,
         updatedAt: true,
-        diagnosticResults: true,
         testAttempts: {
           orderBy: { startedAt: 'desc' },
           take: 10,
@@ -120,18 +127,27 @@ router.get('/users/:userId', authenticateToken, requireAdmin, async (req: AuthRe
   }
 });
 
-// Обновить пользователя
 router.put('/users/:userId', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
-    const { userId } = req.params;
-    const { role, diagnosticCompleted, status, currentGrade, desiredDirection } = req.body;
+    const { userId } = req.params as { userId: string };
 
-    const updateData: any = {};
-    if (role !== undefined) updateData.role = role;
-    if (diagnosticCompleted !== undefined) updateData.diagnosticCompleted = diagnosticCompleted;
-    if (status !== undefined) updateData.status = status;
-    if (currentGrade !== undefined) updateData.currentGrade = currentGrade;
-    if (desiredDirection !== undefined) updateData.desiredDirection = desiredDirection;
+    const validationResult = updateUserSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Некорректные данные',
+        errors: validationResult.error.issues,
+      });
+    }
+
+    const updateData = validationResult.data;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Нет данных для обновления',
+      });
+    }
 
     const user = await prisma.user.update({
       where: { id: userId },
@@ -145,9 +161,10 @@ router.put('/users/:userId', authenticateToken, requireAdmin, async (req: AuthRe
         status: true,
         currentGrade: true,
         desiredDirection: true,
-        diagnosticCompleted: true,
       },
     });
+
+    logAdminAction(req.user!.id, 'UPDATE_USER', userId, req, updateData);
 
     res.json({ success: true, data: user });
   } catch (error) {
@@ -156,13 +173,11 @@ router.put('/users/:userId', authenticateToken, requireAdmin, async (req: AuthRe
   }
 });
 
-// Удалить пользователя
 router.delete('/users/:userId', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.params as { userId: string };
     const adminId = req.user!.id;
 
-    // Нельзя удалить самого себя
     if (userId === adminId) {
       return res.status(400).json({ success: false, message: 'Нельзя удалить свой аккаунт' });
     }
@@ -171,6 +186,8 @@ router.delete('/users/:userId', authenticateToken, requireAdmin, async (req: Aut
       where: { id: userId },
     });
 
+    logAdminAction(req.user!.id, 'DELETE_USER', userId, req);
+
     res.json({ success: true, message: 'Пользователь удалён' });
   } catch (error) {
     console.error('Error deleting user:', error);
@@ -178,30 +195,6 @@ router.delete('/users/:userId', authenticateToken, requireAdmin, async (req: Aut
   }
 });
 
-// Сбросить диагностику пользователя
-router.post('/users/:userId/reset-diagnostic', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
-  try {
-    const { userId } = req.params;
-
-    // Удаляем результаты диагностики
-    await prisma.diagnosticResult.deleteMany({
-      where: { userId },
-    });
-
-    // Сбрасываем флаг
-    await prisma.user.update({
-      where: { id: userId },
-      data: { diagnosticCompleted: false },
-    });
-
-    res.json({ success: true, message: 'Диагностика сброшена' });
-  } catch (error) {
-    console.error('Error resetting diagnostic:', error);
-    res.status(500).json({ success: false, message: 'Ошибка сброса диагностики' });
-  }
-});
-
-// Статистика платформы
 router.get('/stats', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const [
@@ -209,7 +202,6 @@ router.get('/stats', authenticateToken, requireAdmin, async (req: AuthRequest, r
       usersToday,
       totalTests,
       testsToday,
-      diagnosticCompleted,
       usersByRole,
     ] = await Promise.all([
       prisma.user.count(),
@@ -228,7 +220,6 @@ router.get('/stats', authenticateToken, requireAdmin, async (req: AuthRequest, r
           },
         },
       }),
-      prisma.user.count({ where: { diagnosticCompleted: true } }),
       prisma.user.groupBy({
         by: ['role'],
         _count: true,
@@ -242,7 +233,6 @@ router.get('/stats', authenticateToken, requireAdmin, async (req: AuthRequest, r
         usersToday,
         totalTests,
         testsToday,
-        diagnosticCompleted,
         usersByRole: usersByRole.reduce((acc, item) => {
           acc[item.role] = item._count;
           return acc;
@@ -252,6 +242,57 @@ router.get('/stats', authenticateToken, requireAdmin, async (req: AuthRequest, r
   } catch (error) {
     console.error('Error fetching stats:', error);
     res.status(500).json({ success: false, message: 'Ошибка получения статистики' });
+  }
+});
+
+router.get('/cache/stats', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const stats = cacheService.getStats();
+    const hitRate = cacheService.getHitRate();
+
+    res.json({
+      success: true,
+      data: {
+        ...stats,
+        hitRate: `${hitRate}%`,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching cache stats:', error);
+    res.status(500).json({ success: false, message: 'Ошибка получения статистики кэша' });
+  }
+});
+
+router.delete('/cache/:prefix', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { prefix } = req.params as { prefix: string };
+    const deleted = invalidateCache(prefix);
+
+    logAdminAction(req.user!.id, 'CLEAR_CACHE', undefined, req, { prefix, deleted });
+
+    res.json({
+      success: true,
+      message: `Удалено ${deleted} записей кэша с префиксом "${prefix}"`,
+    });
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+    res.status(500).json({ success: false, message: 'Ошибка очистки кэша' });
+  }
+});
+
+router.delete('/cache', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    cacheService.clear();
+
+    logAdminAction(req.user!.id, 'CLEAR_ALL_CACHE', undefined, req);
+
+    res.json({
+      success: true,
+      message: 'Весь кэш очищен',
+    });
+  } catch (error) {
+    console.error('Error clearing all cache:', error);
+    res.status(500).json({ success: false, message: 'Ошибка очистки кэша' });
   }
 });
 

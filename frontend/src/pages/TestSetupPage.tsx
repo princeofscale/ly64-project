@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SUBJECT_LABELS, AVAILABLE_GRADES } from '@lyceum64/shared';
 import { Button } from '../components/Button';
@@ -23,23 +23,95 @@ const subjectDescriptions: Record<string, string> = {
   ENGLISH: 'Проверьте уровень английского языка',
 };
 
+type ExamLevel = 'base' | 'profile' | null;
+
+// Проверка нужен ли выбор уровня
+const needsLevelSelection = (grade: number, subject: string): boolean => {
+  // Математика 11 класс (ЕГЭ) - профильный или базовый
+  if (grade === 11 && subject === 'MATHEMATICS') return true;
+  // Физика 8 класс (ВПР) - профильный или базовый
+  if (grade === 8 && subject === 'PHYSICS') return true;
+  return false;
+};
+
+// Получить варианты уровней для предмета
+const getLevelOptions = (grade: number, subject: string): { value: ExamLevel; label: string; description: string }[] => {
+  if (grade === 11 && subject === 'MATHEMATICS') {
+    return [
+      { value: 'base', label: 'Базовый', description: 'Для непрофильных специальностей' },
+      { value: 'profile', label: 'Профильный', description: 'Для технических и экономических специальностей' },
+    ];
+  }
+  if (grade === 8 && subject === 'PHYSICS') {
+    return [
+      { value: 'base', label: 'Базовый', description: 'Стандартный уровень ВПР' },
+      { value: 'profile', label: 'Профильный', description: 'Углублённый уровень ВПР' },
+    ];
+  }
+  return [];
+};
+
+// Функция для получения типа экзамена
+const getExamType = (grade: number, level?: ExamLevel): string => {
+  if (grade === 9) return 'ОГЭ';
+  if (grade === 11) {
+    if (level === 'base') return 'ЕГЭ (базовый)';
+    if (level === 'profile') return 'ЕГЭ (профильный)';
+    return 'ЕГЭ';
+  }
+  if (grade === 8) {
+    if (level === 'base') return 'ВПР (базовый)';
+    if (level === 'profile') return 'ВПР (профильный)';
+  }
+  return 'ВПР';
+};
+
+// Функция для получения времени выполнения
+const getExamDuration = (grade: number, subject: string): string => {
+  // ОГЭ и ЕГЭ - 3 часа 55 минут
+  if (grade === 9 || grade === 11) {
+    return '3 часа 55 минут';
+  }
+  // Исключение: физика 10 класс - 45 минут
+  if (grade === 10 && subject === 'PHYSICS') {
+    return '45 минут';
+  }
+  // ВПР - 1 час 30 минут
+  return '1 час 30 минут';
+};
+
 export default function TestSetupPage() {
   const { subject } = useParams<{ subject: string }>();
   const navigate = useNavigate();
   const [selectedGrade, setSelectedGrade] = useState<number | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<ExamLevel>(null);
 
   const subjectLabel = subject ? SUBJECT_LABELS[subject as keyof typeof SUBJECT_LABELS] : 'Неизвестный предмет';
   const subjectIcon = subject ? subjectIcons[subject] || '📝' : '📝';
   const subjectDescription = subject ? subjectDescriptions[subject] || 'Тест по предмету' : 'Тест по предмету';
 
+  // Проверяем нужен ли выбор уровня
+  const showLevelSelection = selectedGrade && subject && needsLevelSelection(selectedGrade, subject);
+  const levelOptions = selectedGrade && subject ? getLevelOptions(selectedGrade, subject) : [];
+
+  // Сбрасываем уровень при смене класса
+  useEffect(() => {
+    setSelectedLevel(null);
+  }, [selectedGrade]);
+
   const handleStartTest = () => {
     if (!selectedGrade || !subject) return;
+    // Если нужен выбор уровня, но уровень не выбран - не продолжаем
+    if (showLevelSelection && !selectedLevel) return;
 
     // Переходим на страницу выбора варианта из sdamgia
     navigate('/test/variants', {
-      state: { grade: selectedGrade, subject }
+      state: { grade: selectedGrade, subject, level: selectedLevel }
     });
   };
+
+  // Проверка можно ли начать тест
+  const canStartTest = selectedGrade && (!showLevelSelection || selectedLevel);
 
   return (
     <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden py-12 px-4">
@@ -123,7 +195,83 @@ export default function TestSetupPage() {
             </div>
           </div>
 
-          {selectedGrade && (
+          {/* Выбор уровня (профильный/базовый) */}
+          {showLevelSelection && (
+            <div className="mb-8 animate-scale-in">
+              <h2 className="text-2xl font-display font-semibold text-white mb-4 flex items-center">
+                <span className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse" />
+                Выберите уровень
+              </h2>
+              <p className="text-gray-400 font-sans mb-6">
+                {subject === 'MATHEMATICS' && selectedGrade === 11
+                  ? 'Базовый уровень оценивается по 5-балльной шкале, профильный — по 100-балльной'
+                  : 'Выберите уровень сложности ВПР'}
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {levelOptions.map((option, index) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setSelectedLevel(option.value)}
+                    className={`
+                      group relative p-6 rounded-2xl border-2 transition-all duration-300 text-left
+                      animate-scale-in
+                      ${selectedLevel === option.value
+                        ? 'border-purple-500 bg-gradient-to-r from-purple-500/20 to-pink-500/20 shadow-[0_0_30px_rgba(168,85,247,0.3)] scale-105'
+                        : 'border-gray-700 bg-gray-800/50 hover:border-purple-500/50 hover:bg-gray-800/70'
+                      }
+                    `}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                        selectedLevel === option.value
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-500'
+                          : 'bg-gray-700 group-hover:bg-gray-600'
+                      }`}>
+                        {option.value === 'base' ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-white">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-white">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className={`text-xl font-display font-bold mb-1 transition-colors ${
+                          selectedLevel === option.value
+                            ? 'text-purple-400'
+                            : 'text-white group-hover:text-purple-400'
+                        }`}>
+                          {option.label}
+                        </div>
+                        <div className={`text-sm font-sans transition-colors ${
+                          selectedLevel === option.value
+                            ? 'text-purple-300'
+                            : 'text-gray-400 group-hover:text-gray-300'
+                        }`}>
+                          {option.description}
+                        </div>
+                      </div>
+                    </div>
+
+                    {selectedLevel === option.value && (
+                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-1.5 animate-scale-in">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4 text-white">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Информация о тесте */}
+          {selectedGrade && (!showLevelSelection || selectedLevel) && (
             <div className="p-6 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-2xl mb-6 animate-scale-in">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
@@ -135,16 +283,16 @@ export default function TestSetupPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-display font-semibold text-white mb-2">
-                    {selectedGrade === 9 ? 'Вариант ОГЭ' : selectedGrade === 11 ? 'Вариант ЕГЭ' : selectedGrade === 8 || selectedGrade === 10 ? 'Вариант ВПР' : `Тест для ${selectedGrade} класса`}
+                    Решить вариант {getExamType(selectedGrade, selectedLevel)}
                   </h3>
                   <ul className="text-sm text-gray-300 font-sans space-y-1">
                     <li className="flex items-center gap-2">
                       <span className="text-cyan-400">•</span>
-                      10 вопросов
+                      Полный вариант {getExamType(selectedGrade, selectedLevel)}
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="text-cyan-400">•</span>
-                      Время на прохождение: 30 минут
+                      Время на прохождение: {getExamDuration(selectedGrade, subject || '')}
                     </li>
                   </ul>
                 </div>
@@ -162,10 +310,14 @@ export default function TestSetupPage() {
             </Button>
             <Button
               onClick={handleStartTest}
-              disabled={!selectedGrade}
+              disabled={!canStartTest}
               className="flex-1"
             >
-              {selectedGrade ? 'Начать тест' : 'Выберите класс'}
+              {!selectedGrade
+                ? 'Выберите класс'
+                : showLevelSelection && !selectedLevel
+                  ? 'Выберите уровень'
+                  : 'Начать тест'}
             </Button>
           </div>
         </div>

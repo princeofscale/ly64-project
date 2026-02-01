@@ -150,7 +150,6 @@ export const ROUTES = {
   EGE_TYPE: '/test/ege-type',
   EXAM: '/test/exam',
   RESULTS: '/test/results',
-  DIAGNOSTIC: '/diagnostic',
 } as const;
 
 /**
