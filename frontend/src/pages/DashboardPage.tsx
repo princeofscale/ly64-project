@@ -206,10 +206,8 @@ export default function DashboardPage() {
           </p>
         </header>
 
-        {/* Active Test Banner */}
         <UnfinishedTestBanner onAbandon={() => setHasActiveTest(false)} />
 
-        {/* Stats Grid */}
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6 mb-10">
           <StatCard
             title="Пройдено тестов"
@@ -230,7 +228,6 @@ export default function DashboardPage() {
           />
         </section>
 
-        {/* Leaderboard CTA */}
         <Link
           to="/leaderboard"
           className="group flex items-center justify-between p-5 mb-10 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl hover:border-amber-300 dark:hover:border-amber-700 transition-colors animate-fade-in"
@@ -249,7 +246,6 @@ export default function DashboardPage() {
           <ChevronRight className="w-5 h-5 text-slate-400 group-hover:translate-x-1 transition-transform" />
         </Link>
 
-        {/* Recent Achievements */}
         {recentAchievements.length > 0 && (
           <section className="mb-10 animate-fade-in">
             <div className="flex items-center justify-between mb-5">
@@ -279,7 +275,6 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* Subjects Grid */}
         <section className="animate-fade-in">
           <div className="mb-5">
             <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-50">

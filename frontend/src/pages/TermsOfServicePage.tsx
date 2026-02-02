@@ -77,14 +77,18 @@ export default function TermsOfServicePage() {
 
             <h2 className="text-2xl font-semibold text-gray-900 mt-6 mb-4">6. Изменение условий</h2>
             <p className="text-gray-700 mb-4">
-              Администрация оставляет за собой право изменять условия настоящего соглашения.
+              6.1. Администрация оставляет за собой право изменять условия настоящего соглашения.
               Пользователи будут уведомлены об изменениях через платформу.
+            </p>
+            <p className="text-gray-700 mb-4">
+              6.2. Администрация оставляет за собой право блокировать аккаунты пользователей в случае
+              нарушения условий соглашения.
             </p>
 
             <h2 className="text-2xl font-semibold text-gray-900 mt-6 mb-4">7. Контакты</h2>
             <p className="text-gray-700 mb-4">
               По всем вопросам, связанным с использованием платформы, вы можете обратиться по
-              адресу: sarli64@mail.ru
+              адресу: princeofscale812@proton.me
             </p>
 
             <p className="text-gray-600 text-sm mt-8">

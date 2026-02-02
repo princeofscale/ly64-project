@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import importPlugin from 'eslint-plugin-import';
@@ -8,83 +9,53 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import prettier from 'eslint-config-prettier';
 
-const OFF = 'off';
-const WARN = 'warn';
-const ERROR = 'error';
+export default defineConfig([
+  // Global ignores
+  globalIgnores([
+    '**/node_modules/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/coverage/**',
+    '**/.next/**',
+    '**/.turbo/**',
+    '**/.cache/**',
+    '**/*.min.*',
+    '**/*.snap',
+    '**/generated/**',
+    '**/eslint.config.*',
+  ]),
 
-const JS_GLOBS = ['**/*.{js,cjs,mjs,jsx}'];
-const TS_GLOBS = ['**/*.{ts,tsx,mts,cts}'];
-
-export default tseslint.config(
-  // --------------------
-  // 0) Ignores
-  // --------------------
-  {
-    ignores: [
-      '**/eslint.config.*',
-      '**/.eslintrc.*',
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/coverage/**',
-      '**/.next/**',
-      '**/.turbo/**',
-      '**/.cache/**',
-      '**/*.min.*',
-      '**/*.snap',
-      '**/generated/**',
-    ],
-  },
-
-  // --------------------
-  // 1) Base JS recommended (для JS файлов)
-  // --------------------
+  // Base JS recommended
   js.configs.recommended,
 
-  // --------------------
-  // 2) TS recommended БЕЗ type-aware (без project) — безопасно для всего
-  // --------------------
+  // TypeScript recommended
   ...tseslint.configs.recommended,
 
-  // --------------------
-  // 3) Общие настройки для всего
-  // --------------------
+  // Common settings for all files
   {
+    name: 'common-settings',
     files: ['**/*.{js,cjs,mjs,jsx,ts,tsx,mts,cts}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
     },
     linterOptions: {
-      reportUnusedDisableDirectives: true,
+      reportUnusedDisableDirectives: 'error',
     },
   },
 
-  // --------------------
-  // 4) Import / unused-imports (для всего)
-  // --------------------
+  // Import and unused-imports plugins
   {
+    name: 'import-rules',
     files: ['**/*.{js,cjs,mjs,jsx,ts,tsx,mts,cts}'],
     plugins: {
       import: importPlugin,
       'unused-imports': unusedImports,
     },
-    settings: {
-      'import/resolver': {
-        typescript: {
-          alwaysTryTypes: true,
-          project: [
-            './backend/tsconfig.eslint.json',
-            './frontend/tsconfig.eslint.json',
-            './shared/tsconfig.eslint.json',
-          ],
-        },
-      },
-    },
     rules: {
-      'unused-imports/no-unused-imports': ERROR,
+      'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [
-        WARN,
+        'warn',
         {
           vars: 'all',
           varsIgnorePattern: '^_',
@@ -93,51 +64,38 @@ export default tseslint.config(
           ignoreRestSiblings: true,
         },
       ],
-
       'import/order': [
-        WARN,
+        'warn',
         {
-          groups: [
-            'builtin',
-            'external',
-            'internal',
-            'parent',
-            'sibling',
-            'index',
-            'object',
-            'type',
-          ],
+          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
           'newlines-between': 'always',
           alphabetize: { order: 'asc', caseInsensitive: true },
         },
       ],
-      'import/newline-after-import': WARN,
-      'import/no-duplicates': WARN,
-
-      'import/no-unresolved': OFF,
-      'import/named': OFF,
-      'import/namespace': OFF,
-      'import/default': OFF,
+      'import/newline-after-import': 'warn',
+      'import/no-duplicates': 'warn',
+      'import/no-unresolved': 'off',
+      'import/named': 'off',
+      'import/namespace': 'off',
+      'import/default': 'off',
     },
   },
 
-  // --------------------
-  // 5) BACKEND (Node) — JS/TS
-  // --------------------
+  // Backend (Node.js)
   {
+    name: 'backend-node',
     files: ['backend/**/*.{js,cjs,mjs,ts,mts,cts}', 'scripts/**/*.{js,cjs,mjs,ts,mts,cts}'],
     languageOptions: {
       globals: { ...globals.node },
     },
     rules: {
-      'no-console': OFF,
+      'no-console': 'off',
     },
   },
 
-  // --------------------
-  // 6) FRONTEND (React) — JS/TS/TSX/JSX
-  // --------------------
+  // Frontend (React)
   {
+    name: 'frontend-react',
     files: ['frontend/**/*.{js,jsx,ts,tsx,mjs,cjs}'],
     plugins: {
       react,
@@ -154,59 +112,45 @@ export default tseslint.config(
       ...react.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       ...jsxA11y.configs.recommended.rules,
-      'react/react-in-jsx-scope': OFF,
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
     },
   },
 
-  // --------------------
-  // 7) SHARED — универсально
-  // --------------------
+  // Shared (universal)
   {
+    name: 'shared',
     files: ['shared/**/*.{js,jsx,ts,tsx,mjs,cjs}'],
     languageOptions: {
       globals: { ...globals.node, ...globals.browser },
     },
   },
 
-  // --------------------
-  // 8) TYPED LINT — ТОЛЬКО ДЛЯ TS/TSX, с project
-  // --------------------
+  // TypeScript type-checked rules
   {
-    files: TS_GLOBS,
+    name: 'typescript-typed',
+    files: ['**/*.{ts,tsx,mts,cts}'],
     languageOptions: {
       parserOptions: {
-        // multi-project: нормально для монорепы
-        project: [
-          './backend/tsconfig.eslint.json',
-          './frontend/tsconfig.eslint.json',
-          './shared/tsconfig.eslint.json',
-        ],
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
-        // чтобы убрать предупреждение про multiple projects:
-        // (это именно warning typescript-eslint)
-        noWarnOnMultipleProjects: true,
       },
     },
     rules: {
-      '@typescript-eslint/no-floating-promises': ERROR,
-      '@typescript-eslint/await-thenable': ERROR,
-      '@typescript-eslint/no-misused-promises': ERROR,
-      '@typescript-eslint/unbound-method': WARN,
-
-      '@typescript-eslint/no-explicit-any': WARN,
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/await-thenable': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/unbound-method': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/consistent-type-imports': [
-        WARN,
+        'warn',
         { prefer: 'type-imports', fixStyle: 'separate-type-imports' },
       ],
-
-      // конфликтует с unused-imports/no-unused-vars
-      '@typescript-eslint/no-unused-vars': OFF,
-      'no-unused-vars': OFF,
+      '@typescript-eslint/no-unused-vars': 'off',
+      'no-unused-vars': 'off',
     },
   },
 
-  // --------------------
-  // 9) Prettier-last
-  // --------------------
-  prettier
-);
+  // Prettier (last)
+  prettier,
+]);

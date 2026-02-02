@@ -4,15 +4,24 @@ import {
   CURRENT_GRADE_LABELS,
   USER_STATUS_LABELS,
 } from '@lyceum64/shared';
+import {
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  ArrowRight,
+  GraduationCap,
+  User,
+  Mail,
+  Lock,
+  CheckCircle2,
+  AlertCircle,
+  BookOpen,
+  Users,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate, Link } from 'react-router-dom';
 
-import { Button } from '../components/Button';
-import { Input } from '../components/Input';
-import { ProgressBar } from '../components/ProgressBar';
-import { Select } from '../components/Select';
-import { Textarea } from '../components/Textarea';
 import { useAuthStore } from '../store/authStore';
 
 interface RegisterFormData {
@@ -91,31 +100,26 @@ export default function RegisterPage() {
     if (!email) return '';
 
     if (/[а-яА-ЯёЁ]/.test(email)) {
-      return 'Email не может содержать кириллицу. Используйте только латинские буквы';
+      return 'Email не может содержать кириллицу';
     }
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
-      return 'Некорректный формат email. Пример: example@gmail.com';
+      return 'Некорректный формат email';
     }
 
     const localPart = email.split('@')[0];
-    if (localPart.length < 3) {
+    if (localPart && localPart.length < 3) {
       return 'Часть email до @ должна содержать минимум 3 символа';
-    }
-
-    const randomPattern = /^[a-z]{10,}$/i;
-    if (randomPattern.test(localPart.replace(/[0-9._+-]/g, ''))) {
-      return 'Email выглядит подозрительно. Используйте настоящий адрес';
     }
 
     return '';
   };
 
-  const updateField = (field: keyof RegisterFormData, value: any) => {
+  const updateField = (field: keyof RegisterFormData, value: unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
 
-    if (field === 'email') {
+    if (field === 'email' && typeof value === 'string') {
       setEmailTouched(true);
       setEmailError(validateEmail(value));
     }
@@ -124,41 +128,17 @@ export default function RegisterPage() {
   const getPasswordStrength = (
     password: string
   ): { score: number; label: string; color: string } => {
-    if (!password) return { score: 0, label: '', color: 'bg-gray-700' };
+    if (!password) return { score: 0, label: '', color: 'bg-slate-200' };
 
     let score = 0;
-    const checks = {
-      length: password.length >= 8,
-      lowercase: /[a-z]/.test(password),
-      uppercase: /[A-Z]/.test(password),
-      number: /[0-9]/.test(password),
-      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
-      longLength: password.length >= 12,
-    };
+    if (password.length >= 8) score += 25;
+    if (/[a-z]/.test(password)) score += 25;
+    if (/[A-Z]/.test(password)) score += 25;
+    if (/[0-9]/.test(password)) score += 25;
 
-    if (checks.length) score += 20;
-    if (checks.lowercase) score += 20;
-    if (checks.uppercase) score += 20;
-    if (checks.number) score += 20;
-
-    if (checks.special) score += 10;
-    if (checks.longLength) score += 10;
-
-    let label = '';
-    let color = '';
-
-    if (score < 60) {
-      label = 'Слабый';
-      color = 'bg-gradient-to-r from-red-500 to-red-600';
-    } else if (score < 80) {
-      label = 'Средний';
-      color = 'bg-gradient-to-r from-yellow-500 to-orange-500';
-    } else {
-      label = 'Сильный';
-      color = 'bg-gradient-to-r from-green-500 to-emerald-500';
-    }
-
-    return { score, label, color };
+    if (score < 50) return { score, label: 'Слабый', color: 'bg-red-500' };
+    if (score < 75) return { score, label: 'Средний', color: 'bg-amber-500' };
+    return { score, label: 'Сильный', color: 'bg-emerald-500' };
   };
 
   const validateStep = (): boolean => {
@@ -168,7 +148,7 @@ export default function RegisterPage() {
         return false;
       }
       if (emailError) {
-        toast.error('Исправьте ошибки в форме');
+        toast.error('Исправьте ошибки в email');
         return false;
       }
       if (formData.password !== formData.confirmPassword) {
@@ -179,26 +159,17 @@ export default function RegisterPage() {
         toast.error('Пароль должен содержать минимум 8 символов');
         return false;
       }
-      if (!/[a-z]/.test(formData.password)) {
-        toast.error('Пароль должен содержать хотя бы одну строчную букву');
-        return false;
-      }
-      if (!/[A-Z]/.test(formData.password)) {
-        toast.error('Пароль должен содержать хотя бы одну заглавную букву');
-        return false;
-      }
-      if (!/[0-9]/.test(formData.password)) {
-        toast.error('Пароль должен содержать хотя бы одну цифру');
+      if (!/[a-z]/.test(formData.password) || !/[A-Z]/.test(formData.password) || !/[0-9]/.test(formData.password)) {
+        toast.error('Пароль должен содержать строчные, заглавные буквы и цифры');
         return false;
       }
     } else if (step === 2) {
       if (formData.status === 'STUDENT' && !formData.name) {
-        toast.error('Выберите своё имя из списка учащихся');
+        toast.error('Выберите своё имя из списка');
         return false;
       }
     } else if (step === 4 && formData.status === 'APPLICANT') {
-      if (!formData.motivation || formData.motivation.length < 50) {
-        toast.error('Мотивация должна содержать минимум 50 символов');
+      if (!formData.motivation) {
         return false;
       }
     } else if (step === totalSteps) {
@@ -211,10 +182,7 @@ export default function RegisterPage() {
   };
 
   const handleNext = () => {
-    if (!validateStep()) {
-      return;
-    }
-
+    if (!validateStep()) return;
     setStep(prev => Math.min(prev + 1, totalSteps));
   };
 
@@ -223,18 +191,14 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async () => {
-    if (!validateStep()) {
-      return;
-    }
+    if (!validateStep()) return;
 
     setLoading(true);
 
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
@@ -251,18 +215,8 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        if (data.message && data.message.includes('уже существует')) {
+        if (data.message?.includes('уже существует')) {
           setShowExistingEmailModal(true);
-        } else if (data.errors && Array.isArray(data.errors)) {
-          const emailErrors = data.errors.filter((e: any) => e.path && e.path.includes('email'));
-          if (emailErrors.length > 0) {
-            setStep(1);
-            setEmailError(emailErrors[0].message);
-            setEmailTouched(true);
-            toast.error('Пожалуйста, исправьте ошибки в форме');
-          } else {
-            toast.error(data.errors[0]?.message || 'Ошибка валидации данных');
-          }
         } else {
           toast.error(data.message || 'Ошибка регистрации');
         }
@@ -270,546 +224,397 @@ export default function RegisterPage() {
       }
 
       toast.success('Регистрация успешна!');
-
       useAuthStore
         .getState()
         .login(data.data.user, data.data.token, data.data.refreshToken, data.data.expiresIn);
-
       setTimeout(() => navigate('/dashboard'), 1500);
-    } catch (err: any) {
-      toast.error(err.message || 'Произошла ошибка при регистрации');
+    } catch {
+      toast.error('Произошла ошибка при регистрации');
     } finally {
       setLoading(false);
     }
   };
 
-  const currentStep = step;
-  const displayTotalSteps = totalSteps;
+  const passwordStrength = getPasswordStrength(formData.password);
 
   return (
-    <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden py-12 px-4">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-4">
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+      <div className="fixed bottom-0 left-0 w-[400px] h-[400px] bg-violet-100/40 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
-      <div className="absolute top-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />
-      <div
-        className="absolute bottom-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse"
-        style={{ animationDelay: '1s' }}
-      />
+      <div className="relative z-10 max-w-xl mx-auto">
+        <Link to="/" className="flex items-center justify-center gap-3 mb-8">
+          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/25">
+            <GraduationCap className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <p className="font-bold text-slate-900">Лицей-интернат №64</p>
+            <p className="text-sm text-slate-500">Платформа подготовки</p>
+          </div>
+        </Link>
 
-      <div className="relative z-10 max-w-2xl mx-auto">
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-[0_0_50px_rgba(6,182,212,0.1)] animate-slide-up">
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/50 animate-fade-in">
           <div className="text-center mb-8">
-            <h1 className="text-5xl font-display font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
-              Регистрация
-            </h1>
-            <p className="text-gray-400 text-lg font-sans">
-              Начните подготовку к поступлению в лицей
-            </p>
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Создать аккаунт</h1>
+            <p className="text-slate-500">Шаг {step} из {totalSteps}</p>
           </div>
 
-          <ProgressBar current={currentStep} total={displayTotalSteps} className="mb-8" />
+          <div className="mb-8">
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                style={{ width: `${(step / totalSteps) * 100}%` }}
+              />
+            </div>
+          </div>
 
           {step === 1 && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-display font-semibold text-white mb-6 flex items-center">
-                <span className="w-2 h-2 bg-cyan-400 rounded-full mr-3 animate-pulse" />
+            <div className="space-y-5 animate-fade-in">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                <User className="w-5 h-5 text-blue-600" />
                 Основная информация
               </h2>
 
-              <Input
-                label="Имя и фамилия"
-                value={formData.name}
-                onChange={e => updateField('name', e.target.value)}
-                placeholder="Иван Иванов"
-                required
-              />
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Имя и фамилия</label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                    <User className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={e => updateField('name', e.target.value)}
+                    placeholder="Иван Иванов"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  />
+                </div>
+              </div>
 
               <div>
-                <div className="mb-2">
-                  <Input
-                    label="Email"
+                <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                    <Mail className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <input
                     type="email"
                     value={formData.email}
                     onChange={e => updateField('email', e.target.value)}
                     onBlur={() => setEmailTouched(true)}
-                    placeholder="ivan.ivanov@example.com"
-                    required
+                    placeholder="ivan@example.com"
+                    className={`w-full pl-12 pr-12 py-3 bg-slate-50 border rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${
+                      emailTouched && emailError
+                        ? 'border-red-300 focus:border-red-500'
+                        : emailTouched && formData.email && !emailError
+                          ? 'border-emerald-300 focus:border-emerald-500'
+                          : 'border-slate-200 focus:border-blue-500'
+                    }`}
                   />
-                  <p className="mt-2 text-xs text-gray-500 font-sans">
-                    Используйте настоящий email адрес. Только латинские буквы, цифры и символы . _ %
-                    + -
-                  </p>
+                  {emailTouched && formData.email && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                      {emailError ? (
+                        <AlertCircle className="w-5 h-5 text-red-500" />
+                      ) : (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                      )}
+                    </div>
+                  )}
                 </div>
                 {emailTouched && emailError && (
-                  <div className="mt-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl backdrop-blur-sm">
-                    <div className="flex items-start gap-3">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-                        />
-                      </svg>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-red-300 font-sans">{emailError}</p>
-                        <p className="text-xs text-red-400 mt-1 font-sans">
-                          Пожалуйста, исправьте email чтобы продолжить
-                        </p>
-                        <div className="mt-3 text-xs text-gray-400">
-                          <p className="font-medium mb-2 font-sans">Примеры правильных email:</p>
-                          <ul className="list-disc list-inside space-y-1 text-gray-500 font-mono">
-                            <li>ivan.petrov@gmail.com</li>
-                            <li>student2024@mail.ru</li>
-                            <li>my.email@yandex.ru</li>
-                          </ul>
-                        </div>
+                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {emailError}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Пароль</label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                    <Lock className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={e => updateField('password', e.target.value)}
+                    placeholder="Минимум 8 символов"
+                    className="w-full pl-12 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+
+                {formData.password && (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-500">Сила пароля:</span>
+                      <span className={`font-medium ${
+                        passwordStrength.score < 50 ? 'text-red-600' :
+                        passwordStrength.score < 75 ? 'text-amber-600' : 'text-emerald-600'
+                      }`}>
+                        {passwordStrength.label}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${passwordStrength.color} rounded-full transition-all`}
+                        style={{ width: `${passwordStrength.score}%` }}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
+                      <div className={`flex items-center gap-1 ${formData.password.length >= 8 ? 'text-emerald-600' : ''}`}>
+                        {formData.password.length >= 8 ? <CheckCircle2 className="w-3 h-3" /> : <span className="w-3 h-3 rounded-full border border-current" />}
+                        8+ символов
+                      </div>
+                      <div className={`flex items-center gap-1 ${/[a-z]/.test(formData.password) ? 'text-emerald-600' : ''}`}>
+                        {/[a-z]/.test(formData.password) ? <CheckCircle2 className="w-3 h-3" /> : <span className="w-3 h-3 rounded-full border border-current" />}
+                        Строчная буква
+                      </div>
+                      <div className={`flex items-center gap-1 ${/[A-Z]/.test(formData.password) ? 'text-emerald-600' : ''}`}>
+                        {/[A-Z]/.test(formData.password) ? <CheckCircle2 className="w-3 h-3" /> : <span className="w-3 h-3 rounded-full border border-current" />}
+                        Заглавная буква
+                      </div>
+                      <div className={`flex items-center gap-1 ${/[0-9]/.test(formData.password) ? 'text-emerald-600' : ''}`}>
+                        {/[0-9]/.test(formData.password) ? <CheckCircle2 className="w-3 h-3" /> : <span className="w-3 h-3 rounded-full border border-current" />}
+                        Цифра
                       </div>
                     </div>
-                  </div>
-                )}
-                {emailTouched && !emailError && formData.email && (
-                  <div className="mt-2 flex items-center gap-2 text-sm text-green-400 font-sans">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-5 h-5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <span>Email корректный</span>
                   </div>
                 )}
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Подтвердите пароль</label>
                 <div className="relative">
-                  <Input
-                    label="Пароль"
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={e => updateField('password', e.target.value)}
-                    placeholder="Минимум 8 символов"
-                    required
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                    <Lock className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={formData.confirmPassword}
+                    onChange={e => updateField('confirmPassword', e.target.value)}
+                    placeholder="Повторите пароль"
+                    className={`w-full pl-12 pr-12 py-3 bg-slate-50 border rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${
+                      formData.confirmPassword && formData.password !== formData.confirmPassword
+                        ? 'border-red-300'
+                        : formData.confirmPassword && formData.password === formData.confirmPassword
+                          ? 'border-emerald-300'
+                          : 'border-slate-200'
+                    }`}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-9 text-gray-400 hover:text-cyan-400 focus:outline-none transition-colors"
-                    aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
-                    {showPassword ? (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-5 h-5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-5 h-5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                    )}
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-
-                {formData.password && (
-                  <div className="mt-4 p-4 bg-gray-800/50 border border-gray-700/50 rounded-xl backdrop-blur-sm">
-                    <div className="flex items-center justify-between text-sm mb-3">
-                      <span className="text-gray-400 font-sans">Сила пароля:</span>
-                      <span
-                        className={`font-semibold font-sans ${
-                          getPasswordStrength(formData.password).score < 60
-                            ? 'text-red-400'
-                            : getPasswordStrength(formData.password).score < 80
-                              ? 'text-yellow-400'
-                              : 'text-green-400'
-                        }`}
-                      >
-                        {getPasswordStrength(formData.password).label}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden mb-4">
-                      <div
-                        className={`h-full transition-all duration-500 ${getPasswordStrength(formData.password).color}`}
-                        style={{ width: `${getPasswordStrength(formData.password).score}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-gray-400 space-y-2 font-sans">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={
-                            formData.password.length >= 8 ? 'text-green-400' : 'text-gray-600'
-                          }
-                        >
-                          {formData.password.length >= 8 ? '✓' : '○'}
-                        </span>
-                        <span>Минимум 8 символов</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={
-                            /[a-z]/.test(formData.password) ? 'text-green-400' : 'text-gray-600'
-                          }
-                        >
-                          {/[a-z]/.test(formData.password) ? '✓' : '○'}
-                        </span>
-                        <span>Строчная буква</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={
-                            /[A-Z]/.test(formData.password) ? 'text-green-400' : 'text-gray-600'
-                          }
-                        >
-                          {/[A-Z]/.test(formData.password) ? '✓' : '○'}
-                        </span>
-                        <span>Заглавная буква</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={
-                            /[0-9]/.test(formData.password) ? 'text-green-400' : 'text-gray-600'
-                          }
-                        >
-                          {/[0-9]/.test(formData.password) ? '✓' : '○'}
-                        </span>
-                        <span>Цифра</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={
-                            /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)
-                              ? 'text-green-400'
-                              : 'text-gray-600'
-                          }
-                        >
-                          {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)
-                            ? '✓'
-                            : '○'}
-                        </span>
-                        <span>Специальный символ (необязательно)</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="relative">
-                <Input
-                  label="Подтвердите пароль"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={formData.confirmPassword}
-                  onChange={e => updateField('confirmPassword', e.target.value)}
-                  placeholder="Повторите пароль"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-9 text-gray-400 hover:text-cyan-400 focus:outline-none transition-colors"
-                  aria-label={showConfirmPassword ? 'Скрыть пароль' : 'Показать пароль'}
-                >
-                  {showConfirmPassword ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-5 h-5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-5 h-5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                  )}
-                </button>
               </div>
             </div>
           )}
 
           {step === 2 && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-display font-semibold text-white mb-6 flex items-center">
-                <span
-                  className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse"
-                  style={{ animationDelay: '0.5s' }}
-                />
+            <div className="space-y-5 animate-fade-in">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-blue-600" />
                 Ваш статус
               </h2>
 
-              <button
-                onClick={() => updateField('status', 'STUDENT')}
-                className={`group w-full p-6 border-2 rounded-2xl transition-all duration-300 ${
-                  formData.status === 'STUDENT'
-                    ? 'border-cyan-500 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 shadow-[0_0_30px_rgba(6,182,212,0.3)]'
-                    : 'border-gray-700 hover:border-cyan-500/50 hover:bg-gray-800/50'
-                }`}
-              >
-                <div className="font-display font-semibold text-xl text-white">
-                  {USER_STATUS_LABELS.STUDENT}
-                </div>
-              </button>
+              <div className="grid gap-4">
+                <button
+                  type="button"
+                  onClick={() => updateField('status', 'STUDENT')}
+                  className={`w-full p-5 border-2 rounded-xl text-left transition-all ${
+                    formData.status === 'STUDENT'
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-slate-200 hover:border-slate-300 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      formData.status === 'STUDENT' ? 'border-blue-500' : 'border-slate-300'
+                    }`}>
+                      {formData.status === 'STUDENT' && <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900">{USER_STATUS_LABELS.STUDENT}</p>
+                      <p className="text-sm text-slate-500">Уже учусь в лицее</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => updateField('status', 'APPLICANT')}
+                  className={`w-full p-5 border-2 rounded-xl text-left transition-all ${
+                    formData.status === 'APPLICANT'
+                      ? 'border-violet-500 bg-violet-50'
+                      : 'border-slate-200 hover:border-slate-300 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      formData.status === 'APPLICANT' ? 'border-violet-500' : 'border-slate-300'
+                    }`}>
+                      {formData.status === 'APPLICANT' && <div className="w-2.5 h-2.5 rounded-full bg-violet-500" />}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900">{USER_STATUS_LABELS.APPLICANT}</p>
+                      <p className="text-sm text-slate-500">Готовлюсь к поступлению</p>
+                    </div>
+                  </div>
+                </button>
+              </div>
 
               {formData.status === 'STUDENT' && (
-                <div className="relative animate-scale-in">
-                  <label className="block text-sm font-medium text-gray-400 mb-2 font-sans">
-                    Выберите своё имя из списка учащихся
+                <div className="mt-6 animate-fade-in">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Выберите своё имя из списка
                   </label>
-                  <input
-                    type="text"
-                    value={studentSearch}
-                    onChange={e => {
-                      setStudentSearch(e.target.value);
-                      updateField('name', '');
-                      setShowStudentDropdown(true);
-                    }}
-                    onFocus={() => setShowStudentDropdown(true)}
-                    placeholder={studentsLoading ? 'Загрузка списка...' : 'Начните вводить ФИО...'}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all font-sans"
-                    disabled={studentsLoading}
-                  />
-                  {showStudentDropdown && filteredStudents.length > 0 && (
-                    <div className="absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded-xl shadow-xl max-h-60 overflow-y-auto backdrop-blur-xl">
-                      {filteredStudents.map((student, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => {
-                            updateField('name', student);
-                            setStudentSearch(student);
-                            setShowStudentDropdown(false);
-                          }}
-                          className="w-full px-4 py-3 text-left text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-400 focus:bg-cyan-500/10 focus:text-cyan-400 focus:outline-none transition-colors font-sans"
-                        >
-                          {student}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {formData.name && formData.status === 'STUDENT' && (
-                    <p className="mt-2 text-sm text-green-400 font-sans flex items-center gap-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-5 h-5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={studentSearch}
+                      onChange={e => {
+                        setStudentSearch(e.target.value);
+                        updateField('name', '');
+                        setShowStudentDropdown(true);
+                      }}
+                      onFocus={() => setShowStudentDropdown(true)}
+                      placeholder={studentsLoading ? 'Загрузка...' : 'Начните вводить ФИО'}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      disabled={studentsLoading}
+                    />
+                    {showStudentDropdown && filteredStudents.length > 0 && (
+                      <div className="absolute z-10 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                        {filteredStudents.map((student, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => {
+                              updateField('name', student);
+                              setStudentSearch(student);
+                              setShowStudentDropdown(false);
+                            }}
+                            className="w-full px-4 py-3 text-left text-slate-700 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 transition-colors"
+                          >
+                            {student}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {formData.name && (
+                    <p className="mt-2 text-sm text-emerald-600 flex items-center gap-1">
+                      <CheckCircle2 className="w-4 h-4" />
                       Выбрано: {formData.name}
                     </p>
                   )}
                 </div>
               )}
-
-              <button
-                onClick={() => updateField('status', 'APPLICANT')}
-                className={`group w-full p-6 border-2 rounded-2xl transition-all duration-300 ${
-                  formData.status === 'APPLICANT'
-                    ? 'border-purple-500 bg-gradient-to-r from-purple-500/10 to-pink-500/10 shadow-[0_0_30px_rgba(168,85,247,0.3)]'
-                    : 'border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/50'
-                }`}
-              >
-                <div className="font-display font-semibold text-xl text-white">
-                  {USER_STATUS_LABELS.APPLICANT}
-                </div>
-              </button>
             </div>
           )}
 
           {step === 3 && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-display font-semibold text-white mb-6 flex items-center">
-                <span className="w-2 h-2 bg-cyan-400 rounded-full mr-3 animate-pulse" />
+            <div className="space-y-5 animate-fade-in">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-blue-600" />
                 Учебная информация
               </h2>
 
-              <Select
-                label="Текущий класс"
-                value={formData.currentGrade.toString()}
-                onChange={e => updateField('currentGrade', parseInt(e.target.value))}
-                options={AVAILABLE_GRADES.map(grade => ({
-                  value: grade.toString(),
-                  label: CURRENT_GRADE_LABELS[grade],
-                }))}
-                required
-              />
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Текущий класс</label>
+                <select
+                  value={formData.currentGrade}
+                  onChange={e => updateField('currentGrade', parseInt(e.target.value))}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                >
+                  {AVAILABLE_GRADES.map(grade => (
+                    <option key={grade} value={grade}>
+                      {CURRENT_GRADE_LABELS[grade]}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               {formData.status === 'APPLICANT' && (
-                <Select
-                  label="Желаемое направление"
-                  value={formData.desiredDirection}
-                  onChange={e => updateField('desiredDirection', e.target.value)}
-                  options={[
-                    { value: '', label: 'Выберите направление' },
-                    ...Object.entries(DIRECTION_LABELS).map(([key, label]) => ({
-                      value: key,
-                      label,
-                    })),
-                  ]}
-                />
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Желаемое направление
+                  </label>
+                  <select
+                    value={formData.desiredDirection}
+                    onChange={e => updateField('desiredDirection', e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  >
+                    <option value="">Выберите направление</option>
+                    {Object.entries(DIRECTION_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               )}
             </div>
           )}
 
           {step === 4 && formData.status === 'APPLICANT' && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-display font-semibold text-white mb-6 flex items-center">
-                <span
-                  className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse"
-                  style={{ animationDelay: '0.5s' }}
-                />
-                Мотивация
+            <div className="space-y-5 animate-fade-in">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">
+                Почему вы хотите поступить в лицей?
               </h2>
 
-              <Textarea
-                label="Почему вы хотите поступить в лицей?"
-                value={formData.motivation}
-                onChange={e => updateField('motivation', e.target.value)}
-                placeholder="Расскажите о своих целях и мотивации (минимум 50 символов)"
-                rows={6}
-                required
-              />
-
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-400 font-sans">
-                  Символов:{' '}
-                  <span
-                    className={
-                      formData.motivation.length >= 50 ? 'text-green-400' : 'text-gray-500'
-                    }
-                  >
-                    {formData.motivation.length}
-                  </span>{' '}
-                  / 1000
-                </p>
-                {formData.motivation.length >= 50 && (
-                  <span className="text-sm text-green-400 font-sans flex items-center gap-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-4 h-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    Готово
-                  </span>
-                )}
+              <div>
+                <textarea
+                  value={formData.motivation}
+                  onChange={e => updateField('motivation', e.target.value)}
+                  placeholder="Расскажите о своих целях и мотивации..."
+                  rows={6}
+                  maxLength={1000}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"
+                />
+                <div className="mt-2 flex items-center justify-between text-sm">
+                  <span className="text-slate-400">{formData.motivation.length} / 1000</span>
+                </div>
               </div>
             </div>
           )}
 
           {step === totalSteps && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-display font-semibold text-white mb-6 flex items-center">
-                <span className="w-2 h-2 bg-cyan-400 rounded-full mr-3 animate-pulse" />
+            <div className="space-y-5 animate-fade-in">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">
                 Условия использования
               </h2>
 
-              <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 max-h-64 overflow-y-auto backdrop-blur-sm">
-                <p className="text-sm text-gray-300 font-sans leading-relaxed">
-                  Регистрируясь на платформе, вы соглашаетесь с условиями использования...
-                  <br />
-                  <br />
-                  Подробнее см.{' '}
-                  <Link
-                    to="/terms"
-                    target="_blank"
-                    className="text-cyan-400 hover:text-cyan-300 border-b border-cyan-400/0 hover:border-cyan-400 transition-all"
-                  >
-                    Условия использования
-                  </Link>
-                </p>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 max-h-48 overflow-y-auto text-sm text-slate-600">
+                Регистрируясь на платформе, вы соглашаетесь с условиями использования сервиса.
+                Мы обязуемся защищать ваши персональные данные в соответствии с законодательством РФ.
+                <br /><br />
+                Подробнее см.{' '}
+                <Link to="/terms" target="_blank" className="text-blue-600 hover:underline">
+                  Условия использования
+                </Link>
               </div>
 
-              <label className="flex items-start space-x-3 cursor-pointer group p-4 rounded-xl hover:bg-gray-800/30 transition-colors">
+              <label className="flex items-start gap-3 cursor-pointer p-4 rounded-xl hover:bg-slate-50 transition-colors">
                 <input
                   type="checkbox"
                   checked={formData.agreedToTerms}
                   onChange={e => updateField('agreedToTerms', e.target.checked)}
-                  className="mt-1 h-5 w-5 text-cyan-500 focus:ring-cyan-500 border-gray-600 rounded bg-gray-800"
+                  className="mt-0.5 h-5 w-5 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-300 font-sans">
+                <span className="text-sm text-slate-700">
                   Я прочитал и согласен с{' '}
-                  <Link
-                    to="/terms"
-                    target="_blank"
-                    className="text-cyan-400 hover:text-cyan-300 border-b border-cyan-400/0 hover:border-cyan-400 transition-all"
-                  >
+                  <Link to="/terms" target="_blank" className="text-blue-600 hover:underline">
                     условиями использования
                   </Link>
                 </span>
@@ -817,78 +622,93 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-700/50">
-            <Button variant="outline" onClick={handleBack} disabled={step === 1}>
+          <div className="flex justify-between mt-8 pt-6 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={handleBack}
+              disabled={step === 1}
+              className="px-6 py-3 text-slate-600 font-medium rounded-xl hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
               Назад
-            </Button>
+            </button>
 
             {step < totalSteps ? (
-              <Button
+              <button
+                type="button"
                 onClick={handleNext}
                 disabled={step === 1 && (!!emailError || !formData.email)}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-semibold rounded-xl transition-colors flex items-center gap-2 disabled:cursor-not-allowed"
               >
                 Далее
-              </Button>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             ) : (
-              <Button onClick={handleSubmit} disabled={loading || !formData.agreedToTerms}>
-                {loading ? 'Регистрация...' : 'Зарегистрироваться'}
-              </Button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading || !formData.agreedToTerms}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-semibold rounded-xl transition-colors flex items-center gap-2 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Регистрация...
+                  </>
+                ) : (
+                  <>
+                    Создать аккаунт
+                    <CheckCircle2 className="w-4 h-4" />
+                  </>
+                )}
+              </button>
             )}
           </div>
 
-          <p className="text-center text-sm text-gray-400 mt-6 font-sans">
+          <p className="text-center text-sm text-slate-500 mt-6">
             Уже есть аккаунт?{' '}
-            <Link
-              to="/login"
-              className="text-cyan-400 hover:text-cyan-300 font-semibold border-b border-cyan-400/0 hover:border-cyan-400 transition-all"
-            >
+            <Link to="/login" className="text-blue-600 font-semibold hover:text-blue-700">
               Войти
             </Link>
           </p>
         </div>
 
+        <div className="mt-6 text-center">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            На главную
+          </Link>
+        </div>
+
         {showExistingEmailModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-3xl shadow-2xl max-w-md w-full p-8 animate-scale-in">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-md w-full p-8 animate-scale-in">
               <div className="text-center mb-6">
-                <div className="mx-auto w-16 h-16 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-full flex items-center justify-center mb-4 border border-cyan-500/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-8 h-8 text-cyan-400"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-                    />
-                  </svg>
+                <div className="mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                  <User className="w-8 h-8 text-blue-600" />
                 </div>
-                <h3 className="text-3xl font-display font-bold text-white mb-3">
-                  Аккаунт уже существует
-                </h3>
-                <p className="text-gray-400 font-sans">
-                  Пользователь с email{' '}
-                  <span className="font-semibold text-cyan-400">{formData.email}</span> уже
-                  зарегистрирован в системе
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Аккаунт уже существует</h3>
+                <p className="text-slate-500">
+                  Пользователь с email <span className="font-semibold text-blue-600">{formData.email}</span> уже зарегистрирован
                 </p>
               </div>
 
               <div className="space-y-3">
-                <Button
+                <button
+                  type="button"
                   onClick={() => {
                     setShowExistingEmailModal(false);
                     navigate('/login', { state: { email: formData.email } });
                   }}
-                  className="w-full"
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
                 >
                   Войти в аккаунт
-                </Button>
-                <Button
-                  variant="outline"
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     setShowExistingEmailModal(false);
                     setStep(1);
@@ -896,10 +716,10 @@ export default function RegisterPage() {
                     setEmailError('');
                     setEmailTouched(false);
                   }}
-                  className="w-full"
+                  className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors"
                 >
-                  Изменить email
-                </Button>
+                  Использовать другой email
+                </button>
               </div>
             </div>
           </div>

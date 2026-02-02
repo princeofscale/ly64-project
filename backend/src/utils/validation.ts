@@ -24,7 +24,6 @@ interface ValidationConstants {
     readonly max: number;
   };
   readonly motivation: {
-    readonly minLength: number;
     readonly maxLength: number;
   };
 }
@@ -54,7 +53,6 @@ interface ValidationMessages {
     readonly tooHigh: string;
   };
   readonly motivation: {
-    readonly tooShort: string;
     readonly tooLong: string;
   };
   readonly terms: {
@@ -85,7 +83,6 @@ class ValidationSchemas {
       max: 11,
     },
     motivation: {
-      minLength: 50,
       maxLength: 1000,
     },
   };
@@ -115,7 +112,6 @@ class ValidationSchemas {
       tooHigh: 'Максимальный класс - 11',
     },
     motivation: {
-      tooShort: 'Мотивация должна содержать минимум 50 символов',
       tooLong: 'Мотивация слишком длинная',
     },
     terms: {
@@ -193,7 +189,6 @@ class ValidationSchemas {
   private createMotivationValidator() {
     return z
       .string()
-      .min(this.constants.motivation.minLength, { message: this.messages.motivation.tooShort })
       .max(this.constants.motivation.maxLength, { message: this.messages.motivation.tooLong })
       .optional();
   }

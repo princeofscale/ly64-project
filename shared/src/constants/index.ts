@@ -40,6 +40,7 @@ export const LYCEUM_INFO = {
   website: 'https://lic-int64-saratov-r64.gosweb.gosuslugi.ru',
   phone: '+7 (8452) 79-64-64',
   email: 'sarli64@mail.ru',
+  address: 'Ulitsa Stepana Razina, 71, Saratov, Saratov Oblast, 410012',
   totalStudents: 400,
   classSize: 20,
   admissionPeriod: {
