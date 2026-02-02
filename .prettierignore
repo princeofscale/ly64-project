@@ -1,0 +1,43 @@
+# Dependencies
+node_modules
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist
+build
+.next
+.turbo
+out
+
+# Cache & temporary
+.cache
+.temp
+.tmp
+tmp
+
+# Coverage
+coverage
+.nyc_output
+
+# Generated & minified
+generated
+*.min.*
+*.snap
+
+# IDE & OS
+.vscode
+.idea
+.DS_Store
+
+# Logs
+*.log
+
+# Public assets
+public
+static
+
+# Config files that should not be formatted
+.eslintcache
+tsconfig.tsbuildinfo

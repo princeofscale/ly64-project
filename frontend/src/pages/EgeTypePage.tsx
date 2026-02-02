@@ -11,7 +11,7 @@ export default function EgeTypePage() {
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-400 font-sans mb-4">Ошибка: данные не переданы</p>
-          <Button onClick={() => navigate('/dashboard')}>Вернуться к панели</Button>
+          <Button onClick={async () => navigate('/dashboard')}>Вернуться к панели</Button>
         </div>
       </div>
     );
@@ -32,7 +32,7 @@ export default function EgeTypePage() {
 
       <div className="relative z-10 max-w-5xl mx-auto">
         <button
-          onClick={() => navigate(-1)}
+          onClick={async () => navigate(-1)}
           className="group mb-6 flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors font-sans"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform">

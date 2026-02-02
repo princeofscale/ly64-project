@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getActiveTestService, ActiveTestData } from '../core/services';
 
@@ -8,18 +8,15 @@ interface UnfinishedTestBannerProps {
 
 export function UnfinishedTestBanner({ onAbandon }: UnfinishedTestBannerProps) {
   const navigate = useNavigate();
-  const [activeTest, setActiveTest] = useState<ActiveTestData | null>(null);
+  const service = getActiveTestService();
+  const initialActiveTest = service.getActiveTest();
+  const [activeTest, setActiveTest] = useState<ActiveTestData | null>(initialActiveTest);
   const [showConfirm, setShowConfirm] = useState(false);
-
-  useEffect(() => {
-    const service = getActiveTestService();
-    setActiveTest(service.getActiveTest());
-  }, []);
 
   if (!activeTest) return null;
 
   const handleContinue = () => {
-    navigate(activeTest.route);
+    void navigate(activeTest.route);
   };
 
   const handleAbandon = () => {

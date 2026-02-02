@@ -3,8 +3,9 @@
  * Компонент для вопросов с развернутым ответом
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { ITask } from '../../core/interfaces';
+import React, { useState, useCallback, useMemo } from 'react';
+
+import type { ITask } from '../../core/interfaces';
 
 interface DetailedQuestionProps {
   task: ITask;
@@ -22,19 +23,24 @@ export const DetailedQuestion: React.FC<DetailedQuestionProps> = ({
   isProof = false,
 }) => {
   const [localValue, setLocalValue] = useState(currentAnswer);
-  const [wordCount, setWordCount] = useState(0);
 
-  // Подсчет слов
-  useEffect(() => {
-    const words = localValue.trim().split(/\s+/).filter(w => w.length > 0);
-    setWordCount(words.length);
+  // Подсчет слов (используем useMemo вместо useEffect + useState)
+  const wordCount = useMemo(() => {
+    const words = localValue
+      .trim()
+      .split(/\s+/)
+      .filter(w => w.length > 0);
+    return words.length;
   }, [localValue]);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setLocalValue(value);
-    onAnswer(value);
-  }, [onAnswer]);
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      setLocalValue(value);
+      onAnswer(value);
+    },
+    [onAnswer]
+  );
 
   // Автоматическая регулировка высоты
   const handleInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
@@ -51,9 +57,7 @@ export const DetailedQuestion: React.FC<DetailedQuestionProps> = ({
         </label>
 
         {/* Индикатор баллов */}
-        <span className="text-sm text-purple-400 font-sans">
-          До {task.points} баллов
-        </span>
+        <span className="text-sm text-purple-400 font-sans">До {task.points} баллов</span>
       </div>
 
       <div className="relative">
@@ -113,8 +117,8 @@ export const DetailedQuestion: React.FC<DetailedQuestionProps> = ({
             />
           </svg>
           <p className="text-sm text-purple-300 font-sans">
-            Это задание требует развернутого ответа и будет проверено вручную.
-            Постарайтесь максимально подробно объяснить ход решения.
+            Это задание требует развернутого ответа и будет проверено вручную. Постарайтесь
+            максимально подробно объяснить ход решения.
           </p>
         </div>
       </div>

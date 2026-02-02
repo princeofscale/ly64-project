@@ -1,9 +1,10 @@
+import { SUBJECT_LABELS } from '@lyceum64/shared';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+
 import { Button } from '../components/Button';
 import { useAuthStore } from '../store/authStore';
-import { SUBJECT_LABELS } from '@lyceum64/shared';
 
 interface PlanItem {
   id: string;
@@ -43,7 +44,7 @@ export default function LearningPlanPage() {
       if (data.success) {
         setPlan(data.data);
       } else if (response.status === 404) {
-        navigate('/diagnostic');
+        navigate('/dashboard');
       }
     } catch (error) {
       toast.error('Ошибка загрузки плана');
@@ -97,29 +98,22 @@ export default function LearningPlanPage() {
       <div className="min-h-screen py-12 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-2xl font-bold mb-4">План обучения не найден</h1>
-          <p className="text-gray-600 mb-6">
-            Сначала пройдите входную диагностику
-          </p>
-          <Button onClick={() => navigate('/diagnostic')}>
-            Пройти диагностику
-          </Button>
+          <p className="text-gray-600 mb-6">План обучения будет доступен позже</p>
+          <Button onClick={async () => navigate('/dashboard')}>Перейти на дашборд</Button>
         </div>
       </div>
     );
   }
 
-  const progress = plan.totalHours > 0
-    ? Math.round((plan.completedHours / plan.totalHours) * 100)
-    : 0;
+  const progress =
+    plan.totalHours > 0 ? Math.round((plan.completedHours / plan.totalHours) * 100) : 0;
   const groupedItems = groupItemsBySubject(plan.items);
 
   return (
     <div className="min-h-screen py-12 px-4 bg-gray-50">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Персональный план обучения
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Персональный план обучения</h1>
           <p className="text-gray-600 mb-6">
             Следуйте плану для эффективной подготовки к поступлению
           </p>
@@ -143,9 +137,8 @@ export default function LearningPlanPage() {
         </div>
 
         {Object.entries(groupedItems).map(([subject, items]) => {
-          const subjectLabel =
-            SUBJECT_LABELS[subject as keyof typeof SUBJECT_LABELS] || subject;
-          const completedCount = items.filter((i) => i.completed).length;
+          const subjectLabel = SUBJECT_LABELS[subject as keyof typeof SUBJECT_LABELS] || subject;
+          const completedCount = items.filter(i => i.completed).length;
           const subjectProgress = Math.round((completedCount / items.length) * 100);
 
           return (
@@ -161,18 +154,16 @@ export default function LearningPlanPage() {
               </div>
 
               <div className="space-y-3">
-                {items.map((item) => (
+                {items.map(item => (
                   <div
                     key={item.id}
                     className={`flex items-center justify-between p-4 rounded-xl border ${
-                      item.completed
-                        ? 'bg-green-50 border-green-200'
-                        : 'bg-gray-50 border-gray-200'
+                      item.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <button
-                        onClick={() => !item.completed && markCompleted(item.id)}
+                        onClick={async () => !item.completed && markCompleted(item.id)}
                         className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                           item.completed
                             ? 'bg-green-500 border-green-500 text-white'
@@ -196,17 +187,11 @@ export default function LearningPlanPage() {
                           </svg>
                         )}
                       </button>
-                      <span
-                        className={
-                          item.completed ? 'line-through text-gray-500' : ''
-                        }
-                      >
+                      <span className={item.completed ? 'line-through text-gray-500' : ''}>
                         {item.topic}
                       </span>
                     </div>
-                    <span className="text-sm text-gray-500">
-                      {item.estimatedHours} ч
-                    </span>
+                    <span className="text-sm text-gray-500">{item.estimatedHours} ч</span>
                   </div>
                 ))}
               </div>

@@ -88,9 +88,13 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 export function withQuestionStyles<P extends object>(
   WrappedComponent: React.ComponentType<P>
 ): React.FC<P> {
-  return (props: P) => (
+  const WithStyles: React.FC<P> = (props: P) => (
     <div className="transition-all duration-200">
       <WrappedComponent {...props} />
     </div>
   );
+
+  WithStyles.displayName = `withQuestionStyles(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
+
+  return WithStyles;
 }

@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 import { Button } from '../components/Button';
-import { sdamgiaService, SdamgiaProblem } from '../services/sdamgiaService';
+import { sdamgiaService } from '../services/sdamgiaService';
+
+import type { SdamgiaProblem } from '../services/sdamgiaService';
 
 export default function SdamgiaTestPage() {
   const navigate = useNavigate();
@@ -63,9 +66,7 @@ export default function SdamgiaTestPage() {
     const answeredCount = Object.keys(answers).length;
     if (answeredCount < problems.length) {
       if (
-        !confirm(
-          `Вы ответили на ${answeredCount} из ${problems.length} вопросов. Завершить тест?`
-        )
+        !confirm(`Вы ответили на ${answeredCount} из ${problems.length} вопросов. Завершить тест?`)
       ) {
         return;
       }
@@ -76,7 +77,7 @@ export default function SdamgiaTestPage() {
 
   const calculateScore = () => {
     let correct = 0;
-    problems.forEach((problem) => {
+    problems.forEach(problem => {
       const userAnswer = answers[problem.id]?.trim().toLowerCase();
       const correctAnswer = problem.answer?.trim().toLowerCase();
       if (userAnswer === correctAnswer) {
@@ -120,9 +121,7 @@ export default function SdamgiaTestPage() {
             Правильно: {correct} из {total}
           </p>
           <div className="flex gap-4 justify-center">
-            <Button onClick={() => navigate('/dashboard')}>
-              На главную
-            </Button>
+            <Button onClick={async () => navigate('/dashboard')}>На главную</Button>
             <Button variant="outline" onClick={() => setShowResults(false)}>
               Посмотреть ответы
             </Button>
@@ -155,20 +154,20 @@ export default function SdamgiaTestPage() {
         <div className="mb-8 flex justify-between items-center">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                currentProblem.part === 1
-                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                  : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-              }`}>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  currentProblem.part === 1
+                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                    : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                }`}
+              >
                 Часть {currentProblem.part}
               </span>
               <p className="text-gray-400 text-sm font-sans">
                 {currentIndex + 1} из {problems.length}
               </p>
               {currentProblem.score && currentProblem.score > 1 && (
-                <span className="text-yellow-400 text-xs">
-                  {currentProblem.score} балла
-                </span>
+                <span className="text-yellow-400 text-xs">{currentProblem.score} балла</span>
               )}
             </div>
             <h2 className="text-2xl font-display font-bold text-white">
@@ -179,11 +178,16 @@ export default function SdamgiaTestPage() {
             )}
           </div>
           <button
-            onClick={() => navigate(-1)}
+            onClick={async () => navigate(-1)}
             className="text-gray-400 hover:text-white transition-colors"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -256,7 +260,7 @@ export default function SdamgiaTestPage() {
             <input
               type="text"
               value={answers[currentProblem.id] || ''}
-              onChange={(e) => handleAnswer(e.target.value)}
+              onChange={e => handleAnswer(e.target.value)}
               className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-cyan-500 transition-colors font-sans"
               placeholder="Введите ответ"
             />
@@ -277,11 +281,7 @@ export default function SdamgiaTestPage() {
 
         {/* Navigation */}
         <div className="flex justify-between items-center">
-          <Button
-            onClick={handlePrev}
-            disabled={currentIndex === 0}
-            variant="outline"
-          >
+          <Button onClick={handlePrev} disabled={currentIndex === 0} variant="outline">
             ← Предыдущий
           </Button>
 

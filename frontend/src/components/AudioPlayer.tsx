@@ -44,7 +44,7 @@ export function AudioPlayer({ audioUrl, title, playCount = 2 }: AudioPlayerProps
     if (isPlaying) {
       audio.pause();
     } else {
-      audio.play();
+      void audio.play();
     }
     setIsPlaying(!isPlaying);
   };
@@ -92,7 +92,9 @@ export function AudioPlayer({ audioUrl, title, playCount = 2 }: AudioPlayerProps
         </div>
       </div>
 
-      <audio ref={audioRef} src={audioUrl} preload="metadata" />
+      <audio ref={audioRef} src={audioUrl} preload="metadata">
+        <track kind="captions" />
+      </audio>
 
       <div className="space-y-4">
         <div className="flex items-center gap-4">

@@ -198,7 +198,7 @@ export function Header() {
                       <button
                         onClick={() => {
                           setIsMenuOpen(false);
-                          handleLogout();
+                          void handleLogout();
                         }}
                         className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors w-full"
                       >

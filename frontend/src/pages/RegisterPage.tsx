@@ -1,18 +1,35 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import toast from 'react-hot-toast';
-import { Button } from '../components/Button';
-import { Input } from '../components/Input';
-import { Select } from '../components/Select';
-import { Textarea } from '../components/Textarea';
-import { ProgressBar } from '../components/ProgressBar';
-import { useAuthStore } from '../store/authStore';
 import {
   DIRECTION_LABELS,
   AVAILABLE_GRADES,
   CURRENT_GRADE_LABELS,
   USER_STATUS_LABELS,
 } from '@lyceum64/shared';
+import {
+  User,
+  AtSign,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  GraduationCap,
+  Compass,
+  FileText,
+  CheckCircle2,
+  ArrowLeft,
+  Shield,
+  Zap,
+  Sparkles,
+  Check,
+  ChevronDown,
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { useNavigate, Link } from 'react-router-dom';
+
+import { Button } from '../components/Button';
+import { useAuthStore } from '../store/authStore';
+
+import type { FormEvent } from 'react';
 
 interface RegisterFormData {
   email: string;
@@ -28,7 +45,6 @@ interface RegisterFormData {
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -42,6 +58,8 @@ export default function RegisterPage() {
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentSearch, setStudentSearch] = useState('');
   const [showStudentDropdown, setShowStudentDropdown] = useState(false);
+
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const [formData, setFormData] = useState<RegisterFormData>({
     email: '',
@@ -80,11 +98,9 @@ export default function RegisterPage() {
     fetchStudents();
   }, []);
 
-  const filteredStudents = students.filter((student) =>
-    student.toLowerCase().includes(studentSearch.toLowerCase())
-  ).slice(0, 10);
-
-  const totalSteps = formData.status === 'STUDENT' ? 4 : 5;
+  const filteredStudents = students
+    .filter(student => student.toLowerCase().includes(studentSearch.toLowerCase()))
+    .slice(0, 10);
 
   const validateEmail = (email: string): string => {
     if (!email) return '';
@@ -112,7 +128,7 @@ export default function RegisterPage() {
   };
 
   const updateField = (field: keyof RegisterFormData, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData(prev => ({ ...prev, [field]: value }));
 
     if (field === 'email') {
       setEmailTouched(true);
@@ -120,7 +136,9 @@ export default function RegisterPage() {
     }
   };
 
-  const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+  const getPasswordStrength = (
+    password: string
+  ): { score: number; label: string; color: string } => {
     if (!password) return { score: 0, label: '', color: 'bg-gray-700' };
 
     let score = 0;
@@ -146,84 +164,76 @@ export default function RegisterPage() {
 
     if (score < 60) {
       label = 'Слабый';
-      color = 'bg-gradient-to-r from-red-500 to-red-600';
+      color = 'from-red-500 to-red-600';
     } else if (score < 80) {
       label = 'Средний';
-      color = 'bg-gradient-to-r from-yellow-500 to-orange-500';
+      color = 'from-yellow-500 to-orange-500';
     } else {
       label = 'Сильный';
-      color = 'bg-gradient-to-r from-green-500 to-emerald-500';
+      color = 'from-green-500 to-emerald-500';
     }
 
     return { score, label, color };
   };
 
-  const validateStep = (): boolean => {
-    if (step === 1) {
-      if (!formData.email || !formData.password || !formData.confirmPassword || !formData.name) {
-        toast.error('Заполните все поля');
-        return false;
-      }
-      if (emailError) {
-        toast.error('Исправьте ошибки в форме');
-        return false;
-      }
-      if (formData.password !== formData.confirmPassword) {
-        toast.error('Пароли не совпадают');
-        return false;
-      }
-      if (formData.password.length < 8) {
-        toast.error('Пароль должен содержать минимум 8 символов');
-        return false;
-      }
-      if (!/[a-z]/.test(formData.password)) {
-        toast.error('Пароль должен содержать хотя бы одну строчную букву');
-        return false;
-      }
-      if (!/[A-Z]/.test(formData.password)) {
-        toast.error('Пароль должен содержать хотя бы одну заглавную букву');
-        return false;
-      }
-      if (!/[0-9]/.test(formData.password)) {
-        toast.error('Пароль должен содержать хотя бы одну цифру');
-        return false;
-      }
+  const validateForm = (): boolean => {
+    if (!formData.name.trim()) {
+      toast.error('Укажите ваше имя');
+      return false;
     }
-    else if (step === 2) {
-      if (formData.status === 'STUDENT' && !formData.name) {
-        toast.error('Выберите своё имя из списка учащихся');
-        return false;
-      }
+
+    if (!formData.email || emailError) {
+      toast.error('Исправьте ошибки в email');
+      return false;
     }
-    else if (step === 4 && formData.status === 'APPLICANT') {
-      if (!formData.motivation || formData.motivation.length < 50) {
-        toast.error('Мотивация должна содержать минимум 50 символов');
-        return false;
-      }
+
+    if (formData.password.length < 8) {
+      toast.error('Пароль должен содержать минимум 8 символов');
+      return false;
     }
-    else if (step === totalSteps) {
-      if (!formData.agreedToTerms) {
-        toast.error('Необходимо согласиться с условиями использования');
-        return false;
-      }
+
+    if (!/[a-z]/.test(formData.password)) {
+      toast.error('Пароль должен содержать строчную букву');
+      return false;
     }
+
+    if (!/[A-Z]/.test(formData.password)) {
+      toast.error('Пароль должен содержать заглавную букву');
+      return false;
+    }
+
+    if (!/[0-9]/.test(formData.password)) {
+      toast.error('Пароль должен содержать цифру');
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Пароли не совпадают');
+      return false;
+    }
+
+    if (formData.status === 'STUDENT' && !formData.name) {
+      toast.error('Выберите своё имя из списка учащихся');
+      return false;
+    }
+
+    if (formData.status === 'APPLICANT' && formData.motivation && formData.motivation.length < 50) {
+      toast.error('Мотивация должна содержать минимум 50 символов');
+      return false;
+    }
+
+    if (!formData.agreedToTerms) {
+      toast.error('Необходимо согласиться с условиями использования');
+      return false;
+    }
+
     return true;
   };
 
-  const handleNext = () => {
-    if (!validateStep()) {
-      return;
-    }
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
 
-    setStep((prev) => Math.min(prev + 1, totalSteps));
-  };
-
-  const handleBack = () => {
-    setStep((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleSubmit = async () => {
-    if (!validateStep()) {
+    if (!validateForm()) {
       return;
     }
 
@@ -254,11 +264,8 @@ export default function RegisterPage() {
         if (data.message && data.message.includes('уже существует')) {
           setShowExistingEmailModal(true);
         } else if (data.errors && Array.isArray(data.errors)) {
-          const emailErrors = data.errors.filter((e: any) =>
-            e.path && e.path.includes('email')
-          );
+          const emailErrors = data.errors.filter((e: any) => e.path && e.path.includes('email'));
           if (emailErrors.length > 0) {
-            setStep(1);
             setEmailError(emailErrors[0].message);
             setEmailTouched(true);
             toast.error('Пожалуйста, исправьте ошибки в форме');
@@ -271,12 +278,14 @@ export default function RegisterPage() {
         return;
       }
 
+      setShowSuccess(true);
       toast.success('Регистрация успешна!');
-      toast.info('Далее: входная диагностика', { duration: 3000 });
 
-      useAuthStore.getState().login(data.data.user, data.data.token);
+      useAuthStore
+        .getState()
+        .login(data.data.user, data.data.token, data.data.refreshToken, data.data.expiresIn);
 
-      setTimeout(() => navigate('/diagnostic'), 1500);
+      setTimeout(async () => navigate('/dashboard'), 2000);
     } catch (err: any) {
       toast.error(err.message || 'Произошла ошибка при регистрации');
     } finally {
@@ -284,241 +293,389 @@ export default function RegisterPage() {
     }
   };
 
-  const currentStep = step;
-  const displayTotalSteps = totalSteps;
+  const passwordStrength = getPasswordStrength(formData.password);
+  const passwordsMatch =
+    formData.password && formData.confirmPassword && formData.password === formData.confirmPassword;
 
   return (
-    <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden py-12 px-4">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Left Side - Gradient Background with Branding */}
+      <div className="relative lg:w-1/2 bg-gradient-to-br from-cyan-600 via-blue-600 to-purple-600 dark:from-cyan-700 dark:via-blue-700 dark:to-purple-700 overflow-hidden">
+        {/* Animated Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-xl animate-blob"></div>
+          <div className="absolute top-0 -right-4 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-xl animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-xl animate-blob animation-delay-4000"></div>
+        </div>
 
-      <div className="absolute top-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
+        {/* Content */}
+        <div className="relative z-10 flex flex-col justify-center h-full min-h-[400px] lg:min-h-screen px-8 lg:px-16 py-12 text-white animate-slide-in-left">
+          {/* Logo */}
+          <div className="mb-12">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
+                <GraduationCap className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-2xl font-bold">LY64</span>
+            </div>
+          </div>
 
-      <div className="relative z-10 max-w-2xl mx-auto">
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-[0_0_50px_rgba(6,182,212,0.1)] animate-slide-up">
-          <div className="text-center mb-8">
-            <h1 className="text-5xl font-display font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
-              Регистрация
+          {/* Welcome Text */}
+          <div className="mb-12">
+            <h1 className="text-4xl lg:text-5xl font-bold mb-4 leading-tight">
+              Начните обучение
+              <br />
+              сегодня!
             </h1>
-            <p className="text-gray-400 text-lg font-sans">
-              Начните подготовку к поступлению в лицей
+            <p className="text-lg text-white/80 max-w-md">
+              Присоединяйтесь к платформе и откройте новые возможности для вашего развития
             </p>
           </div>
 
-          <ProgressBar current={currentStep} total={displayTotalSteps} className="mb-8" />
+          {/* Feature Highlights */}
+          <div className="space-y-4 mb-8">
+            <div
+              className="flex items-center gap-3 group animate-fade-in"
+              style={{ animationDelay: '0.1s' }}
+            >
+              <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20 group-hover:bg-white/20 transition-all duration-300">
+                <Shield className="w-5 h-5" />
+              </div>
+              <span className="text-white/90">Безопасная регистрация</span>
+            </div>
+            <div
+              className="flex items-center gap-3 group animate-fade-in"
+              style={{ animationDelay: '0.2s' }}
+            >
+              <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20 group-hover:bg-white/20 transition-all duration-300">
+                <Zap className="w-5 h-5" />
+              </div>
+              <span className="text-white/90">Быстрый доступ к материалам</span>
+            </div>
+            <div
+              className="flex items-center gap-3 group animate-fade-in"
+              style={{ animationDelay: '0.3s' }}
+            >
+              <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20 group-hover:bg-white/20 transition-all duration-300">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <span className="text-white/90">Индивидуальный подход</span>
+            </div>
+          </div>
 
-          {step === 1 && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-display font-semibold text-white mb-6 flex items-center">
-                <span className="w-2 h-2 bg-cyan-400 rounded-full mr-3 animate-pulse" />
-                Основная информация
+          {/* Decorative Elements */}
+          <div className="hidden lg:block absolute bottom-8 right-8 opacity-20">
+            <div className="w-32 h-32 border-4 border-white rounded-full"></div>
+            <div className="w-24 h-24 border-4 border-white rounded-full absolute top-4 left-4"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Registration Form */}
+      <div className="lg:w-1/2 flex items-center justify-center px-8 py-12 bg-slate-50 dark:bg-slate-900 relative overflow-y-auto">
+        {/* Back Link - Desktop */}
+        <Link
+          to="/"
+          className="hidden lg:flex absolute top-8 left-8 items-center gap-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          На главную
+        </Link>
+
+        <div className="w-full max-w-md animate-slide-in-right my-8 lg:my-0">
+          {/* Glassmorphic Card */}
+          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-8 lg:p-10 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50">
+            {/* Header */}
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-50 mb-2">
+                Регистрация
               </h2>
+              <p className="text-slate-500 dark:text-slate-400">
+                Заполните форму для создания аккаунта
+              </p>
+            </div>
 
-              <Input
-                label="Имя и фамилия"
-                value={formData.name}
-                onChange={(e) => updateField('name', e.target.value)}
-                placeholder="Иван Иванов"
-                required
-              />
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Name Input with Icon */}
+              <div className="group animate-fade-in" style={{ animationDelay: '0.05s' }}>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Имя и фамилия
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-500 transition-colors">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={e => updateField('name', e.target.value)}
+                    required
+                    placeholder="Иван Иванов"
+                    className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-50 placeholder-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all duration-200"
+                  />
+                </div>
+              </div>
 
-              <div>
-                <div className="mb-2">
-                  <Input
-                    label="Email"
+              {/* Email Input with Icon */}
+              <div className="group animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Email
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-500 transition-colors">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => updateField('email', e.target.value)}
+                    onChange={e => updateField('email', e.target.value)}
                     onBlur={() => setEmailTouched(true)}
-                    placeholder="ivan.ivanov@example.com"
                     required
+                    placeholder="ivan@example.com"
+                    className={`w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900/50 border-2 ${
+                      emailTouched && emailError
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10'
+                        : 'border-slate-200 dark:border-slate-700 focus:border-cyan-500 focus:ring-cyan-500/10'
+                    } rounded-xl text-slate-900 dark:text-slate-50 placeholder-slate-400 focus:ring-4 outline-none transition-all duration-200`}
                   />
-                  <p className="mt-2 text-xs text-gray-500 font-sans">
-                    Используйте настоящий email адрес. Только латинские буквы, цифры и символы . _ % + -
-                  </p>
+                  {emailTouched && !emailError && formData.email && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                      <CheckCircle2 className="w-5 h-5" />
+                    </div>
+                  )}
                 </div>
                 {emailTouched && emailError && (
-                  <div className="mt-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl backdrop-blur-sm">
-                    <div className="flex items-start gap-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                      </svg>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-red-300 font-sans">{emailError}</p>
-                        <p className="text-xs text-red-400 mt-1 font-sans">Пожалуйста, исправьте email чтобы продолжить</p>
-                        <div className="mt-3 text-xs text-gray-400">
-                          <p className="font-medium mb-2 font-sans">Примеры правильных email:</p>
-                          <ul className="list-disc list-inside space-y-1 text-gray-500 font-mono">
-                            <li>ivan.petrov@gmail.com</li>
-                            <li>student2024@mail.ru</li>
-                            <li>my.email@yandex.ru</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-start gap-1">
+                    <span className="mt-0.5">⚠</span>
+                    <span>{emailError}</span>
+                  </p>
                 )}
                 {emailTouched && !emailError && formData.email && (
-                  <div className="mt-2 flex items-center gap-2 text-sm text-green-400 font-sans">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                  <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                    <Check className="w-4 h-4" />
                     <span>Email корректный</span>
-                  </div>
+                  </p>
                 )}
               </div>
 
-              <div>
+              {/* Password Input with Icon */}
+              <div className="group animate-fade-in" style={{ animationDelay: '0.15s' }}>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Пароль
+                </label>
                 <div className="relative">
-                  <Input
-                    label="Пароль"
-                    type={showPassword ? "text" : "password"}
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-500 transition-colors">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
                     value={formData.password}
-                    onChange={(e) => updateField('password', e.target.value)}
-                    placeholder="Минимум 8 символов"
+                    onChange={e => updateField('password', e.target.value)}
                     required
+                    placeholder="Минимум 8 символов"
+                    className="w-full pl-11 pr-12 py-3 bg-white dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-50 placeholder-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all duration-200"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-9 text-gray-400 hover:text-cyan-400 focus:outline-none transition-colors"
-                    aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                    aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
                   >
-                    {showPassword ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    )}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
 
+                {/* Password Strength Indicator */}
                 {formData.password && (
-                  <div className="mt-4 p-4 bg-gray-800/50 border border-gray-700/50 rounded-xl backdrop-blur-sm">
-                    <div className="flex items-center justify-between text-sm mb-3">
-                      <span className="text-gray-400 font-sans">Сила пароля:</span>
-                      <span className={`font-semibold font-sans ${
-                        getPasswordStrength(formData.password).score < 60 ? 'text-red-400' :
-                        getPasswordStrength(formData.password).score < 80 ? 'text-yellow-400' :
-                        'text-green-400'
-                      }`}>
-                        {getPasswordStrength(formData.password).label}
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500 dark:text-slate-400">Сила пароля:</span>
+                      <span
+                        className={`font-semibold ${
+                          passwordStrength.score < 60
+                            ? 'text-red-500'
+                            : passwordStrength.score < 80
+                              ? 'text-yellow-500'
+                              : 'text-green-500'
+                        }`}
+                      >
+                        {passwordStrength.label}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden mb-4">
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
                       <div
-                        className={`h-full transition-all duration-500 ${getPasswordStrength(formData.password).color}`}
-                        style={{ width: `${getPasswordStrength(formData.password).score}%` }}
+                        className={`h-full bg-gradient-to-r ${passwordStrength.color} transition-all duration-500`}
+                        style={{ width: `${passwordStrength.score}%` }}
                       />
                     </div>
-                    <div className="text-xs text-gray-400 space-y-2 font-sans">
-                      <div className="flex items-center gap-2">
-                        <span className={formData.password.length >= 8 ? 'text-green-400' : 'text-gray-600'}>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={
+                            formData.password.length >= 8 ? 'text-green-500' : 'text-slate-400'
+                          }
+                        >
                           {formData.password.length >= 8 ? '✓' : '○'}
                         </span>
-                        <span>Минимум 8 символов</span>
+                        <span>8+ символов</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className={/[a-z]/.test(formData.password) ? 'text-green-400' : 'text-gray-600'}>
-                          {/[a-z]/.test(formData.password) ? '✓' : '○'}
-                        </span>
-                        <span>Строчная буква</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={/[A-Z]/.test(formData.password) ? 'text-green-400' : 'text-gray-600'}>
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={
+                            /[A-Z]/.test(formData.password) ? 'text-green-500' : 'text-slate-400'
+                          }
+                        >
                           {/[A-Z]/.test(formData.password) ? '✓' : '○'}
                         </span>
-                        <span>Заглавная буква</span>
+                        <span>Заглавная</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className={/[0-9]/.test(formData.password) ? 'text-green-400' : 'text-gray-600'}>
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={
+                            /[a-z]/.test(formData.password) ? 'text-green-500' : 'text-slate-400'
+                          }
+                        >
+                          {/[a-z]/.test(formData.password) ? '✓' : '○'}
+                        </span>
+                        <span>Строчная</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={
+                            /[0-9]/.test(formData.password) ? 'text-green-500' : 'text-slate-400'
+                          }
+                        >
                           {/[0-9]/.test(formData.password) ? '✓' : '○'}
                         </span>
                         <span>Цифра</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password) ? 'text-green-400' : 'text-gray-600'}>
-                          {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password) ? '✓' : '○'}
-                        </span>
-                        <span>Специальный символ (необязательно)</span>
                       </div>
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className="relative">
-                <Input
-                  label="Подтвердите пароль"
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={formData.confirmPassword}
-                  onChange={(e) => updateField('confirmPassword', e.target.value)}
-                  placeholder="Повторите пароль"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-9 text-gray-400 hover:text-cyan-400 focus:outline-none transition-colors"
-                  aria-label={showConfirmPassword ? "Скрыть пароль" : "Показать пароль"}
-                >
-                  {showConfirmPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+              {/* Confirm Password Input */}
+              <div className="group animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Подтвердите пароль
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-500 transition-colors">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={formData.confirmPassword}
+                    onChange={e => updateField('confirmPassword', e.target.value)}
+                    required
+                    placeholder="Повторите пароль"
+                    className={`w-full pl-11 pr-12 py-3 bg-white dark:bg-slate-900/50 border-2 ${
+                      formData.confirmPassword && !passwordsMatch
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10'
+                        : 'border-slate-200 dark:border-slate-700 focus:border-cyan-500 focus:ring-cyan-500/10'
+                    } rounded-xl text-slate-900 dark:text-slate-50 placeholder-slate-400 focus:ring-4 outline-none transition-all duration-200`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                    aria-label={showConfirmPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                  {passwordsMatch && (
+                    <div className="absolute right-12 top-1/2 -translate-y-1/2 text-green-500">
+                      <CheckCircle2 className="w-5 h-5" />
+                    </div>
                   )}
-                </button>
+                </div>
+                {formData.confirmPassword && !passwordsMatch && (
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <span>⚠</span>
+                    <span>Пароли не совпадают</span>
+                  </p>
+                )}
+                {passwordsMatch && (
+                  <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                    <Check className="w-4 h-4" />
+                    <span>Пароли совпадают</span>
+                  </p>
+                )}
               </div>
-            </div>
-          )}
 
-          {step === 2 && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-display font-semibold text-white mb-6 flex items-center">
-                <span className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse" style={{ animationDelay: '0.5s' }} />
-                Ваш статус
-              </h2>
+              {/* Status Selector */}
+              <div className="animate-fade-in" style={{ animationDelay: '0.25s' }}>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                  Ваш статус
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => updateField('status', 'APPLICANT')}
+                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                      formData.status === 'APPLICANT'
+                        ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-500/10 shadow-lg shadow-cyan-500/20'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-cyan-300 dark:hover:border-cyan-600'
+                    }`}
+                  >
+                    <div
+                      className={`text-sm font-semibold ${
+                        formData.status === 'APPLICANT'
+                          ? 'text-cyan-700 dark:text-cyan-300'
+                          : 'text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      {USER_STATUS_LABELS.APPLICANT}
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateField('status', 'STUDENT')}
+                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                      formData.status === 'STUDENT'
+                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-500/10 shadow-lg shadow-purple-500/20'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600'
+                    }`}
+                  >
+                    <div
+                      className={`text-sm font-semibold ${
+                        formData.status === 'STUDENT'
+                          ? 'text-purple-700 dark:text-purple-300'
+                          : 'text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      {USER_STATUS_LABELS.STUDENT}
+                    </div>
+                  </button>
+                </div>
+              </div>
 
-              <button
-                onClick={() => updateField('status', 'STUDENT')}
-                className={`group w-full p-6 border-2 rounded-2xl transition-all duration-300 ${
-                  formData.status === 'STUDENT'
-                    ? 'border-cyan-500 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 shadow-[0_0_30px_rgba(6,182,212,0.3)]'
-                    : 'border-gray-700 hover:border-cyan-500/50 hover:bg-gray-800/50'
-                }`}
-              >
-                <div className="font-display font-semibold text-xl text-white">{USER_STATUS_LABELS.STUDENT}</div>
-              </button>
-
+              {/* Student Selector (if STUDENT) */}
               {formData.status === 'STUDENT' && (
-                <div className="relative animate-scale-in">
-                  <label className="block text-sm font-medium text-gray-400 mb-2 font-sans">
-                    Выберите своё имя из списка учащихся
+                <div className="relative animate-fade-in">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Выберите свое имя
                   </label>
                   <input
                     type="text"
                     value={studentSearch}
-                    onChange={(e) => {
+                    onChange={e => {
                       setStudentSearch(e.target.value);
                       updateField('name', '');
                       setShowStudentDropdown(true);
                     }}
                     onFocus={() => setShowStudentDropdown(true)}
-                    placeholder={studentsLoading ? 'Загрузка списка...' : 'Начните вводить ФИО...'}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all font-sans"
+                    placeholder={studentsLoading ? 'Загрузка...' : 'Начните вводить ФИО...'}
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-50 placeholder-slate-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none transition-all"
                     disabled={studentsLoading}
                   />
                   {showStudentDropdown && filteredStudents.length > 0 && (
-                    <div className="absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded-xl shadow-xl max-h-60 overflow-y-auto backdrop-blur-xl">
+                    <div className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-60 overflow-y-auto">
                       {filteredStudents.map((student, index) => (
                         <button
                           key={index}
@@ -528,7 +685,7 @@ export default function RegisterPage() {
                             setStudentSearch(student);
                             setShowStudentDropdown(false);
                           }}
-                          className="w-full px-4 py-3 text-left text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-400 focus:bg-cyan-500/10 focus:text-cyan-400 focus:outline-none transition-colors font-sans"
+                          className="w-full px-4 py-3 text-left text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors"
                         >
                           {student}
                         </button>
@@ -536,201 +693,341 @@ export default function RegisterPage() {
                     </div>
                   )}
                   {formData.name && formData.status === 'STUDENT' && (
-                    <p className="mt-2 text-sm text-green-400 font-sans flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Выбрано: {formData.name}
+                    <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                      <Check className="w-4 h-4" />
+                      <span>Выбрано: {formData.name}</span>
                     </p>
                   )}
                 </div>
               )}
 
+              {/* Grade Selector */}
+              <div className="group animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Текущий класс
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-500 transition-colors pointer-events-none">
+                    <GraduationCap className="w-5 h-5" />
+                  </div>
+                  <select
+                    value={formData.currentGrade}
+                    onChange={e => updateField('currentGrade', parseInt(e.target.value))}
+                    className="w-full pl-11 pr-10 py-3 bg-white dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-50 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all duration-200 appearance-none cursor-pointer"
+                  >
+                    {AVAILABLE_GRADES.map(grade => (
+                      <option key={grade} value={grade}>
+                        {CURRENT_GRADE_LABELS[grade]}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                    <ChevronDown className="w-5 h-5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Direction Selector (for APPLICANT) */}
+              {formData.status === 'APPLICANT' && (
+                <div className="group animate-fade-in" style={{ animationDelay: '0.35s' }}>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Желаемое направление (необязательно)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-500 transition-colors pointer-events-none">
+                      <Compass className="w-5 h-5" />
+                    </div>
+                    <select
+                      value={formData.desiredDirection}
+                      onChange={e => updateField('desiredDirection', e.target.value)}
+                      className="w-full pl-11 pr-10 py-3 bg-white dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-50 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all duration-200 appearance-none cursor-pointer"
+                    >
+                      <option value="">Выберите направление</option>
+                      {Object.entries(DIRECTION_LABELS).map(([key, label]) => (
+                        <option key={key} value={key}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                      <ChevronDown className="w-5 h-5" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Motivation (for APPLICANT) */}
+              {formData.status === 'APPLICANT' && (
+                <div className="group animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Мотивация (необязательно)
+                  </label>
+                  <div className="relative">
+                    <textarea
+                      value={formData.motivation}
+                      onChange={e => updateField('motivation', e.target.value)}
+                      placeholder="Расскажите, почему хотите поступить в лицей (минимум 50 символов)"
+                      rows={4}
+                      maxLength={1000}
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-50 placeholder-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all duration-200 resize-none"
+                    />
+                  </div>
+                  {formData.motivation && (
+                    <div className="flex items-center justify-between mt-2 text-xs">
+                      <span
+                        className={`${
+                          formData.motivation.length >= 50
+                            ? 'text-green-600 dark:text-green-400'
+                            : 'text-slate-500 dark:text-slate-400'
+                        }`}
+                      >
+                        {formData.motivation.length >= 50
+                          ? '✓ Готово'
+                          : `${formData.motivation.length}/50`}
+                      </span>
+                      <span className="text-slate-400">{formData.motivation.length}/1000</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Terms Checkbox */}
+              <div className="animate-fade-in" style={{ animationDelay: '0.45s' }}>
+                <label className="flex items-start gap-3 cursor-pointer group p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
+                  <div className="relative mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={formData.agreedToTerms}
+                      onChange={e => updateField('agreedToTerms', e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded peer-checked:bg-cyan-600 peer-checked:border-cyan-600 transition-all duration-200 flex items-center justify-center">
+                      {formData.agreedToTerms && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                  </div>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                    Я прочитал и согласен с{' '}
+                    <Link
+                      to="/terms"
+                      target="_blank"
+                      className="text-cyan-600 dark:text-cyan-400 hover:underline font-medium"
+                    >
+                      условиями использования
+                    </Link>
+                  </span>
+                </label>
+              </div>
+
+              {/* Submit Button with Gradient */}
               <button
-                onClick={() => updateField('status', 'APPLICANT')}
-                className={`group w-full p-6 border-2 rounded-2xl transition-all duration-300 ${
-                  formData.status === 'APPLICANT'
-                    ? 'border-purple-500 bg-gradient-to-r from-purple-500/10 to-pink-500/10 shadow-[0_0_30px_rgba(168,85,247,0.3)]'
-                    : 'border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/50'
-                }`}
+                type="submit"
+                disabled={loading || !formData.agreedToTerms}
+                className="relative w-full py-3.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden group animate-fade-in"
+                style={{ animationDelay: '0.5s' }}
               >
-                <div className="font-display font-semibold text-xl text-white">{USER_STATUS_LABELS.APPLICANT}</div>
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Регистрация...</span>
+                  </div>
+                ) : (
+                  <>
+                    <span className="relative z-10">Зарегистрироваться</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Login Link */}
+            <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: '0.55s' }}>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Уже есть аккаунт?{' '}
+                <Link
+                  to="/login"
+                  className="text-cyan-600 dark:text-cyan-400 font-semibold hover:underline"
+                >
+                  Войти
+                </Link>
+              </p>
+            </div>
+          </div>
+
+          {/* Back Link - Mobile */}
+          <div className="mt-6 text-center lg:hidden">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              На главную
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Existing Email Modal */}
+      {showExistingEmailModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8 animate-scale-in">
+            <div className="text-center mb-6">
+              <div className="mx-auto w-16 h-16 bg-cyan-100 dark:bg-cyan-500/20 rounded-full flex items-center justify-center mb-4 border-2 border-cyan-500/30">
+                <Mail className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-3">
+                Аккаунт уже существует
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400">
+                Пользователь с email{' '}
+                <span className="font-semibold text-cyan-600 dark:text-cyan-400">
+                  {formData.email}
+                </span>{' '}
+                уже зарегистрирован
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setShowExistingEmailModal(false);
+                  navigate('/login', { state: { email: formData.email } });
+                }}
+                className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-300"
+              >
+                Войти в аккаунт
+              </button>
+              <button
+                onClick={() => {
+                  setShowExistingEmailModal(false);
+                  setFormData(prev => ({ ...prev, email: '' }));
+                  setEmailError('');
+                  setEmailTouched(false);
+                }}
+                className="w-full py-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-semibold rounded-xl transition-all duration-300"
+              >
+                Изменить email
               </button>
             </div>
-          )}
-
-          {step === 3 && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-display font-semibold text-white mb-6 flex items-center">
-                <span className="w-2 h-2 bg-cyan-400 rounded-full mr-3 animate-pulse" />
-                Учебная информация
-              </h2>
-
-              <Select
-                label="Текущий класс"
-                value={formData.currentGrade.toString()}
-                onChange={(e) => updateField('currentGrade', parseInt(e.target.value))}
-                options={AVAILABLE_GRADES.map((grade) => ({
-                  value: grade.toString(),
-                  label: CURRENT_GRADE_LABELS[grade],
-                }))}
-                required
-              />
-
-              {formData.status === 'APPLICANT' && (
-                <Select
-                  label="Желаемое направление"
-                  value={formData.desiredDirection}
-                  onChange={(e) => updateField('desiredDirection', e.target.value)}
-                  options={[
-                    { value: '', label: 'Выберите направление' },
-                    ...Object.entries(DIRECTION_LABELS).map(([key, label]) => ({
-                      value: key,
-                      label,
-                    })),
-                  ]}
-                />
-              )}
-            </div>
-          )}
-
-          {step === 4 && formData.status === 'APPLICANT' && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-display font-semibold text-white mb-6 flex items-center">
-                <span className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse" style={{ animationDelay: '0.5s' }} />
-                Мотивация
-              </h2>
-
-              <Textarea
-                label="Почему вы хотите поступить в лицей?"
-                value={formData.motivation}
-                onChange={(e) => updateField('motivation', e.target.value)}
-                placeholder="Расскажите о своих целях и мотивации (минимум 50 символов)"
-                rows={6}
-                required
-              />
-
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-400 font-sans">
-                  Символов: <span className={formData.motivation.length >= 50 ? 'text-green-400' : 'text-gray-500'}>{formData.motivation.length}</span> / 1000
-                </p>
-                {formData.motivation.length >= 50 && (
-                  <span className="text-sm text-green-400 font-sans flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Готово
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {step === totalSteps && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-display font-semibold text-white mb-6 flex items-center">
-                <span className="w-2 h-2 bg-cyan-400 rounded-full mr-3 animate-pulse" />
-                Условия использования
-              </h2>
-
-              <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 max-h-64 overflow-y-auto backdrop-blur-sm">
-                <p className="text-sm text-gray-300 font-sans leading-relaxed">
-                  Регистрируясь на платформе, вы соглашаетесь с условиями использования...
-                  <br /><br />
-                  Подробнее см.{' '}
-                  <Link to="/terms" target="_blank" className="text-cyan-400 hover:text-cyan-300 border-b border-cyan-400/0 hover:border-cyan-400 transition-all">
-                    Условия использования
-                  </Link>
-                </p>
-              </div>
-
-              <label className="flex items-start space-x-3 cursor-pointer group p-4 rounded-xl hover:bg-gray-800/30 transition-colors">
-                <input
-                  type="checkbox"
-                  checked={formData.agreedToTerms}
-                  onChange={(e) => updateField('agreedToTerms', e.target.checked)}
-                  className="mt-1 h-5 w-5 text-cyan-500 focus:ring-cyan-500 border-gray-600 rounded bg-gray-800"
-                />
-                <span className="text-sm text-gray-300 font-sans">
-                  Я прочитал и согласен с{' '}
-                  <Link to="/terms" target="_blank" className="text-cyan-400 hover:text-cyan-300 border-b border-cyan-400/0 hover:border-cyan-400 transition-all">
-                    условиями использования
-                  </Link>
-                </span>
-              </label>
-            </div>
-          )}
-
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-700/50">
-            <Button variant="outline" onClick={handleBack} disabled={step === 1}>
-              Назад
-            </Button>
-
-            {step < totalSteps ? (
-              <Button
-                onClick={handleNext}
-                disabled={step === 1 && (!!emailError || !formData.email)}
-              >
-                Далее
-              </Button>
-            ) : (
-              <Button onClick={handleSubmit} disabled={loading || !formData.agreedToTerms}>
-                {loading ? 'Регистрация...' : 'Зарегистрироваться'}
-              </Button>
-            )}
           </div>
-
-          <p className="text-center text-sm text-gray-400 mt-6 font-sans">
-            Уже есть аккаунт?{' '}
-            <Link to="/login" className="text-cyan-400 hover:text-cyan-300 font-semibold border-b border-cyan-400/0 hover:border-cyan-400 transition-all">
-              Войти
-            </Link>
-          </p>
         </div>
+      )}
 
-        {showExistingEmailModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-3xl shadow-2xl max-w-md w-full p-8 animate-scale-in">
-              <div className="text-center mb-6">
-                <div className="mx-auto w-16 h-16 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-full flex items-center justify-center mb-4 border border-cyan-500/30">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 text-cyan-400">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                  </svg>
-                </div>
-                <h3 className="text-3xl font-display font-bold text-white mb-3">Аккаунт уже существует</h3>
-                <p className="text-gray-400 font-sans">
-                  Пользователь с email <span className="font-semibold text-cyan-400">{formData.email}</span> уже зарегистрирован в системе
-                </p>
+      {/* Success Modal */}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl max-w-md w-full p-8 animate-scale-in">
+            <div className="text-center">
+              <div className="mx-auto w-20 h-20 bg-green-100 dark:bg-green-500/20 rounded-full flex items-center justify-center mb-6 animate-bounce-in border-2 border-green-500/30">
+                <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
               </div>
-
-              <div className="space-y-3">
-                <Button
-                  onClick={() => {
-                    setShowExistingEmailModal(false);
-                    navigate('/login', { state: { email: formData.email } });
-                  }}
-                  className="w-full"
-                >
-                  Войти в аккаунт
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowExistingEmailModal(false);
-                    setStep(1);
-                    setFormData(prev => ({ ...prev, email: '' }));
-                    setEmailError('');
-                    setEmailTouched(false);
-                  }}
-                  className="w-full"
-                >
-                  Изменить email
-                </Button>
-              </div>
+              <h3 className="text-3xl font-bold text-slate-900 dark:text-slate-50 mb-3">
+                Регистрация успешна!
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400 mb-2">Добро пожаловать в LY64</p>
+              <p className="text-sm text-slate-500 dark:text-slate-500">
+                Перенаправление в личный кабинет...
+              </p>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(20px, -50px) scale(1.1); }
+          50% { transform: translate(-20px, 20px) scale(0.9); }
+          75% { transform: translate(20px, 20px) scale(1.05); }
+        }
+
+        @keyframes slide-in-left {
+          from {
+            opacity: 0;
+            transform: translateX(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes slide-in-right {
+          from {
+            opacity: 0;
+            transform: translateX(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes bounce-in {
+          0% {
+            transform: scale(0);
+          }
+          50% {
+            transform: scale(1.1);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+
+        .animate-slide-in-left {
+          animation: slide-in-left 0.6s ease-out;
+        }
+
+        .animate-slide-in-right {
+          animation: slide-in-right 0.6s ease-out;
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out both;
+        }
+
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+
+        .animate-bounce-in {
+          animation: bounce-in 0.6s ease-out;
+        }
+      `}</style>
     </div>
   );
 }

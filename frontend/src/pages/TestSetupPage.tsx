@@ -1,7 +1,19 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+/**
+ * TestSetupPage - Modern test setup interface
+ * Grade and level selection with glassmorphic design
+ */
+
 import { SUBJECT_LABELS, AVAILABLE_GRADES } from '@lyceum64/shared';
+import { motion } from 'framer-motion';
+import { Clock, Trophy, BookOpen, ChevronRight, ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import { Button } from '../components/Button';
+import { Card } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import { PageLayout, ContentSection, GridLayout } from '../components/layout';
+import { cardVariants, staggerContainer } from '../utils/animations';
 
 const subjectIcons: Record<string, string> = {
   RUSSIAN: '📖',
@@ -23,23 +35,36 @@ const subjectDescriptions: Record<string, string> = {
   ENGLISH: 'Проверьте уровень английского языка',
 };
 
+const subjectColors: Record<string, string> = {
+  RUSSIAN: 'from-red-500 to-pink-500',
+  MATHEMATICS: 'from-blue-500 to-cyan-500',
+  PHYSICS: 'from-purple-500 to-indigo-500',
+  INFORMATICS: 'from-green-500 to-emerald-500',
+  BIOLOGY: 'from-emerald-500 to-teal-500',
+  HISTORY: 'from-amber-500 to-orange-500',
+  ENGLISH: 'from-cyan-500 to-blue-500',
+};
+
 type ExamLevel = 'base' | 'profile' | null;
 
-// Проверка нужен ли выбор уровня
 const needsLevelSelection = (grade: number, subject: string): boolean => {
-  // Математика 11 класс (ЕГЭ) - профильный или базовый
   if (grade === 11 && subject === 'MATHEMATICS') return true;
-  // Физика 8 класс (ВПР) - профильный или базовый
   if (grade === 8 && subject === 'PHYSICS') return true;
   return false;
 };
 
-// Получить варианты уровней для предмета
-const getLevelOptions = (grade: number, subject: string): { value: ExamLevel; label: string; description: string }[] => {
+const getLevelOptions = (
+  grade: number,
+  subject: string
+): { value: ExamLevel; label: string; description: string }[] => {
   if (grade === 11 && subject === 'MATHEMATICS') {
     return [
       { value: 'base', label: 'Базовый', description: 'Для непрофильных специальностей' },
-      { value: 'profile', label: 'Профильный', description: 'Для технических и экономических специальностей' },
+      {
+        value: 'profile',
+        label: 'Профильный',
+        description: 'Для технических и экономических специальностей',
+      },
     ];
   }
   if (grade === 8 && subject === 'PHYSICS') {
@@ -51,7 +76,6 @@ const getLevelOptions = (grade: number, subject: string): { value: ExamLevel; la
   return [];
 };
 
-// Функция для получения типа экзамена
 const getExamType = (grade: number, level?: ExamLevel): string => {
   if (grade === 9) return 'ОГЭ';
   if (grade === 11) {
@@ -66,17 +90,9 @@ const getExamType = (grade: number, level?: ExamLevel): string => {
   return 'ВПР';
 };
 
-// Функция для получения времени выполнения
 const getExamDuration = (grade: number, subject: string): string => {
-  // ОГЭ и ЕГЭ - 3 часа 55 минут
-  if (grade === 9 || grade === 11) {
-    return '3 часа 55 минут';
-  }
-  // Исключение: физика 10 класс - 45 минут
-  if (grade === 10 && subject === 'PHYSICS') {
-    return '45 минут';
-  }
-  // ВПР - 1 час 30 минут
+  if (grade === 9 || grade === 11) return '3 часа 55 минут';
+  if (grade === 10 && subject === 'PHYSICS') return '45 минут';
   return '1 час 30 минут';
 };
 
@@ -86,255 +102,311 @@ export default function TestSetupPage() {
   const [selectedGrade, setSelectedGrade] = useState<number | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<ExamLevel>(null);
 
-  const subjectLabel = subject ? SUBJECT_LABELS[subject as keyof typeof SUBJECT_LABELS] : 'Неизвестный предмет';
+  const subjectLabel = subject
+    ? SUBJECT_LABELS[subject as keyof typeof SUBJECT_LABELS]
+    : 'Неизвестный предмет';
   const subjectIcon = subject ? subjectIcons[subject] || '📝' : '📝';
-  const subjectDescription = subject ? subjectDescriptions[subject] || 'Тест по предмету' : 'Тест по предмету';
+  const subjectDescription = subject ? subjectDescriptions[subject] || '' : '';
+  const gradientColor = subject
+    ? subjectColors[subject] || 'from-indigo-500 to-purple-500'
+    : 'from-indigo-500 to-purple-500';
 
-  // Проверяем нужен ли выбор уровня
-  const showLevelSelection = selectedGrade && subject && needsLevelSelection(selectedGrade, subject);
-  const levelOptions = selectedGrade && subject ? getLevelOptions(selectedGrade, subject) : [];
-
-  // Сбрасываем уровень при смене класса
-  useEffect(() => {
-    setSelectedLevel(null);
-  }, [selectedGrade]);
-
-  const handleStartTest = () => {
+  const handleStart = () => {
     if (!selectedGrade || !subject) return;
-    // Если нужен выбор уровня, но уровень не выбран - не продолжаем
-    if (showLevelSelection && !selectedLevel) return;
 
-    // Переходим на страницу выбора варианта из sdamgia
-    navigate('/test/variants', {
-      state: { grade: selectedGrade, subject, level: selectedLevel }
+    const needsLevel = needsLevelSelection(selectedGrade, subject);
+
+    if (needsLevel && !selectedLevel) {
+      return;
+    }
+
+    navigate('/test/exam', {
+      state: {
+        grade: selectedGrade,
+        subject,
+        egeType: selectedLevel,
+      },
     });
   };
 
-  // Проверка можно ли начать тест
-  const canStartTest = selectedGrade && (!showLevelSelection || selectedLevel);
+  const isReadyToStart = () => {
+    if (!selectedGrade) return false;
+    if (!subject) return false;
+
+    const needsLevel = needsLevelSelection(selectedGrade, subject);
+    if (needsLevel && !selectedLevel) return false;
+
+    return true;
+  };
 
   return (
-    <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden py-12 px-4">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
-
-      <div className="absolute top-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
-
-      <div className="relative z-10 max-w-4xl mx-auto">
-        <button
+    <PageLayout
+      title={`Настройка теста: ${subjectLabel}`}
+      subtitle={subjectDescription}
+      background="gradient"
+      action={
+        <Button
+          variant="ghost"
           onClick={() => navigate('/dashboard')}
-          className="group mb-6 flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors font-sans"
+          icon={<ArrowLeft className="w-5 h-5" />}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-          </svg>
-          Назад к панели управления
-        </button>
+          Назад
+        </Button>
+      }
+    >
+      <div className="max-w-4xl mx-auto">
+        {/* Subject Header Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Card variant="glass" padding="lg" className="mb-8">
+            <div className="flex items-center gap-6">
+              <div
+                className={`w-24 h-24 rounded-2xl bg-gradient-to-br ${gradientColor} flex items-center justify-center text-5xl shadow-xl`}
+              >
+                {subjectIcon}
+              </div>
 
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-[0_0_50px_rgba(6,182,212,0.1)] animate-slide-up">
-          <div className="text-center mb-8">
-            <div className="text-7xl mb-4 animate-bounce">{subjectIcon}</div>
-            <h1 className="text-4xl md:text-5xl font-display font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
-              {subjectLabel}
-            </h1>
-            <p className="text-gray-400 text-lg font-sans">
-              {subjectDescription}
-            </p>
-          </div>
+              <div className="flex-1">
+                <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                  {subjectLabel}
+                </h2>
+                <p className="text-slate-600 dark:text-slate-400 mb-4">{subjectDescription}</p>
 
-          <div className="mb-8">
-            <h2 className="text-2xl font-display font-semibold text-white mb-4 flex items-center">
-              <span className="w-2 h-2 bg-cyan-400 rounded-full mr-3 animate-pulse" />
-              Выберите ваш класс
-            </h2>
-            <p className="text-gray-400 font-sans mb-6">
-              Мы подберем тест соответствующий вашему уровню
-            </p>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {AVAILABLE_GRADES.map((grade, index) => (
-                <button
-                  key={grade}
-                  onClick={() => setSelectedGrade(grade)}
-                  className={`
-                    group relative p-6 rounded-2xl border-2 transition-all duration-300
-                    animate-scale-in
-                    ${selectedGrade === grade
-                      ? 'border-cyan-500 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 shadow-[0_0_30px_rgba(6,182,212,0.3)] scale-105'
-                      : 'border-gray-700 bg-gray-800/50 hover:border-cyan-500/50 hover:bg-gray-800/70'
-                    }
-                  `}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <div className="text-center">
-                    <div className={`text-3xl font-display font-bold mb-2 transition-all duration-300 ${
-                      selectedGrade === grade
-                        ? 'text-cyan-400 scale-110'
-                        : 'text-white group-hover:text-cyan-400'
-                    }`}>
-                      {grade}
-                    </div>
-                    <div className={`text-sm font-sans transition-colors ${
-                      selectedGrade === grade
-                        ? 'text-cyan-300'
-                        : 'text-gray-400 group-hover:text-gray-300'
-                    }`}>
-                      класс
-                    </div>
-                  </div>
-
-                  {selectedGrade === grade && (
-                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full p-1.5 animate-scale-in">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4 text-white">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
-                    </div>
-                  )}
-                </button>
-              ))}
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="primary" size="md">
+                    <BookOpen className="w-4 h-4" />
+                    Экзамен
+                  </Badge>
+                  <Badge variant="secondary" size="md">
+                    <Trophy className="w-4 h-4" />
+                    Сертификат
+                  </Badge>
+                </div>
+              </div>
             </div>
-          </div>
+          </Card>
+        </motion.div>
 
-          {/* Выбор уровня (профильный/базовый) */}
-          {showLevelSelection && (
-            <div className="mb-8 animate-scale-in">
-              <h2 className="text-2xl font-display font-semibold text-white mb-4 flex items-center">
-                <span className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse" />
-                Выберите уровень
-              </h2>
-              <p className="text-gray-400 font-sans mb-6">
-                {subject === 'MATHEMATICS' && selectedGrade === 11
-                  ? 'Базовый уровень оценивается по 5-балльной шкале, профильный — по 100-балльной'
-                  : 'Выберите уровень сложности ВПР'}
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {levelOptions.map((option, index) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setSelectedLevel(option.value)}
-                    className={`
-                      group relative p-6 rounded-2xl border-2 transition-all duration-300 text-left
-                      animate-scale-in
-                      ${selectedLevel === option.value
-                        ? 'border-purple-500 bg-gradient-to-r from-purple-500/20 to-pink-500/20 shadow-[0_0_30px_rgba(168,85,247,0.3)] scale-105'
-                        : 'border-gray-700 bg-gray-800/50 hover:border-purple-500/50 hover:bg-gray-800/70'
-                      }
-                    `}
-                    style={{ animationDelay: `${index * 100}ms` }}
+        {/* Grade Selection */}
+        <ContentSection
+          title="Шаг 1: Выберите класс"
+          description="Выберите класс для прохождения теста"
+        >
+          <motion.div variants={staggerContainer} initial="initial" animate="animate">
+            <GridLayout cols={4} gap="md">
+              {AVAILABLE_GRADES.map(grade => (
+                <motion.div key={grade} variants={cardVariants}>
+                  <Card
+                    variant={selectedGrade === grade ? 'elevated' : 'glass'}
+                    padding="md"
+                    hover
+                    onClick={() => {
+                      setSelectedGrade(grade);
+                      setSelectedLevel(null);
+                    }}
+                    className={`cursor-pointer ${
+                      selectedGrade === grade
+                        ? 'ring-2 ring-indigo-500 shadow-xl shadow-indigo-500/20'
+                        : ''
+                    }`}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-                        selectedLevel === option.value
-                          ? 'bg-gradient-to-r from-purple-500 to-pink-500'
-                          : 'bg-gray-700 group-hover:bg-gray-600'
-                      }`}>
-                        {option.value === 'base' ? (
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-white">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342" />
-                          </svg>
-                        ) : (
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-white">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-                          </svg>
-                        )}
+                    <div className="text-center">
+                      <div
+                        className={`text-4xl font-bold mb-2 ${
+                          selectedGrade === grade
+                            ? 'text-indigo-600 dark:text-indigo-400'
+                            : 'text-slate-900 dark:text-white'
+                        }`}
+                      >
+                        {grade}
                       </div>
-                      <div className="flex-1">
-                        <div className={`text-xl font-display font-bold mb-1 transition-colors ${
-                          selectedLevel === option.value
-                            ? 'text-purple-400'
-                            : 'text-white group-hover:text-purple-400'
-                        }`}>
-                          {option.label}
-                        </div>
-                        <div className={`text-sm font-sans transition-colors ${
-                          selectedLevel === option.value
-                            ? 'text-purple-300'
-                            : 'text-gray-400 group-hover:text-gray-300'
-                        }`}>
-                          {option.description}
-                        </div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400">
+                        {getExamType(grade)}
+                      </div>
+                      <div className="mt-2 text-xs text-slate-500 dark:text-slate-500 flex items-center justify-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {subject && getExamDuration(grade, subject)}
                       </div>
                     </div>
 
-                    {selectedLevel === option.value && (
-                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-1.5 animate-scale-in">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4 text-white">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    {selectedGrade === grade && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center shadow-lg"
+                      >
+                        <svg
+                          className="w-5 h-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
-                      </div>
+                      </motion.div>
                     )}
-                  </button>
+                  </Card>
+                </motion.div>
+              ))}
+            </GridLayout>
+          </motion.div>
+        </ContentSection>
+
+        {/* Level Selection (if needed) */}
+        {selectedGrade && subject && needsLevelSelection(selectedGrade, subject) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <ContentSection
+              title="Шаг 2: Выберите уровень"
+              description="Выберите уровень сложности экзамена"
+            >
+              <GridLayout cols={2} gap="lg">
+                {getLevelOptions(selectedGrade, subject).map(option => (
+                  <Card
+                    key={option.value}
+                    variant={selectedLevel === option.value ? 'elevated' : 'glass'}
+                    padding="lg"
+                    hover
+                    onClick={() => setSelectedLevel(option.value)}
+                    className={`cursor-pointer ${
+                      selectedLevel === option.value
+                        ? 'ring-2 ring-purple-500 shadow-xl shadow-purple-500/20'
+                        : ''
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <h3
+                        className={`text-xl font-bold ${
+                          selectedLevel === option.value
+                            ? 'text-purple-600 dark:text-purple-400'
+                            : 'text-slate-900 dark:text-white'
+                        }`}
+                      >
+                        {option.label}
+                      </h3>
+
+                      {selectedLevel === option.value && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center"
+                        >
+                          <svg
+                            className="w-4 h-4 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    <p className="text-slate-600 dark:text-slate-400">{option.description}</p>
+                  </Card>
                 ))}
-              </div>
-            </div>
-          )}
+              </GridLayout>
+            </ContentSection>
+          </motion.div>
+        )}
 
-          {/* Информация о тесте */}
-          {selectedGrade && (!showLevelSelection || selectedLevel) && (
-            <div className="p-6 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-2xl mb-6 animate-scale-in">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-white">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                    </svg>
-                  </div>
-                </div>
+        {/* Summary and Start Button */}
+        {selectedGrade && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-8"
+          >
+            <Card variant="gradient" padding="lg">
+              <div className="flex items-center justify-between gap-6">
                 <div className="flex-1">
-                  <h3 className="font-display font-semibold text-white mb-2">
-                    Решить вариант {getExamType(selectedGrade, selectedLevel)}
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+                    Готовы начать?
                   </h3>
-                  <ul className="text-sm text-gray-300 font-sans space-y-1">
-                    <li className="flex items-center gap-2">
-                      <span className="text-cyan-400">•</span>
-                      Полный вариант {getExamType(selectedGrade, selectedLevel)}
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-cyan-400">•</span>
-                      Время на прохождение: {getExamDuration(selectedGrade, subject || '')}
-                    </li>
-                  </ul>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">
+                    {subjectLabel} • {getExamType(selectedGrade, selectedLevel || undefined)} •{' '}
+                    {subject && getExamDuration(selectedGrade, subject)}
+                  </p>
                 </div>
+
+                <Button
+                  variant="gradient"
+                  size="lg"
+                  onClick={handleStart}
+                  disabled={!isReadyToStart()}
+                  rightIcon={<ChevronRight className="w-5 h-5" />}
+                >
+                  Начать тест
+                </Button>
               </div>
-            </div>
-          )}
+            </Card>
+          </motion.div>
+        )}
 
-          <div className="flex gap-4">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/dashboard')}
-              className="flex-1"
-            >
-              Отмена
-            </Button>
-            <Button
-              onClick={handleStartTest}
-              disabled={!canStartTest}
-              className="flex-1"
-            >
-              {!selectedGrade
-                ? 'Выберите класс'
-                : showLevelSelection && !selectedLevel
-                  ? 'Выберите уровень'
-                  : 'Начать тест'}
-            </Button>
-          </div>
-        </div>
-
-        <div className="mt-6 p-4 bg-gray-900/50 border border-gray-700/50 rounded-2xl backdrop-blur-sm animate-fade-in" style={{ animationDelay: '200ms' }}>
-          <div className="flex items-start gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
-            </svg>
-            <div className="flex-1">
-              <p className="text-sm text-gray-400 font-sans">
-                <span className="text-cyan-400 font-semibold">Совет:</span> Выбирайте класс честно - это поможет нам точнее оценить ваш уровень и подготовить персональный план обучения
+        {/* Info Cards */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="mt-8"
+        >
+          <GridLayout cols={3} gap="md">
+            <Card variant="glass" padding="md">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <h4 className="font-semibold text-slate-900 dark:text-white">Реальные задания</h4>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Задания соответствуют формату экзамена
               </p>
-            </div>
-          </div>
-        </div>
+            </Card>
+
+            <Card variant="glass" padding="md">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <h4 className="font-semibold text-slate-900 dark:text-white">Таймер</h4>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Контроль времени как на экзамене
+              </p>
+            </Card>
+
+            <Card variant="glass" padding="md">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h4 className="font-semibold text-slate-900 dark:text-white">Результаты</h4>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Детальный анализ после завершения
+              </p>
+            </Card>
+          </GridLayout>
+        </motion.div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

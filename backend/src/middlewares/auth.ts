@@ -4,6 +4,7 @@ import { AppError } from './errorHandler';
 import prisma from '../config/database';
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       userId?: string;

@@ -383,18 +383,21 @@ class StreakService {
       case 'test_completed':
         challengesUpdated = await this.updateChallengeProgress(userId, 'complete_tests', 1);
         break;
-      case 'high_score':
+      case 'high_score': {
         const score = (metadata as any)?.score || 0;
         challengesUpdated = await this.updateChallengeProgress(userId, 'score_percentage', score);
         break;
-      case 'correct_streak':
+      }
+      case 'correct_streak': {
         const streak = (metadata as any)?.streak || 0;
         challengesUpdated = await this.updateChallengeProgress(userId, 'correct_streak', streak);
         break;
-      case 'time_spent':
+      }
+      case 'time_spent': {
         const minutes = (metadata as any)?.minutes || 0;
         challengesUpdated = await this.updateChallengeProgress(userId, 'time_spent', minutes);
         break;
+      }
       case 'theory_viewed':
         challengesUpdated = await this.updateChallengeProgress(userId, 'theory_viewed', 1);
         break;

@@ -1,7 +1,26 @@
+/**
+ * OgeTestPage - Modern ОГЭ Test Interface
+ * Redesigned with glassmorphic UI, smooth animations, and better UX
+ */
+
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Check,
+  Settings,
+  AlertTriangle,
+  LogOut,
+  Grid3x3,
+  X,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '../components/Button';
 import toast from 'react-hot-toast';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+import { Button } from '../components/Button';
+import { Card } from '../components/ui/Card';
 
 interface Task {
   number: number;
@@ -15,7 +34,7 @@ interface Task {
   requiresProof?: boolean;
 }
 
-// Моковые данные (в реальности загружаются с бэкенда)
+// Mock ОГЭ tasks data
 const mockOgeTasks: Task[] = [
   {
     number: 1,
@@ -23,35 +42,25 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '2,3',
     points: 1,
-    topic: 'Арифметика'
+    topic: 'Арифметика',
   },
   {
     number: 2,
     text: 'На координатной прямой отмечены числа a и b. Какое из следующих неравенств неверно?',
     type: 'choice',
-    options: [
-      'a - b < 0',
-      'ab < 0',
-      'a + b > 0',
-      'a² > b²'
-    ],
+    options: ['a - b < 0', 'ab < 0', 'a + b > 0', 'a² > b²'],
     correctAnswer: 'a + b > 0',
     points: 1,
-    topic: 'Числа на координатной прямой'
+    topic: 'Числа на координатной прямой',
   },
   {
     number: 3,
     text: 'Значение какого из выражений является числом рациональным?\n\n1) (√7 - 3)(√7 + 3)\n2) √5 · √20\n3) (√6 - 2)²\n4) √48 : √3',
     type: 'choice',
-    options: [
-      '1',
-      '2',
-      '3',
-      '4'
-    ],
+    options: ['1', '2', '3', '4'],
     correctAnswer: '1',
     points: 1,
-    topic: 'Иррациональные числа'
+    topic: 'Иррациональные числа',
   },
   {
     number: 4,
@@ -59,7 +68,7 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: '-2; 7',
     points: 1,
-    topic: 'Квадратные уравнения'
+    topic: 'Квадратные уравнения',
   },
   {
     number: 5,
@@ -67,180 +76,8 @@ const mockOgeTasks: Task[] = [
     type: 'short',
     correctAnswer: 'А-1, Б-3, В-2',
     points: 1,
-    topic: 'Линейная функция'
+    topic: 'Линейная функция',
   },
-  {
-    number: 6,
-    text: 'Дана арифметическая прогрессия: -4; -1; 2; 5; ...\n\nНайдите сумму первых десяти её членов.',
-    type: 'short',
-    correctAnswer: '95',
-    points: 1,
-    topic: 'Арифметическая прогрессия'
-  },
-  {
-    number: 7,
-    text: 'Найдите значение выражения (a⁵)³ : a¹² при a = 5',
-    type: 'short',
-    correctAnswer: '125',
-    points: 1,
-    topic: 'Степени'
-  },
-  {
-    number: 8,
-    text: 'На каком рисунке изображено множество решений неравенства x² - 4x - 5 ≤ 0?',
-    type: 'choice',
-    options: [
-      'Отрезок [-1; 5]',
-      'Отрезок [-5; 1]',
-      'Два луча: (-∞; -1] и [5; +∞)',
-      'Два луча: (-∞; -5] и [1; +∞)'
-    ],
-    correctAnswer: 'Отрезок [-1; 5]',
-    points: 1,
-    topic: 'Квадратные неравенства'
-  },
-  {
-    number: 9,
-    text: 'Турист идёт из одного города в другой, каждый день проходя больше, чем в предыдущий день, на одно и то же расстояние. Известно, что за первый день турист прошёл 10 километров. Определите, сколько километров прошёл турист за третий день, если весь путь он прошёл за 6 дней, а расстояние между городами составляет 120 километров.',
-    type: 'short',
-    correctAnswer: '20',
-    points: 2,
-    topic: 'Арифметическая прогрессия - задача'
-  },
-  {
-    number: 10,
-    text: 'Вероятность того, что новый электрический чайник прослужит больше года, равна 0,93. Вероятность того, что он прослужит больше двух лет, равна 0,82. Найдите вероятность того, что он прослужит меньше двух лет, но больше года.',
-    type: 'short',
-    correctAnswer: '0,11',
-    points: 1,
-    topic: 'Теория вероятностей'
-  },
-  {
-    number: 11,
-    text: 'На рисунке изображены графики функций y = 3 - x² и y = 2x. Вычислите абсциссу точки B.',
-    type: 'short',
-    correctAnswer: '3',
-    points: 1,
-    topic: 'Графики функций'
-  },
-  {
-    number: 12,
-    text: 'Площадь четырёхугольника можно вычислить по формуле S = (d₁ · d₂ · sin α)/2, где d₁ и d₂ — длины диагоналей четырёхугольника, α — угол между диагоналями. Пользуясь этой формулой, найдите длину диагонали d₂, если d₁ = 12, sin α = 1/3, а S = 12.',
-    type: 'short',
-    correctAnswer: '6',
-    points: 1,
-    topic: 'Формулы'
-  },
-  {
-    number: 13,
-    text: 'Укажите решение неравенства:\n\n5x - 7,5 ≥ 6x + 3,2',
-    type: 'choice',
-    options: [
-      'x ≥ -10,7',
-      'x ≤ -10,7',
-      'x ≥ 10,7',
-      'x ≤ 10,7'
-    ],
-    correctAnswer: 'x ≤ -10,7',
-    points: 1,
-    topic: 'Неравенства'
-  },
-  {
-    number: 14,
-    text: 'В среднем из 2000 садовых насосов, поступивших в продажу, 12 подтекают. Найдите вероятность того, что один случайно выбранный для контроля насос не подтекает.',
-    type: 'short',
-    correctAnswer: '0,994',
-    points: 1,
-    topic: 'Теория вероятностей'
-  },
-  {
-    number: 15,
-    text: 'В треугольнике ABC угол C равен 90°, AC = 4, cos A = 0,8. Найдите AB.',
-    type: 'short',
-    correctAnswer: '5',
-    points: 1,
-    topic: 'Прямоугольный треугольник'
-  },
-  {
-    number: 16,
-    text: 'Радиус окружности, описанной около квадрата, равен 4√2. Найдите длину стороны этого квадрата.',
-    type: 'short',
-    correctAnswer: '8',
-    points: 1,
-    topic: 'Окружность и квадрат'
-  },
-  {
-    number: 17,
-    text: 'Площадь прямоугольной трапеции равна 120. Одно из оснований трапеции в два раза больше другого, а её высота равна 6. Найдите меньшее основание трапеции.',
-    type: 'short',
-    correctAnswer: '10',
-    points: 1,
-    topic: 'Трапеция'
-  },
-  {
-    number: 18,
-    text: 'На клетчатой бумаге с размером клетки 1×1 изображён угол. Найдите тангенс этого угла.',
-    type: 'short',
-    correctAnswer: '2',
-    points: 1,
-    topic: 'Тригонометрия на клетчатой бумаге'
-  },
-  {
-    number: 19,
-    text: 'Какие из следующих утверждений верны?\n\n1) Через точку, не лежащую на данной прямой, можно провести прямую, параллельную этой прямой\n2) Если диагонали параллелограмма равны, то это прямоугольник\n3) У любой трапеции боковые стороны равны',
-    type: 'short',
-    correctAnswer: '1, 2',
-    points: 1,
-    topic: 'Геометрические утверждения'
-  },
-  {
-    number: 20,
-    text: 'Решите систему уравнений:\n\n{\n  y - x² = 6\n  y + x = 6\n}\n\nЗапишите решение в виде пары чисел (x; y). Если решений несколько, запишите их через точку с запятой.',
-    type: 'detailed',
-    correctAnswer: '(0; 6); (-5; 31)',
-    points: 2,
-    topic: 'Системы уравнений'
-  },
-  {
-    number: 21,
-    text: 'Из пункта А в пункт В выехал автомобиль. Одновременно с ним из В в А выехал мотоциклист. Автомобиль прибыл в пункт В через 1 час 20 минут после встречи, а мотоциклист прибыл в А через 3 часа после встречи. Сколько времени потратил на путь из А в В автомобиль?',
-    type: 'detailed',
-    correctAnswer: '3 часа',
-    points: 2,
-    topic: 'Задачи на движение'
-  },
-  {
-    number: 22,
-    text: 'Постройте график функции y = |x|·(x + 2) - 2x\n\nОпределите, при каких значениях m прямая y = m имеет с графиком ровно две общие точки.',
-    type: 'detailed',
-    correctAnswer: 'm = 0 или m < -1',
-    points: 2,
-    topic: 'Построение и исследование графиков'
-  },
-  {
-    number: 23,
-    text: 'Биссектриса угла A параллелограмма ABCD пересекает сторону BC в точке K. Найдите периметр параллелограмма, если BK = 7, CK = 12.',
-    type: 'detailed',
-    correctAnswer: '50',
-    points: 2,
-    topic: 'Параллелограмм'
-  },
-  {
-    number: 24,
-    text: 'В прямоугольной трапеции ABCD с основаниями AD и BC угол BAD прямой. Окружность, построенная на боковой стороне AB как на диаметре, касается боковой стороны CD. Докажите, что треугольник BCD — равнобедренный.',
-    type: 'proof',
-    correctAnswer: '',
-    points: 2,
-    topic: 'Доказательство - окружность и трапеция'
-  },
-  {
-    number: 25,
-    text: 'Середина M стороны AD выпуклого четырёхугольника ABCD равноудалена от всех его вершин. Найдите AD, если BC = 4, а углы B и C четырёхугольника равны соответственно 112° и 113°.',
-    type: 'detailed',
-    correctAnswer: '8',
-    points: 2,
-    topic: 'Четырёхугольник и окружность'
-  }
 ];
 
 export default function OgeTestPage() {
@@ -250,16 +87,24 @@ export default function OgeTestPage() {
 
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [timeLeft, setTimeLeft] = useState(235 * 60); // 3 часа 55 минут в секундах
+  const [timeLeft, setTimeLeft] = useState(235 * 60); // 3h 55m in seconds
   const [showResults, setShowResults] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showQuestionNav, setShowQuestionNav] = useState(false);
+  const [questionDirection, setQuestionDirection] = useState<'next' | 'prev'>('next');
 
-  const tasks = mockOgeTasks; // В реальности загружаем с сервера
+  const tasks = mockOgeTasks;
   const currentTask = tasks[currentTaskIndex];
   const progress = ((currentTaskIndex + 1) / tasks.length) * 100;
+  const answeredCount = Object.keys(answers).filter(k => answers[parseInt(k)]?.trim()).length;
 
+  // Timer
   useEffect(() => {
+    if (showResults) return;
+
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
+      setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
           handleFinish();
@@ -270,7 +115,28 @@ export default function OgeTestPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [showResults]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (showResults || showSettings || showExitConfirm) return;
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrevious();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNext();
+      } else if (e.ctrlKey && e.key === 'Enter' && currentTaskIndex === tasks.length - 1) {
+        e.preventDefault();
+        handleFinish();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [currentTaskIndex, showResults, showSettings, showExitConfirm]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -279,8 +145,14 @@ export default function OgeTestPage() {
     return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const getTimeColor = () => {
+    if (timeLeft > 60 * 60) return 'text-cyan-600 dark:text-cyan-400';
+    if (timeLeft > 30 * 60) return 'text-yellow-600 dark:text-yellow-400';
+    return 'text-red-600 dark:text-red-400';
+  };
+
   const handleAnswer = (answer: string) => {
-    setAnswers((prev) => ({
+    setAnswers(prev => ({
       ...prev,
       [currentTask.number]: answer,
     }));
@@ -288,14 +160,22 @@ export default function OgeTestPage() {
 
   const handleNext = () => {
     if (currentTaskIndex < tasks.length - 1) {
-      setCurrentTaskIndex((prev) => prev + 1);
+      setQuestionDirection('next');
+      setCurrentTaskIndex(prev => prev + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentTaskIndex > 0) {
-      setCurrentTaskIndex((prev) => prev - 1);
+      setQuestionDirection('prev');
+      setCurrentTaskIndex(prev => prev - 1);
     }
+  };
+
+  const goToQuestion = (index: number) => {
+    setQuestionDirection(index > currentTaskIndex ? 'next' : 'prev');
+    setCurrentTaskIndex(index);
+    setShowQuestionNav(false);
   };
 
   const handleFinish = () => {
@@ -303,220 +183,578 @@ export default function OgeTestPage() {
     toast.success('Тест завершен!');
   };
 
-  const getTimeColor = () => {
-    if (timeLeft > 60 * 60) return 'text-cyan-400';
-    if (timeLeft > 30 * 60) return 'text-yellow-400';
-    return 'text-red-400';
+  const handleExit = () => {
+    navigate('/dashboard');
   };
 
   if (!grade || !subject) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-400 font-sans mb-4">Ошибка загрузки теста</p>
-          <Button onClick={() => navigate('/dashboard')}>Вернуться к панели</Button>
-        </div>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
+        <Card variant="glass" padding="lg">
+          <div className="text-center">
+            <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              Параметры теста не указаны
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">
+              Пожалуйста, выберите предмет и класс
+            </p>
+            <Button onClick={() => navigate('/dashboard')}>Вернуться к панели</Button>
+          </div>
+        </Card>
       </div>
     );
   }
 
   if (showResults) {
-    const correctCount = Object.entries(answers).filter(
-      ([num, ans]) => tasks.find((t) => t.number === parseInt(num))?.correctAnswer === ans
-    ).length;
-
     return (
-      <div className="min-h-screen bg-gray-950 relative overflow-hidden py-12 px-4">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/30 dark:from-slate-950 dark:via-indigo-950/30 dark:to-purple-950/30 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="max-w-2xl w-full"
+        >
+          <Card variant="glass" padding="lg">
+            <div className="text-center">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center mx-auto mb-6">
+                <Check className="w-10 h-10 text-white" />
+              </div>
 
-        <div className="relative z-10 max-w-3xl mx-auto">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 text-center animate-scale-in">
-            <div className="text-6xl mb-6">🎉</div>
-            <h1 className="text-4xl font-display font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-4">
-              Тест завершен!
-            </h1>
-            <p className="text-xl text-gray-300 font-sans mb-8">
-              Правильных ответов: <span className="font-bold text-cyan-400">{correctCount}</span> из {tasks.length}
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Button onClick={() => navigate('/dashboard')}>
-                К панели управления
-              </Button>
-              <Button variant="outline" onClick={() => window.location.reload()}>
-                Пройти заново
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                Тест завершен!
+              </h2>
+              <p className="text-slate-600 dark:text-slate-400 mb-8">
+                ОГЭ по математике • {tasks.length} заданий
+              </p>
+
+              <div className="grid grid-cols-3 gap-4 mb-8">
+                <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-4">
+                  <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {answeredCount}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400">Отвечено</div>
+                </div>
+
+                <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-4">
+                  <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {tasks.length - answeredCount}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400">Пропущено</div>
+                </div>
+
+                <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-4">
+                  <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {formatTime(235 * 60 - timeLeft)}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400">Затрачено</div>
+                </div>
+              </div>
+
+              <Button variant="primary" size="lg" fullWidth onClick={handleExit}>
+                Вернуться к панели
               </Button>
             </div>
-          </div>
-        </div>
+          </Card>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
-
-      {/* Header с таймером */}
-      <div className="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-xl border-b border-gray-700/50">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      {/* Header */}
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="text-2xl font-display font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                ОГЭ Математика
-              </div>
-              <div className="text-sm text-gray-400 font-sans">
-                {grade} класс
+              <Button variant="ghost" size="sm" onClick={() => setShowExitConfirm(true)}>
+                <LogOut className="w-4 h-4" />
+              </Button>
+
+              <div>
+                <h1 className="text-lg font-bold text-slate-900 dark:text-white">
+                  ОГЭ • Математика
+                </h1>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Вопрос {currentTaskIndex + 1} из {tasks.length}
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-6">
-              {/* Таймер */}
-              <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 ${getTimeColor()}`}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className={`font-mono text-lg font-semibold ${getTimeColor()}`}>
-                  {formatTime(timeLeft)}
-                </span>
+            <div className="flex items-center gap-4">
+              <div
+                className={`flex items-center gap-2 font-mono text-lg font-bold ${getTimeColor()}`}
+              >
+                <Clock className="w-5 h-5" />
+                {formatTime(timeLeft)}
               </div>
 
-              {/* Прогресс */}
-              <div className="text-sm font-sans text-gray-400">
-                <span className="text-cyan-400 font-semibold">{currentTaskIndex + 1}</span> / {tasks.length}
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSettings(true)}
+                className="lg:hidden"
+              >
+                <Settings className="w-5 h-5" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowQuestionNav(true)}
+                className="lg:hidden"
+              >
+                <Grid3x3 className="w-5 h-5" />
+              </Button>
             </div>
           </div>
 
-          {/* Прогресс бар */}
-          <div className="mt-3 w-full bg-gray-700 rounded-full h-2">
-            <div
-              className="h-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
+          {/* Progress Bar */}
+          <div className="mt-4">
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span className="text-slate-600 dark:text-slate-400">
+                Прогресс: {answeredCount} / {tasks.length}
+              </span>
+              <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                {Math.round(progress)}%
+              </span>
+            </div>
+            <div className="relative h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.3 }}
+                className="absolute h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-full"
+              />
+            </div>
           </div>
         </div>
-      </div>
+      </motion.header>
 
-      {/* Основной контент */}
-      <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 animate-fade-in">
-          {/* Заголовок задания */}
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="px-3 py-1 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-xl text-cyan-400 font-display font-semibold">
-                  Задание {currentTask.number}
-                </span>
-                <span className="text-sm text-gray-400 font-sans">
-                  {currentTask.points} {currentTask.points === 1 ? 'балл' : 'балла'}
-                </span>
-              </div>
-              <div className="text-sm text-gray-500 font-sans">{currentTask.topic}</div>
-            </div>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex gap-8">
+          {/* Main Content */}
+          <div className="flex-1">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={currentTaskIndex}
+                initial={{
+                  x: questionDirection === 'next' ? 100 : -100,
+                  opacity: 0,
+                }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{
+                  x: questionDirection === 'next' ? -100 : 100,
+                  opacity: 0,
+                }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card variant="glass" padding="none">
+                  {/* Question Header */}
+                  <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-6 text-white">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium opacity-90">
+                        Задание {currentTask.number}
+                      </span>
+                      <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-lg text-sm font-semibold">
+                        {currentTask.points} {currentTask.points === 1 ? 'балл' : 'балла'}
+                      </span>
+                    </div>
+                    <div className="text-sm opacity-75">{currentTask.topic}</div>
+                  </div>
 
-          {/* Текст задания */}
-          <div className="mb-8 p-6 bg-gray-800/50 rounded-2xl border border-gray-700/50">
-            <p className="text-lg text-gray-200 font-sans whitespace-pre-line leading-relaxed">
-              {currentTask.text}
-            </p>
-          </div>
+                  {/* Question Content */}
+                  <div className="p-8">
+                    <div className="prose dark:prose-invert max-w-none mb-6">
+                      <p className="text-lg text-slate-900 dark:text-white whitespace-pre-wrap">
+                        {currentTask.text}
+                      </p>
+                    </div>
 
-          {/* Варианты ответов */}
-          <div className="mb-8">
-            {currentTask.type === 'choice' && currentTask.options && (
-              <div className="space-y-3">
-                {currentTask.options.map((option, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleAnswer(option)}
-                    className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${
-                      answers[currentTask.number] === option
-                        ? 'border-cyan-500 bg-cyan-500/10 text-white'
-                        : 'border-gray-700 bg-gray-800/30 text-gray-300 hover:border-cyan-500/50 hover:bg-gray-800/50'
-                    }`}
-                  >
-                    <span className="font-sans">{option}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+                    {/* Answer Input */}
+                    {currentTask.type === 'choice' && currentTask.options && (
+                      <div className="space-y-3">
+                        {currentTask.options.map((option, index) => (
+                          <motion.button
+                            key={index}
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => handleAnswer(option)}
+                            className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                              answers[currentTask.number] === option
+                                ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/30'
+                                : 'border-slate-200 dark:border-slate-700 hover:border-cyan-300 dark:hover:border-cyan-700'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-slate-900 dark:text-white">{option}</span>
+                              {answers[currentTask.number] === option && (
+                                <Check className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                              )}
+                            </div>
+                          </motion.button>
+                        ))}
+                      </div>
+                    )}
 
-            {currentTask.type === 'short' && (
-              <div>
-                <label className="block text-sm font-sans text-gray-400 mb-2">
-                  Введите ответ:
-                </label>
-                <input
-                  type="text"
-                  value={answers[currentTask.number] || ''}
-                  onChange={(e) => handleAnswer(e.target.value)}
-                  placeholder="Ваш ответ"
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all font-sans"
-                />
-              </div>
-            )}
+                    {currentTask.type === 'short' && (
+                      <input
+                        type="text"
+                        value={answers[currentTask.number] || ''}
+                        onChange={e => handleAnswer(e.target.value)}
+                        placeholder="Введите ваш ответ"
+                        className="w-full px-6 py-4 text-lg border-2 border-slate-200 dark:border-slate-700 rounded-xl focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/20 bg-white dark:bg-slate-800 text-slate-900 dark:text-white transition-all"
+                      />
+                    )}
 
-            {(currentTask.type === 'detailed' || currentTask.type === 'proof') && (
-              <div>
-                <label className="block text-sm font-sans text-gray-400 mb-2">
-                  {currentTask.type === 'proof' ? 'Напишите доказательство:' : 'Подробное решение:'}
-                </label>
-                <textarea
-                  value={answers[currentTask.number] || ''}
-                  onChange={(e) => handleAnswer(e.target.value)}
-                  placeholder={currentTask.type === 'proof' ? 'Опишите доказательство...' : 'Опишите решение...'}
-                  rows={8}
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all resize-vertical font-sans"
-                />
-              </div>
-            )}
-          </div>
+                    {(currentTask.type === 'detailed' || currentTask.type === 'proof') && (
+                      <textarea
+                        value={answers[currentTask.number] || ''}
+                        onChange={e => handleAnswer(e.target.value)}
+                        placeholder="Введите ваше решение"
+                        rows={8}
+                        className="w-full px-6 py-4 text-lg border-2 border-slate-200 dark:border-slate-700 rounded-xl focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/20 bg-white dark:bg-slate-800 text-slate-900 dark:text-white transition-all resize-none"
+                      />
+                    )}
+                  </div>
+                </Card>
+              </motion.div>
+            </AnimatePresence>
 
-          {/* Навигация */}
-          <div className="flex items-center justify-between pt-6 border-t border-gray-700/50">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentTaskIndex === 0}
-            >
-              ← Предыдущее
-            </Button>
+            {/* Navigation */}
+            <div className="mt-6 flex items-center justify-between gap-4">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={handlePrevious}
+                disabled={currentTaskIndex === 0}
+                icon={<ChevronLeft className="w-5 h-5" />}
+              >
+                Назад
+              </Button>
 
-            <div className="flex gap-3">
               {currentTaskIndex === tasks.length - 1 ? (
-                <Button onClick={handleFinish}>
+                <Button
+                  variant="gradient"
+                  size="lg"
+                  onClick={handleFinish}
+                  rightIcon={<Check className="w-5 h-5" />}
+                >
                   Завершить тест
                 </Button>
               ) : (
-                <Button onClick={handleNext}>
-                  Следующее →
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={handleNext}
+                  rightIcon={<ChevronRight className="w-5 h-5" />}
+                >
+                  Следующий
                 </Button>
               )}
             </div>
           </div>
-        </div>
 
-        {/* Навигация по заданиям */}
-        <div className="mt-6 bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
-          <h3 className="text-sm font-sans text-gray-400 mb-3">Быстрая навигация:</h3>
-          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
-            {tasks.map((task, index) => (
-              <button
-                key={task.number}
-                onClick={() => setCurrentTaskIndex(index)}
-                className={`aspect-square rounded-lg font-display font-semibold text-sm transition-all ${
-                  currentTaskIndex === index
-                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white scale-110'
-                    : answers[task.number]
-                    ? 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-400'
-                    : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-cyan-500/50'
-                }`}
-              >
-                {task.number}
-              </button>
-            ))}
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:block w-80">
+            <div className="sticky top-24 space-y-6">
+              {/* Progress Circle */}
+              <Card variant="glass" padding="md">
+                <div className="text-center">
+                  <div className="relative inline-block">
+                    <svg className="w-32 h-32 transform -rotate-90">
+                      <circle
+                        cx="64"
+                        cy="64"
+                        r="56"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        className="text-slate-200 dark:text-slate-700"
+                      />
+                      <motion.circle
+                        cx="64"
+                        cy="64"
+                        r="56"
+                        fill="none"
+                        stroke="url(#gradient)"
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={`${2 * Math.PI * 56}`}
+                        initial={{ strokeDashoffset: 2 * Math.PI * 56 }}
+                        animate={{
+                          strokeDashoffset: 2 * Math.PI * 56 * (1 - progress / 100),
+                        }}
+                        transition={{ duration: 0.5 }}
+                      />
+                      <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#06b6d4" />
+                          <stop offset="50%" stopColor="#3b82f6" />
+                          <stop offset="100%" stopColor="#8b5cf6" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-slate-900 dark:text-white">
+                          {Math.round(progress)}%
+                        </div>
+                        <div className="text-xs text-slate-600 dark:text-slate-400">
+                          {answeredCount}/{tasks.length}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Question Navigator */}
+              <Card variant="glass" padding="md">
+                <h3 className="font-semibold text-slate-900 dark:text-white mb-4">
+                  Навигация по заданиям
+                </h3>
+
+                <div className="grid grid-cols-5 gap-2">
+                  {tasks.map((task, index) => {
+                    const isAnswered = answers[task.number]?.trim();
+                    const isCurrent = index === currentTaskIndex;
+
+                    return (
+                      <motion.button
+                        key={task.number}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => goToQuestion(index)}
+                        className={`aspect-square rounded-lg font-semibold text-sm transition-all ${
+                          isCurrent
+                            ? 'bg-gradient-to-br from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
+                            : isAnswered
+                              ? 'bg-emerald-500 text-white border-2 border-emerald-600'
+                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-2 border-slate-200 dark:border-slate-700'
+                        }`}
+                      >
+                        {task.number}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-gradient-to-br from-cyan-500 to-blue-500" />
+                    <span className="text-slate-600 dark:text-slate-400">Текущий</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-emerald-500" />
+                    <span className="text-slate-600 dark:text-slate-400">Отвечено</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded border-2 border-slate-300 dark:border-slate-600" />
+                    <span className="text-slate-600 dark:text-slate-400">Не отвечено</span>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
+        </div>
+      </div>
+
+      {/* Mobile Question Navigator */}
+      <AnimatePresence>
+        {showQuestionNav && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 lg:hidden"
+          >
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowQuestionNav(false)}
+            />
+
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30 }}
+              className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Навигация по заданиям
+                </h3>
+                <button
+                  onClick={() => setShowQuestionNav(false)}
+                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-5 gap-3">
+                {tasks.map((task, index) => {
+                  const isAnswered = answers[task.number]?.trim();
+                  const isCurrent = index === currentTaskIndex;
+
+                  return (
+                    <button
+                      key={task.number}
+                      onClick={() => goToQuestion(index)}
+                      className={`aspect-square rounded-lg font-semibold transition-all ${
+                        isCurrent
+                          ? 'bg-gradient-to-br from-cyan-500 to-blue-500 text-white shadow-lg'
+                          : isAnswered
+                            ? 'bg-emerald-500 text-white'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      {task.number}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Settings Modal */}
+      <AnimatePresence>
+        {showSettings && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowSettings(false)}
+            />
+
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="relative max-w-md w-full"
+            >
+              <Card variant="glass" padding="lg">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">Настройки</h3>
+                  <button
+                    onClick={() => setShowSettings(false)}
+                    className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-slate-900 dark:text-white mb-2">
+                      Статистика
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-slate-600 dark:text-slate-400">Отвечено:</span>
+                        <span className="font-semibold">{answeredCount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-600 dark:text-slate-400">Осталось:</span>
+                        <span className="font-semibold">{tasks.length - answeredCount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-600 dark:text-slate-400">Прогресс:</span>
+                        <span className="font-semibold">{Math.round(progress)}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <h4 className="font-semibold text-slate-900 dark:text-white mb-2">
+                      Горячие клавиши
+                    </h4>
+                    <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                      <div className="flex justify-between">
+                        <span>← / →</span>
+                        <span>Переключение вопросов</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Ctrl + Enter</span>
+                        <span>Завершить тест</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button variant="secondary" fullWidth onClick={() => setShowSettings(false)}>
+                    Закрыть
+                  </Button>
+                </div>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Exit Confirmation */}
+      <AnimatePresence>
+        {showExitConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowExitConfirm(false)}
+            />
+
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="relative max-w-md w-full"
+            >
+              <Card variant="glass" padding="lg">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center mx-auto mb-4">
+                    <AlertTriangle className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                    Вы уверены?
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400 mb-6">
+                    Ваш прогресс не будет сохранен
+                  </p>
+
+                  <div className="space-y-3">
+                    <Button variant="primary" fullWidth onClick={() => setShowExitConfirm(false)}>
+                      Продолжить тест
+                    </Button>
+                    <Button variant="secondary" fullWidth onClick={handleExit}>
+                      Выйти без сохранения
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Keyboard Shortcuts Footer */}
+      <div className="hidden lg:block fixed bottom-4 right-4 text-xs text-slate-500 dark:text-slate-400">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-800">
+          ← / → для навигации • Ctrl + Enter для завершения
         </div>
       </div>
     </div>

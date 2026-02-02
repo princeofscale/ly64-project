@@ -328,7 +328,7 @@ export default function AdminPage() {
                             )}
                             {u.id !== user?.id && (
                               <button
-                                onClick={() => handleDeleteUser(u.id)}
+                                onClick={async () => handleDeleteUser(u.id)}
                                 className="px-3 py-1.5 text-xs font-medium bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
                               >
                                 Удалить

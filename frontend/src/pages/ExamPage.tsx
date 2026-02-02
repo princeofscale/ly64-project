@@ -10,22 +10,23 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Core
-import { ExamFactory } from '../core/factories';
-import { IExam } from '../core/interfaces';
-import { ExamType, Subject, Grade, TestResults } from '../core/types';
+import { Button } from '../components/Button';
+import { ExamHeader, TaskNavigation, TaskCard, ExamResults } from '../components/exam';
 import { MESSAGES } from '../core/constants';
+import { ExamFactory } from '../core/factories';
+import { useTestSession } from '../hooks/useTestSession';
+import { useTimer } from '../hooks/useTimer';
+
+import type { IExam } from '../core/interfaces';
+import type { ExamType, Subject, Grade, TestResults } from '../core/types';
 
 // Hooks
-import { useTimer } from '../hooks/useTimer';
-import { useTestSession } from '../hooks/useTestSession';
 
 // Components
-import { ExamHeader, TaskNavigation, TaskCard, ExamResults } from '../components/exam';
-import { Button } from '../components/Button';
 
 interface LocationState {
   grade: Grade;
@@ -85,7 +86,12 @@ export default function ExamPage() {
 
   // Показываем ошибку
   if (error || !exam) {
-    return <ErrorScreen error={error || 'Экзамен не найден'} onBack={() => navigate('/dashboard')} />;
+    return (
+      <ErrorScreen
+        error={error || 'Экзамен не найден'}
+        onBack={async () => navigate('/dashboard')}
+      />
+    );
   }
 
   // Показываем результаты
@@ -103,7 +109,7 @@ export default function ExamPage() {
   return (
     <ExamContent
       exam={exam}
-      onComplete={(res) => {
+      onComplete={res => {
         setResults(res);
         toast.success(MESSAGES.TEST_COMPLETED);
       }}
@@ -179,9 +185,12 @@ const ExamContent: React.FC<ExamContentProps> = ({ exam, onComplete, onTimeExpir
   }, [currentTask, getAnswer]);
 
   // Обработчик ответа
-  const handleAnswer = useCallback((answer: string) => {
-    submitAnswer(answer);
-  }, [submitAnswer]);
+  const handleAnswer = useCallback(
+    (answer: string) => {
+      submitAnswer(answer);
+    },
+    [submitAnswer]
+  );
 
   // Обработчик завершения
   const handleFinish = useCallback(() => {
@@ -195,9 +204,12 @@ const ExamContent: React.FC<ExamContentProps> = ({ exam, onComplete, onTimeExpir
   }, [answeredCount, totalTasks, complete, onComplete]);
 
   // Обработчик выбора задания
-  const handleTaskSelect = useCallback((taskNumber: number) => {
-    goToTask(taskNumber);
-  }, [goToTask]);
+  const handleTaskSelect = useCallback(
+    (taskNumber: number) => {
+      goToTask(taskNumber);
+    },
+    [goToTask]
+  );
 
   if (!currentTask) {
     return <LoadingScreen />;
