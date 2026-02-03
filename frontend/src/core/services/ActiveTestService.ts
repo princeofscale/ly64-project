@@ -1,4 +1,4 @@
-import { ExamType, Subject, Grade } from '../types';
+import type { ExamType, Subject, Grade } from '../types';
 
 export interface ActiveTestData {
   id: string;
@@ -49,7 +49,9 @@ export class ActiveTestService {
     return this.getActiveTest() !== null;
   }
 
-  public updateProgress(updates: Partial<Pick<ActiveTestData, 'currentTaskIndex' | 'answeredCount' | 'timeLeftSeconds'>>): void {
+  public updateProgress(
+    updates: Partial<Pick<ActiveTestData, 'currentTaskIndex' | 'answeredCount' | 'timeLeftSeconds'>>
+  ): void {
     const activeTest = this.getActiveTest();
     if (!activeTest) return;
 

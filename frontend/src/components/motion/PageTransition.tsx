@@ -3,9 +3,11 @@
  * Анимации переходов между страницами
  */
 
-import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { ReactNode } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
+
+import type { Variants } from 'framer-motion';
+import type { ReactNode } from 'react';
 
 // Animation variants
 const fadeVariants: Variants = {
@@ -50,7 +52,11 @@ interface PageTransitionProps {
 /**
  * Wrapper for page content with enter/exit animations
  */
-export function PageTransition({ children, type = 'slideUp', className = '' }: PageTransitionProps) {
+export function PageTransition({
+  children,
+  type = 'slideUp',
+  className = '',
+}: PageTransitionProps) {
   const location = useLocation();
   const variants = variantsMap[type];
 
@@ -73,7 +79,15 @@ export function PageTransition({ children, type = 'slideUp', className = '' }: P
 /**
  * Simple fade transition without AnimatePresence
  */
-export function FadeIn({ children, delay = 0, className = '' }: { children: ReactNode; delay?: number; className?: string }) {
+export function FadeIn({
+  children,
+  delay = 0,
+  className = '',
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -89,7 +103,15 @@ export function FadeIn({ children, delay = 0, className = '' }: { children: Reac
 /**
  * Slide up animation
  */
-export function SlideUp({ children, delay = 0, className = '' }: { children: ReactNode; delay?: number; className?: string }) {
+export function SlideUp({
+  children,
+  delay = 0,
+  className = '',
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -105,7 +127,15 @@ export function SlideUp({ children, delay = 0, className = '' }: { children: Rea
 /**
  * Scale in animation
  */
-export function ScaleIn({ children, delay = 0, className = '' }: { children: ReactNode; delay?: number; className?: string }) {
+export function ScaleIn({
+  children,
+  delay = 0,
+  className = '',
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -127,7 +157,11 @@ interface StaggeredListProps {
   className?: string;
 }
 
-export function StaggeredList({ children, staggerDelay = 0.05, className = '' }: StaggeredListProps) {
+export function StaggeredList({
+  children,
+  staggerDelay = 0.05,
+  className = '',
+}: StaggeredListProps) {
   return (
     <motion.div
       initial="hidden"
@@ -161,11 +195,7 @@ export function StaggeredList({ children, staggerDelay = 0.05, className = '' }:
  */
 export function Pop({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <motion.div
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className={className}
-    >
+    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={className}>
       {children}
     </motion.div>
   );

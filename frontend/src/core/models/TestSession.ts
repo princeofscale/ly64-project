@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ITestSession, IExam, ITask } from '../interfaces';
-import { TestStatus, UserAnswer, TestResults } from '../types';
+
+import type { ITestSession, IExam, ITask } from '../interfaces';
+import type { TestStatus, UserAnswer, TestResults } from '../types';
 
 export class TestSession implements ITestSession {
   public readonly id: string;
@@ -111,15 +112,11 @@ export class TestSession implements ITestSession {
   }
 
   public getSkippedCount(): number {
-    return Array.from(this.answers.values()).filter(
-      a => a.status === 'skipped'
-    ).length;
+    return Array.from(this.answers.values()).filter(a => a.status === 'skipped').length;
   }
 
   public getFlaggedCount(): number {
-    return Array.from(this.answers.values()).filter(
-      a => a.status === 'flagged'
-    ).length;
+    return Array.from(this.answers.values()).filter(a => a.status === 'flagged').length;
   }
 
   public getUnansweredTasks(): ITask[] {

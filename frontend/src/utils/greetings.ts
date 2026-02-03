@@ -2,7 +2,7 @@ export function getFirstName(fullName: string | undefined): string {
   if (!fullName) return 'Пользователь';
 
   const parts = fullName.trim().split(/\s+/);
-  return parts[0] || 'Пользователь';
+  return parts[1] || 'Пользователь';
 }
 
 const greetings = [
@@ -18,7 +18,7 @@ const greetings = [
 const motivationalPhrases = [
   'Иди дальше к своей цели',
   'Продолжай в том же духе',
-  'Мы в тебя верим'
+  'Мы в тебя верим',
 ];
 
 export function getRandomGreeting(): string {

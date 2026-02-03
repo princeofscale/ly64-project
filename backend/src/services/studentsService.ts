@@ -21,7 +21,8 @@ export class StudentsService {
     try {
       const response = await axios.get<StudentsResponse>(this.apiUrl, {
         timeout: 10000,
-        httpsAgent: new https.Agent({
+
+        httpsAgent: new (require('https').Agent)({
           rejectUnauthorized: false,
         }),
       });

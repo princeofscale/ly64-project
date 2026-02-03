@@ -11,28 +11,17 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Конфигурация
 const CONFIG = {
-  // Путь к базе данных
   dbPath: path.join(__dirname, '..', 'dev.db'),
-  // Директория для бэкапов
   backupDir: path.join(__dirname, '..', 'backups'),
-  // Максимальное количество бэкапов (старые удаляются)
   maxBackups: 10,
-  // Формат имени файла бэкапа
   getBackupName: () => {
     const now = new Date();
-    const timestamp = now.toISOString()
-      .replace(/[:.]/g, '-')
-      .replace('T', '_')
-      .slice(0, 19);
+    const timestamp = now.toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, 19);
     return `backup_${timestamp}.db`;
   },
 };
 
-/**
- * Создать директорию для бэкапов если не существует
- */
 function ensureBackupDir(): void {
   if (!fs.existsSync(CONFIG.backupDir)) {
     fs.mkdirSync(CONFIG.backupDir, { recursive: true });
@@ -40,13 +29,11 @@ function ensureBackupDir(): void {
   }
 }
 
-/**
- * Получить список существующих бэкапов
- */
 function getBackupList(): { name: string; path: string; size: number; date: Date }[] {
   ensureBackupDir();
 
-  const files = fs.readdirSync(CONFIG.backupDir)
+  const files = fs
+    .readdirSync(CONFIG.backupDir)
     .filter(f => f.startsWith('backup_') && f.endsWith('.db'))
     .map(name => {
       const filePath = path.join(CONFIG.backupDir, name);
@@ -63,9 +50,6 @@ function getBackupList(): { name: string; path: string; size: number; date: Date
   return files;
 }
 
-/**
- * Удалить старые бэкапы
- */
 function cleanupOldBackups(): void {
   const backups = getBackupList();
 
@@ -79,13 +63,9 @@ function cleanupOldBackups(): void {
   }
 }
 
-/**
- * Создать бэкап базы данных
- */
 function createBackup(): string | null {
   console.log('\n🔄 Создание бэкапа базы данных...\n');
 
-  // Проверяем существование БД
   if (!fs.existsSync(CONFIG.dbPath)) {
     console.error(`❌ База данных не найдена: ${CONFIG.dbPath}`);
     return null;
@@ -97,7 +77,6 @@ function createBackup(): string | null {
   const backupPath = path.join(CONFIG.backupDir, backupName);
 
   try {
-    // Копируем файл БД
     fs.copyFileSync(CONFIG.dbPath, backupPath);
 
     const stats = fs.statSync(backupPath);
@@ -108,7 +87,6 @@ function createBackup(): string | null {
     console.log(`   📦 Размер: ${sizeKB} KB`);
     console.log(`   📂 Путь: ${backupPath}`);
 
-    // Удаляем старые бэкапы
     cleanupOldBackups();
 
     return backupPath;
@@ -118,9 +96,6 @@ function createBackup(): string | null {
   }
 }
 
-/**
- * Показать список бэкапов
- */
 function listBackups(): void {
   console.log('\n📋 Список резервных копий:\n');
 
@@ -146,9 +121,6 @@ function listBackups(): void {
   console.log(`   Максимум хранится: ${CONFIG.maxBackups}`);
 }
 
-/**
- * Восстановить из последнего бэкапа
- */
 function restoreFromLatest(): boolean {
   console.log('\n🔄 Восстановление из последнего бэкапа...\n');
 
@@ -166,7 +138,6 @@ function restoreFromLatest(): boolean {
   console.log('');
 
   try {
-    // Создаём бэкап текущей БД перед восстановлением
     const currentBackupName = `pre_restore_${Date.now()}.db`;
     const currentBackupPath = path.join(CONFIG.backupDir, currentBackupName);
 
@@ -175,7 +146,6 @@ function restoreFromLatest(): boolean {
       console.log(`   💾 Текущая БД сохранена как: ${currentBackupName}`);
     }
 
-    // Восстанавливаем
     fs.copyFileSync(latestBackup.path, CONFIG.dbPath);
 
     console.log(`✅ База данных восстановлена из: ${latestBackup.name}`);
@@ -186,9 +156,6 @@ function restoreFromLatest(): boolean {
   }
 }
 
-/**
- * Восстановить из конкретного бэкапа
- */
 function restoreFromBackup(backupName: string): boolean {
   console.log(`\n🔄 Восстановление из бэкапа: ${backupName}\n`);
 
@@ -200,7 +167,6 @@ function restoreFromBackup(backupName: string): boolean {
   }
 
   try {
-    // Создаём бэкап текущей БД перед восстановлением
     const currentBackupName = `pre_restore_${Date.now()}.db`;
     const currentBackupPath = path.join(CONFIG.backupDir, currentBackupName);
 
@@ -209,7 +175,6 @@ function restoreFromBackup(backupName: string): boolean {
       console.log(`   💾 Текущая БД сохранена как: ${currentBackupName}`);
     }
 
-    // Восстанавливаем
     fs.copyFileSync(backupPath, CONFIG.dbPath);
 
     console.log(`✅ База данных восстановлена из: ${backupName}`);
@@ -220,7 +185,6 @@ function restoreFromBackup(backupName: string): boolean {
   }
 }
 
-// Главная функция
 function main(): void {
   const args = process.argv.slice(2);
   const command = args[0] || 'create';
@@ -273,14 +237,6 @@ function main(): void {
   }
 }
 
-// Экспорт для использования как модуля
-export {
-  createBackup,
-  listBackups,
-  restoreFromLatest,
-  restoreFromBackup,
-  getBackupList,
-};
+export { createBackup, listBackups, restoreFromLatest, restoreFromBackup, getBackupList };
 
-// Запуск
 main();

@@ -11,22 +11,19 @@ async function createAdmin() {
   try {
     console.log('Creating admin user...');
 
-    // Проверяем, существует ли уже пользователь
     const existing = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existing) {
-      // Обновляем роль на ADMIN
       await prisma.user.update({
         where: { email },
-        data: { role: 'ADMIN', diagnosticCompleted: true },
+        data: { role: 'ADMIN' },
       });
       console.log(`✅ User ${email} updated to ADMIN role`);
       return;
     }
 
-    // Создаём нового админа
     const hashedPassword = await bcrypt.hash(password, 10);
     const username = email.split('@')[0] + '_admin';
 
@@ -39,12 +36,10 @@ async function createAdmin() {
         status: 'STUDENT',
         currentGrade: 10,
         role: 'ADMIN',
-        diagnosticCompleted: true,
         agreedToTerms: true,
       },
     });
 
-    // Создаём прогресс
     await prisma.userProgress.create({
       data: {
         userId: admin.id,

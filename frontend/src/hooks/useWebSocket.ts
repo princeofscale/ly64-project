@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+
 import { useAuthStore } from '../store/authStore';
 
 // ==========================================
@@ -85,7 +86,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
       }
     };
 
-    ws.onmessage = (event) => {
+    ws.onmessage = event => {
       try {
         const message: WSMessage = JSON.parse(event.data);
 
@@ -102,14 +103,14 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
         // Call registered handlers
         const handlers = handlersRef.current.get(message.type);
         if (handlers) {
-          handlers.forEach((handler) => handler(message.data));
+          handlers.forEach(handler => handler(message.data));
         }
 
         // Also call handlers for the channel if it's a broadcast
         if (message.channel) {
           const channelHandlers = handlersRef.current.get(message.channel);
           if (channelHandlers) {
-            channelHandlers.forEach((handler) => handler(message.data));
+            channelHandlers.forEach(handler => handler(message.data));
           }
         }
       } catch (error) {
@@ -117,7 +118,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
       }
     };
 
-    ws.onclose = (event) => {
+    ws.onclose = event => {
       console.log('[WebSocket] Disconnected', event.code, event.reason);
       setStatus('disconnected');
       setIsAuthenticated(false);
@@ -126,12 +127,14 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
       // Attempt reconnect
       if (reconnect && reconnectAttemptsRef.current < maxReconnectAttempts) {
         reconnectAttemptsRef.current++;
-        console.log(`[WebSocket] Reconnecting in ${reconnectInterval}ms (attempt ${reconnectAttemptsRef.current})`);
+        console.log(
+          `[WebSocket] Reconnecting in ${reconnectInterval}ms (attempt ${reconnectAttemptsRef.current})`
+        );
         reconnectTimeoutRef.current = setTimeout(connect, reconnectInterval);
       }
     };
 
-    ws.onerror = (error) => {
+    ws.onerror = error => {
       console.error('[WebSocket] Error:', error);
       setStatus('error');
     };

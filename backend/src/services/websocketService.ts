@@ -1,16 +1,9 @@
-/**
- * WebSocket Service
- * Real-time updates for leaderboard, achievements, notifications
- */
-
-import { WebSocketServer, WebSocket } from 'ws';
-import { Server } from 'http';
 import jwt from 'jsonwebtoken';
+import { WebSocketServer, WebSocket } from 'ws';
+
 import { logger } from '../utils/logger';
 
-// ==========================================
-// Types
-// ==========================================
+import type { Server } from 'http';
 
 interface AuthenticatedWebSocket extends WebSocket {
   userId?: string;
@@ -31,10 +24,6 @@ interface BroadcastMessage {
   timestamp: number;
 }
 
-// ==========================================
-// WebSocket Service
-// ==========================================
-
 class WebSocketService {
   private static instance: WebSocketService;
   private wss: WebSocketServer | null = null;
@@ -51,15 +40,11 @@ class WebSocketService {
     return WebSocketService.instance;
   }
 
-  /**
-   * Initialize WebSocket server
-   */
   public initialize(server: Server): void {
     this.wss = new WebSocketServer({
       server,
       path: '/ws',
       verifyClient: (info, callback) => {
-        // Allow connection, authentication happens after
         callback(true);
       },
     });
@@ -74,7 +59,7 @@ class WebSocketService {
         ws.isAlive = true;
       });
 
-      ws.on('message', (data) => {
+      ws.on('message', data => {
         try {
           const message: WSMessage = JSON.parse(data.toString());
           this.handleMessage(ws, message);
@@ -87,21 +72,21 @@ class WebSocketService {
         this.handleDisconnect(ws);
       });
 
-      ws.on('error', (error) => {
+      ws.on('error', error => {
         logger.error('[WebSocket] Error', { error: error.message });
       });
 
-      // Send welcome message
-      ws.send(JSON.stringify({
-        type: 'connected',
-        message: 'Connected to Lyceum64 WebSocket',
-        timestamp: Date.now(),
-      }));
+      ws.send(
+        JSON.stringify({
+          type: 'connected',
+          message: 'Connected to Lyceum64 WebSocket',
+          timestamp: Date.now(),
+        })
+      );
     });
 
-    // Ping/pong for connection health
     this.pingInterval = setInterval(() => {
-      this.wss?.clients.forEach((ws) => {
+      this.wss?.clients.forEach(ws => {
         const client = ws as AuthenticatedWebSocket;
         if (!client.isAlive) {
           logger.info('[WebSocket] Terminating inactive connection');
@@ -115,9 +100,6 @@ class WebSocketService {
     logger.info('[WebSocket] Server initialized on /ws');
   }
 
-  /**
-   * Handle incoming messages
-   */
   private handleMessage(ws: AuthenticatedWebSocket, message: WSMessage): void {
     switch (message.type) {
       case 'auth':
@@ -145,9 +127,6 @@ class WebSocketService {
     }
   }
 
-  /**
-   * Authenticate WebSocket connection
-   */
   private handleAuth(ws: AuthenticatedWebSocket, token?: string): void {
     if (!token) {
       ws.send(JSON.stringify({ type: 'auth_error', message: 'Token required' }));
@@ -158,17 +137,18 @@ class WebSocketService {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
       ws.userId = decoded.id;
 
-      // Add to clients map
       if (!this.clients.has(decoded.id)) {
         this.clients.set(decoded.id, new Set());
       }
       this.clients.get(decoded.id)!.add(ws);
 
-      ws.send(JSON.stringify({
-        type: 'auth_success',
-        userId: decoded.id,
-        timestamp: Date.now(),
-      }));
+      ws.send(
+        JSON.stringify({
+          type: 'auth_success',
+          userId: decoded.id,
+          timestamp: Date.now(),
+        })
+      );
 
       logger.info('[WebSocket] User authenticated', { userId: decoded.id });
     } catch (error) {
@@ -176,11 +156,7 @@ class WebSocketService {
     }
   }
 
-  /**
-   * Subscribe to a channel
-   */
   private subscribe(ws: AuthenticatedWebSocket, channel: string): void {
-    // Validate channel name
     const validChannels = ['leaderboard', 'achievements', 'notifications', 'tests'];
     if (!validChannels.includes(channel)) {
       ws.send(JSON.stringify({ type: 'error', message: 'Invalid channel' }));
@@ -193,34 +169,31 @@ class WebSocketService {
     this.channels.get(channel)!.add(ws);
     ws.subscriptions.add(channel);
 
-    ws.send(JSON.stringify({
-      type: 'subscribed',
-      channel,
-      timestamp: Date.now(),
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'subscribed',
+        channel,
+        timestamp: Date.now(),
+      })
+    );
 
     logger.info('[WebSocket] Subscribed to channel', { channel, userId: ws.userId });
   }
 
-  /**
-   * Unsubscribe from a channel
-   */
   private unsubscribe(ws: AuthenticatedWebSocket, channel: string): void {
     this.channels.get(channel)?.delete(ws);
     ws.subscriptions.delete(channel);
 
-    ws.send(JSON.stringify({
-      type: 'unsubscribed',
-      channel,
-      timestamp: Date.now(),
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'unsubscribed',
+        channel,
+        timestamp: Date.now(),
+      })
+    );
   }
 
-  /**
-   * Handle disconnect
-   */
   private handleDisconnect(ws: AuthenticatedWebSocket): void {
-    // Remove from user clients
     if (ws.userId) {
       this.clients.get(ws.userId)?.delete(ws);
       if (this.clients.get(ws.userId)?.size === 0) {
@@ -228,21 +201,13 @@ class WebSocketService {
       }
     }
 
-    // Remove from channels
-    ws.subscriptions.forEach((channel) => {
+    ws.subscriptions.forEach(channel => {
       this.channels.get(channel)?.delete(ws);
     });
 
     logger.info('[WebSocket] Disconnected', { userId: ws.userId });
   }
 
-  // ==========================================
-  // Public Broadcasting Methods
-  // ==========================================
-
-  /**
-   * Broadcast to all clients in a channel
-   */
   public broadcast(channel: string, data: unknown): void {
     const message: BroadcastMessage = {
       type: channel,
@@ -254,7 +219,7 @@ class WebSocketService {
     if (!subscribers) return;
 
     const payload = JSON.stringify(message);
-    subscribers.forEach((client) => {
+    subscribers.forEach(client => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(payload);
       }
@@ -263,9 +228,6 @@ class WebSocketService {
     logger.info('[WebSocket] Broadcast', { channel, recipients: subscribers.size });
   }
 
-  /**
-   * Send to specific user
-   */
   public sendToUser(userId: string, type: string, data: unknown): void {
     const userClients = this.clients.get(userId);
     if (!userClients) return;
@@ -276,37 +238,26 @@ class WebSocketService {
       timestamp: Date.now(),
     });
 
-    userClients.forEach((client) => {
+    userClients.forEach(client => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(message);
       }
     });
   }
 
-  /**
-   * Broadcast leaderboard update
-   */
   public broadcastLeaderboardUpdate(leaderboard: unknown): void {
     this.broadcast('leaderboard', leaderboard);
   }
 
-  /**
-   * Broadcast new achievement
-   */
   public broadcastAchievement(userId: string, achievement: unknown): void {
-    // Send to specific user
     this.sendToUser(userId, 'achievement_unlocked', achievement);
 
-    // Broadcast to achievements channel (for public feed)
     this.broadcast('achievements', {
       userId,
       achievement,
     });
   }
 
-  /**
-   * Broadcast test completion
-   */
   public broadcastTestCompletion(userId: string, result: unknown): void {
     this.broadcast('tests', {
       type: 'test_completed',
@@ -315,10 +266,11 @@ class WebSocketService {
     });
   }
 
-  /**
-   * Get connection stats
-   */
-  public getStats(): { totalConnections: number; authenticatedUsers: number; channels: Record<string, number> } {
+  public getStats(): {
+    totalConnections: number;
+    authenticatedUsers: number;
+    channels: Record<string, number>;
+  } {
     const channelStats: Record<string, number> = {};
     this.channels.forEach((clients, channel) => {
       channelStats[channel] = clients.size;
@@ -331,15 +283,12 @@ class WebSocketService {
     };
   }
 
-  /**
-   * Shutdown WebSocket server
-   */
   public shutdown(): void {
     if (this.pingInterval) {
       clearInterval(this.pingInterval);
     }
 
-    this.wss?.clients.forEach((client) => {
+    this.wss?.clients.forEach(client => {
       client.close(1001, 'Server shutting down');
     });
 

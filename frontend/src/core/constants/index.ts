@@ -3,7 +3,7 @@
  * Централизованные константы приложения
  */
 
-import { Subject, Grade } from '../types';
+import type { Subject, Grade } from '../types';
 
 /**
  * Конфигурация экзаменов
@@ -150,7 +150,6 @@ export const ROUTES = {
   EGE_TYPE: '/test/ege-type',
   EXAM: '/test/exam',
   RESULTS: '/test/results',
-  DIAGNOSTIC: '/diagnostic',
 } as const;
 
 /**

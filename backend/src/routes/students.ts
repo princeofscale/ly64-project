@@ -1,8 +1,10 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+
 import studentsService from '../services/studentsService';
 
-const router = Router();
+import type { Request, Response } from 'express';
 
+const router = Router();
 
 router.get('/', async (_req: Request, res: Response) => {
   try {

@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
-"""
-Script to fetch test data from sdamgia.ru using sdamgia_api
-and populate the database with questions and tests.
-"""
 
 import sys
-import os
 import sqlite3
 import json
 
@@ -17,8 +12,14 @@ if sys.platform == 'win32':
 import uuid
 from datetime import datetime
 from pathlib import Path
+from typing import Optional, List
+from contextlib import contextmanager
 
-# Add sdamgia_api to path
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "sdamgia_api" / "src"))
 
 try:
@@ -32,46 +33,52 @@ except ImportError:
 class DatabaseSeeder:
     def __init__(self, db_path: str):
         self.db_path = db_path
-        self.conn = None
+        self.conn: Optional[sqlite3.Connection] = None
 
-    def connect(self):
-        """Connect to SQLite database"""
-        self.conn = sqlite3.connect(self.db_path, detect_types=0)  # Disable type detection
+    def connect(self) -> None:
+        self.conn = sqlite3.connect(self.db_path, detect_types=0)
         self.conn.row_factory = sqlite3.Row
 
-    def close(self):
-        """Close database connection"""
+    def close(self) -> None:
         if self.conn:
             self.conn.close()
 
-    def create_question(self, problem, subject: str, exam_type: str, target_grade: str) -> str:
-        """Create a question in the database"""
-        question_id = str(uuid.uuid4())
+    def __enter__(self):
+        self.connect()
+        return self
 
-        # Determine question type based on problem data
-        question_type = "SHORT_ANSWER"  # Default
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def create_question(
+        self,
+        problem,
+        subject: str,
+        exam_type: str,
+        target_grade: str
+    ) -> str:
+        question_id = str(uuid.uuid4())
+        question_type = "SHORT_ANSWER"
         options = None
 
-        # Get question HTML (preserves formulas and images)
-        question_text = problem.condition.html if hasattr(problem.condition, 'html') else (
-            problem.condition.text if hasattr(problem.condition, 'text') else str(problem.condition)
+        question_text = (
+            problem.condition.html if hasattr(problem.condition, 'html')
+            else problem.condition.text if hasattr(problem.condition, 'text')
+            else str(problem.condition)
         )
 
-        # Get correct answer
         correct_answer = problem.answer
 
-        # Get explanation if available
         explanation = None
-        if problem.solution and hasattr(problem.solution, 'html'):
-            explanation = problem.solution.html
-        elif problem.solution and hasattr(problem.solution, 'text'):
-            explanation = problem.solution.text
+        if problem.solution:
+            if hasattr(problem.solution, 'html'):
+                explanation = problem.solution.html
+            elif hasattr(problem.solution, 'text'):
+                explanation = problem.solution.text
 
-        # Get topic
-        topic = problem.topic if hasattr(problem, 'topic') else None
-
-        # Determine difficulty (default to MEDIUM)
+        topic = getattr(problem, 'topic', None)
         difficulty = "MEDIUM"
+        timestamp = int(datetime.now().timestamp() * 1000)
 
         cursor = self.conn.cursor()
         cursor.execute("""
@@ -80,28 +87,24 @@ class DatabaseSeeder:
              question, options, correctAnswer, explanation, topic, createdAt, updatedAt)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            question_id,
-            subject,
-            exam_type,
-            target_grade,
-            question_type,
-            difficulty,
-            question_text,
-            json.dumps(options) if options else None,
-            correct_answer,
-            explanation,
-            topic,
-            int(datetime.now().timestamp() * 1000),  # Milliseconds since epoch
-            int(datetime.now().timestamp() * 1000)
+            question_id, subject, exam_type, target_grade, question_type,
+            difficulty, question_text, json.dumps(options) if options else None,
+            correct_answer, explanation, topic, timestamp, timestamp
         ))
 
         self.conn.commit()
         return question_id
 
-    def create_test(self, title: str, subject: str, exam_type: str,
-                   target_grade: str, question_ids: list) -> str:
-        """Create a test with questions"""
+    def create_test(
+        self,
+        title: str,
+        subject: str,
+        exam_type: str,
+        target_grade: str,
+        question_ids: List[str]
+    ) -> str:
         test_id = str(uuid.uuid4())
+        timestamp = int(datetime.now().timestamp() * 1000)
 
         cursor = self.conn.cursor()
         cursor.execute("""
@@ -111,22 +114,11 @@ class DatabaseSeeder:
              timeLimit, passingScore, createdAt, updatedAt)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            test_id,
-            title,
-            f"Тест по {subject} ({exam_type})",
-            subject,
-            exam_type,
-            target_grade,
-            0,  # isDiagnostic
-            0,  # randomizeQuestions - disabled for OGE/EGE to preserve original order
-            0,  # preventBackNavigation
-            None,  # timeLimit
-            None,  # passingScore
-            int(datetime.now().timestamp() * 1000),  # Milliseconds since epoch
-            int(datetime.now().timestamp() * 1000)
+            test_id, title, f"Тест по {subject} ({exam_type})",
+            subject, exam_type, target_grade,
+            0, 0, 0, None, None, timestamp, timestamp
         ))
 
-        # Add questions to test
         for order, question_id in enumerate(question_ids):
             test_question_id = str(uuid.uuid4())
             cursor.execute("""
@@ -137,9 +129,13 @@ class DatabaseSeeder:
         self.conn.commit()
         return test_id
 
-    def fetch_and_create_variant(self, variant_id: str, subject: Subject,
-                                exam_type: ExamType, target_grade: str):
-        """Fetch a variant from sdamgia and create test with questions"""
+    def fetch_and_create_variant(
+        self,
+        variant_id: str,
+        subject: Subject,
+        exam_type: ExamType,
+        target_grade: str
+    ) -> Optional[str]:
         print(f"Fetching variant {variant_id} for {subject.value} {exam_type.value}...")
 
         with SdamgiaClient() as client:
@@ -163,20 +159,20 @@ class DatabaseSeeder:
                         print(f"  Warning: Failed to fetch problem {problem_ref.id}: {e}")
                         continue
 
-                if question_ids:
-                    test_title = f"{self._map_exam_type(exam_type)} {self._map_subject(subject)} - Вариант {variant_id}"
-                    test_id = self.create_test(
-                        test_title,
-                        self._map_subject(subject),
-                        self._map_exam_type(exam_type),
-                        target_grade,
-                        question_ids
-                    )
-                    print(f"✓ Created test: {test_title} (ID: {test_id})")
-                    return test_id
-                else:
+                if not question_ids:
                     print(f"✗ No questions created for variant {variant_id}")
                     return None
+
+                test_title = f"{self._map_exam_type(exam_type)} {self._map_subject(subject)} - Вариант {variant_id}"
+                test_id = self.create_test(
+                    test_title,
+                    self._map_subject(subject),
+                    self._map_exam_type(exam_type),
+                    target_grade,
+                    question_ids
+                )
+                print(f"✓ Created test: {test_title} (ID: {test_id})")
+                return test_id
 
             except Exception as e:
                 print(f"✗ Error fetching variant {variant_id}: {e}")
@@ -184,7 +180,6 @@ class DatabaseSeeder:
 
     @staticmethod
     def _map_subject(subject: Subject) -> str:
-        """Map sdamgia Subject to database subject"""
         mapping = {
             Subject.MATH: "MATHEMATICS",
             Subject.MATHB: "MATHEMATICS",
@@ -203,12 +198,10 @@ class DatabaseSeeder:
 
     @staticmethod
     def _map_exam_type(exam_type: ExamType) -> str:
-        """Map sdamgia ExamType to database examType"""
         return exam_type.value.upper()
 
 
-def main():
-    # Path to database
+def main() -> None:
     db_path = Path(__file__).parent.parent / "prisma" / "dev.db"
 
     if not db_path.exists():
@@ -218,36 +211,30 @@ def main():
 
     print(f"Using database: {db_path}")
 
-    seeder = DatabaseSeeder(str(db_path))
-    seeder.connect()
-
     try:
-        # Fetch OGE Math variants (вариант 12345 - полный ОГЭ с 26 заданиями)
-        print("\n=== Fetching OGE Math variants ===")
-        seeder.fetch_and_create_variant("12345", Subject.MATH, ExamType.OGE, "GRADE_9")
+        with DatabaseSeeder(str(db_path)) as seeder:
+            print("\n=== Fetching OGE Math variants ===")
+            seeder.fetch_and_create_variant("12345", Subject.MATH, ExamType.OGE, "GRADE_9")
 
-        # Fetch EGE Math variants (profile level)
-        print("\n=== Fetching EGE Math Profile variants ===")
-        seeder.fetch_and_create_variant("33333", Subject.MATH, ExamType.EGE, "GRADE_11")
+            print("\n=== Fetching EGE Math Profile variants ===")
+            seeder.fetch_and_create_variant("33333", Subject.MATH, ExamType.EGE, "GRADE_11")
 
-        # Fetch EGE Math Base variants
-        print("\n=== Fetching EGE Math Base variants ===")
-        seeder.fetch_and_create_variant("11111", Subject.MATHB, ExamType.EGE, "GRADE_11")
+            print("\n=== Fetching EGE Math Base variants ===")
+            seeder.fetch_and_create_variant("11111", Subject.MATHB, ExamType.EGE, "GRADE_11")
 
-        # Fetch OGE Russian variants
-        print("\n=== Fetching OGE Russian variants ===")
-        seeder.fetch_and_create_variant("88888", Subject.RUS, ExamType.OGE, "GRADE_9")
+            print("\n=== Fetching OGE Russian variants ===")
+            seeder.fetch_and_create_variant("88888", Subject.RUS, ExamType.OGE, "GRADE_9")
 
-        print("\n✓ All variants fetched successfully!")
+            print("\n✓ All variants fetched successfully!")
 
     except KeyboardInterrupt:
         print("\n\nInterrupted by user")
+        sys.exit(130)
     except Exception as e:
         print(f"\n✗ Error: {e}")
         import traceback
         traceback.print_exc()
-    finally:
-        seeder.close()
+        sys.exit(1)
 
 
 if __name__ == "__main__":

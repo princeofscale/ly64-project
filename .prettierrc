@@ -15,28 +15,24 @@
   "proseWrap": "preserve",
   "htmlWhitespaceSensitivity": "css",
   "embeddedLanguageFormatting": "auto",
-  "experimentalTernaries": false,
-  "plugins": [],
+  "singleAttributePerLine": false,
   "overrides": [
     {
-      "files": ["*.json", "*.jsonc"],
+      "files": "*.json",
       "options": {
-        "printWidth": 120,
         "trailingComma": "none"
       }
     },
     {
-      "files": ["*.md", "*.mdx"],
+      "files": "*.md",
       "options": {
-        "proseWrap": "always",
-        "printWidth": 80
+        "proseWrap": "always"
       }
     },
     {
-      "files": ["package.json", "package-lock.json"],
+      "files": ["*.yml", "*.yaml"],
       "options": {
-        "printWidth": 120,
-        "tabWidth": 2
+        "singleQuote": false
       }
     }
   ]

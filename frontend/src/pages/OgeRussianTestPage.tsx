@@ -142,19 +142,19 @@ export default function OgeRussianTestPage() {
   };
 
   const getTimeColor = () => {
-    if (!selectedVariant) return 'text-cyan-400';
+    if (!selectedVariant) return 'text-blue-600';
     const totalTime = selectedVariant.duration * 60;
-    if (timeLeft > totalTime * 0.5) return 'text-cyan-400';
-    if (timeLeft > totalTime * 0.25) return 'text-yellow-400';
-    return 'text-red-400';
+    if (timeLeft > totalTime * 0.5) return 'text-blue-600';
+    if (timeLeft > totalTime * 0.25) return 'text-amber-600';
+    return 'text-red-600';
   };
 
   if (!grade) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-400 mb-4">Ошибка загрузки теста</p>
-          <Button onClick={async () => navigate('/dashboard')}>Вернуться</Button>
+          <p className="text-slate-600 mb-4">Ошибка загрузки теста</p>
+          <Button onClick={() => navigate('/dashboard')}>Вернуться</Button>
         </div>
       </div>
     );
@@ -162,15 +162,12 @@ export default function OgeRussianTestPage() {
 
   if (phase === 'select') {
     return (
-      <div className="min-h-screen bg-gray-950 relative overflow-hidden py-12 px-4">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20" />
-        <div className="absolute top-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px]" />
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden py-12 px-4">
 
         <div className="relative z-10 max-w-4xl mx-auto">
           <button
-            onClick={async () => navigate('/dashboard')}
-            className="group mb-6 flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors"
+            onClick={() => navigate('/dashboard')}
+            className="group mb-6 flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors"
           >
             <svg
               className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform"
@@ -190,10 +187,10 @@ export default function OgeRussianTestPage() {
 
           <div className="text-center mb-10">
             <div className="text-6xl mb-4">📖</div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent mb-3">
+            <h1 className="text-4xl font-bold text-slate-900 mb-3">
               ОГЭ Русский язык
             </h1>
-            <p className="text-gray-400 text-lg">Выберите вариант из открытого банка ФИПИ</p>
+            <p className="text-slate-600 text-lg">Выберите вариант из открытого банка ФИПИ</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -201,19 +198,19 @@ export default function OgeRussianTestPage() {
               <button
                 key={variant.id}
                 onClick={() => handleSelectVariant(variant)}
-                className="group bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6 text-left hover:border-purple-500/50 transition-all duration-300 hover:scale-[1.02] animate-scale-in"
+                className="group bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-6 text-left hover:border-blue-300 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl font-bold text-purple-400">#{variant.id}</span>
-                  <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm">
+                  <span className="text-3xl font-bold text-blue-600">#{variant.id}</span>
+                  <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm border border-blue-200">
                     ФИПИ
                   </span>
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-purple-400 transition-colors">
+                <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
                   {variant.title}
                 </h3>
-                <div className="space-y-1 text-sm text-gray-400">
+                <div className="space-y-1 text-sm text-slate-600">
                   <div className="flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -241,11 +238,11 @@ export default function OgeRussianTestPage() {
             ))}
           </div>
 
-          <div className="mt-8 p-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-2xl">
-            <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+          <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-2xl">
+            <h3 className="text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
               <span>ℹ️</span> Структура ОГЭ по русскому языку
             </h3>
-            <ul className="space-y-2 text-gray-300 text-sm">
+            <ul className="space-y-2 text-slate-700 text-sm">
               <li>
                 • <strong>Задание 1:</strong> Сжатое изложение (7 баллов)
               </li>
@@ -284,22 +281,20 @@ export default function OgeRussianTestPage() {
     };
 
     return (
-      <div className="min-h-screen bg-gray-950 relative overflow-hidden py-12 px-4">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20" />
-
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white py-12 px-4">
         <div className="relative z-10 max-w-3xl mx-auto">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 text-center animate-scale-in">
+          <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-8 text-center shadow-2xl">
             <div className="text-6xl mb-4">{getScoreEmoji()}</div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">
               {getScoreMessage()}
             </h1>
-            <p className="text-gray-400 mb-6">{selectedVariant.title} завершён</p>
+            <p className="text-slate-600 mb-6">{selectedVariant.title} завершён</p>
 
-            <div className="mb-8 p-6 bg-gray-800/50 rounded-2xl">
-              <div className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent mb-2">
+            <div className="mb-8 p-6 bg-slate-50 rounded-2xl">
+              <div className="text-5xl font-bold text-blue-600 mb-2">
                 {score}%
               </div>
-              <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden mb-4">
+              <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden mb-4">
                 <div
                   className={`h-full rounded-full transition-all duration-1000 ${
                     score >= 80
@@ -313,22 +308,22 @@ export default function OgeRussianTestPage() {
               </div>
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-purple-400">
+                  <div className="text-2xl font-bold text-blue-600">
                     {answeredCount}/{selectedVariant.tasks.length}
                   </div>
-                  <div className="text-sm text-gray-400">отвечено</div>
+                  <div className="text-sm text-slate-600">отвечено</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-cyan-400">
+                  <div className="text-2xl font-bold text-violet-600">
                     {selectedVariant.tasks.reduce((sum, t) => sum + t.points, 0)}
                   </div>
-                  <div className="text-sm text-gray-400">макс. баллов</div>
+                  <div className="text-sm text-slate-600">макс. баллов</div>
                 </div>
               </div>
             </div>
 
             <div className="flex gap-4 justify-center">
-              <Button onClick={async () => navigate('/dashboard')}>К панели управления</Button>
+              <Button onClick={() => navigate('/dashboard')}>К панели управления</Button>
               <Button variant="outline" onClick={() => setPhase('select')}>
                 Выбрать другой вариант
               </Button>
@@ -342,17 +337,15 @@ export default function OgeRussianTestPage() {
   if (!selectedVariant || !currentTask) return null;
 
   return (
-    <div className="min-h-screen bg-gray-950 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20" />
-
-      <div className="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-xl border-b border-gray-700/50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <div className="text-2xl font-bold text-slate-900">
                 ОГЭ Русский язык
               </div>
-              <div className="text-sm text-gray-400">{selectedVariant.title}</div>
+              <div className="text-sm text-slate-600">{selectedVariant.title}</div>
             </div>
 
             <div className="flex items-center gap-6">
@@ -375,23 +368,23 @@ export default function OgeRussianTestPage() {
                 </span>
               </div>
 
-              <div className="text-sm text-gray-400">
-                <span className="text-purple-400 font-semibold">{answeredCount}</span> /{' '}
+              <div className="text-sm text-slate-600">
+                <span className="text-blue-600 font-semibold">{answeredCount}</span> /{' '}
                 {selectedVariant.tasks.length}
               </div>
 
               <button
                 onClick={handleExit}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors text-sm font-medium"
               >
                 Выйти
               </button>
             </div>
           </div>
 
-          <div className="mt-3 w-full bg-gray-700 rounded-full h-2">
+          <div className="mt-3 w-full bg-slate-200 rounded-full h-2">
             <div
-              className="h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-300"
+              className="h-2 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -399,19 +392,19 @@ export default function OgeRussianTestPage() {
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 animate-fade-in">
+        <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-8 shadow-xl">
           <div className="flex items-start justify-between mb-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <span className="px-3 py-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl text-purple-400 font-semibold">
+                <span className="px-3 py-1 bg-blue-50 border border-blue-200 rounded-xl text-blue-600 font-semibold">
                   Задание {currentTask.number}
                 </span>
-                <span className="text-sm text-gray-400">
+                <span className="text-sm text-slate-600">
                   {currentTask.points}{' '}
                   {currentTask.points === 1 ? 'балл' : currentTask.points < 5 ? 'балла' : 'баллов'}
                 </span>
               </div>
-              <div className="text-sm text-gray-500">{currentTask.topic}</div>
+              <div className="text-sm text-slate-500">{currentTask.topic}</div>
             </div>
           </div>
 
@@ -425,8 +418,8 @@ export default function OgeRussianTestPage() {
             </div>
           )}
 
-          <div className="mb-8 p-6 bg-gray-800/50 rounded-2xl border border-gray-700/50">
-            <p className="text-lg text-gray-200 whitespace-pre-line leading-relaxed">
+          <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+            <p className="text-lg text-slate-900 whitespace-pre-line leading-relaxed">
               {currentTask.text}
             </p>
           </div>
@@ -440,8 +433,8 @@ export default function OgeRussianTestPage() {
                     onClick={() => handleAnswer(option)}
                     className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${
                       answers[currentTask.number] === option
-                        ? 'border-purple-500 bg-purple-500/10 text-white'
-                        : 'border-gray-700 bg-gray-800/30 text-gray-300 hover:border-purple-500/50'
+                        ? 'border-blue-500 bg-blue-50 text-slate-900'
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-slate-50'
                     }`}
                   >
                     {option}
@@ -452,7 +445,7 @@ export default function OgeRussianTestPage() {
 
             {currentTask.type === 'multiple_choice' && currentTask.options && (
               <div className="space-y-3">
-                <p className="text-sm text-gray-400 mb-2">Выберите все правильные ответы</p>
+                <p className="text-sm text-slate-600 mb-2">Выберите все правильные ответы</p>
                 {currentTask.options.map((option, index) => {
                   const currentAnswers = answers[currentTask.number]?.split(',') || [];
                   const optionKey = (index + 1).toString();
@@ -472,13 +465,13 @@ export default function OgeRussianTestPage() {
                       }}
                       className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 flex items-center gap-3 ${
                         isSelected
-                          ? 'border-purple-500 bg-purple-500/10 text-white'
-                          : 'border-gray-700 bg-gray-800/30 text-gray-300 hover:border-purple-500/50'
+                          ? 'border-blue-500 bg-blue-50 text-slate-900'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-slate-50'
                       }`}
                     >
                       <div
                         className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                          isSelected ? 'border-purple-500 bg-purple-500' : 'border-gray-600'
+                          isSelected ? 'border-blue-500 bg-blue-500' : 'border-slate-400'
                         }`}
                       >
                         {isSelected && (
@@ -506,33 +499,33 @@ export default function OgeRussianTestPage() {
 
             {(currentTask.type === 'short' || currentTask.type === 'matching') && (
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Введите ответ:</label>
+                <label className="block text-sm text-slate-700 mb-2">Введите ответ:</label>
                 <input
                   type="text"
                   value={answers[currentTask.number] || ''}
                   onChange={e => handleAnswer(e.target.value)}
                   placeholder="Ваш ответ"
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
               </div>
             )}
 
             {currentTask.type === 'detailed' && (
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Развёрнутый ответ:</label>
+                <label className="block text-sm text-slate-700 mb-2">Развёрнутый ответ:</label>
                 <textarea
                   value={answers[currentTask.number] || ''}
                   onChange={e => handleAnswer(e.target.value)}
                   placeholder="Напишите ваш ответ..."
                   rows={10}
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-vertical"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-vertical"
                 />
-                <p className="mt-2 text-sm text-gray-500">Минимальный объём — 70 слов</p>
+                <p className="mt-2 text-sm text-slate-500">Минимальный объём — 70 слов</p>
               </div>
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-6 border-t border-gray-700/50">
+          <div className="flex items-center justify-between pt-6 border-t border-slate-200">
             <Button variant="outline" onClick={handlePrevious} disabled={currentTaskIndex === 0}>
               ← Предыдущее
             </Button>
@@ -547,8 +540,8 @@ export default function OgeRussianTestPage() {
           </div>
         </div>
 
-        <div className="mt-6 bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
-          <h3 className="text-sm text-gray-400 mb-3">Навигация:</h3>
+        <div className="mt-6 bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-6 shadow-xl">
+          <h3 className="text-sm text-slate-600 mb-3">Навигация:</h3>
           <div className="grid grid-cols-6 sm:grid-cols-12 gap-2">
             {selectedVariant.tasks.map((task, index) => (
               <button
@@ -556,10 +549,10 @@ export default function OgeRussianTestPage() {
                 onClick={() => setCurrentTaskIndex(index)}
                 className={`aspect-square rounded-lg font-semibold text-sm transition-all ${
                   currentTaskIndex === index
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white scale-110'
+                    ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white scale-110'
                     : answers[task.number]
-                      ? 'bg-purple-500/20 border border-purple-500/30 text-purple-400'
-                      : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-purple-500/50'
+                      ? 'bg-blue-50 border border-blue-200 text-blue-600'
+                      : 'bg-slate-50 border border-slate-200 text-slate-600 hover:border-blue-300'
                 }`}
               >
                 {task.number}
@@ -571,19 +564,19 @@ export default function OgeRussianTestPage() {
 
       {showExitConfirm && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 animate-scale-in">
-            <h4 className="text-xl font-semibold text-white mb-3">Выйти из теста?</h4>
-            <p className="text-gray-400 mb-2">
-              Вы ответили на <span className="text-purple-400 font-semibold">{answeredCount}</span>{' '}
-              из <span className="text-white">{selectedVariant.tasks.length}</span> вопросов.
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full border border-slate-200 animate-scale-in">
+            <h4 className="text-xl font-semibold text-slate-900 mb-3">Выйти из теста?</h4>
+            <p className="text-slate-600 mb-2">
+              Вы ответили на <span className="text-blue-600 font-semibold">{answeredCount}</span>{' '}
+              из <span className="text-slate-900">{selectedVariant.tasks.length}</span> вопросов.
             </p>
-            <p className="text-gray-400 mb-6">
+            <p className="text-slate-600 mb-6">
               Вы можете вернуться и продолжить позже или завершить тест сейчас.
             </p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => setShowExitConfirm(false)}
-                className="w-full px-4 py-3 bg-purple-500 text-white font-medium rounded-xl hover:bg-purple-600 transition-all"
+                className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all"
               >
                 Продолжить тест
               </button>
@@ -595,7 +588,7 @@ export default function OgeRussianTestPage() {
               </button>
               <button
                 onClick={handleConfirmExit}
-                className="w-full px-4 py-3 bg-gray-700 text-gray-300 font-medium rounded-xl hover:bg-gray-600 transition-all"
+                className="w-full px-4 py-3 bg-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-300 transition-all"
               >
                 Выйти без сохранения
               </button>

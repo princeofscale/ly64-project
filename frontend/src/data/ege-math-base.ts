@@ -10,7 +10,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '7',
       points: 1,
-      topic: 'Практические задачи'
+      topic: 'Практические задачи',
     },
     {
       number: 2,
@@ -18,7 +18,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: 'А-3, Б-4, В-2, Г-1',
       points: 1,
-      topic: 'Соответствие величин'
+      topic: 'Соответствие величин',
     },
     {
       number: 3,
@@ -26,7 +26,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '5',
       points: 1,
-      topic: 'Анализ диаграмм'
+      topic: 'Анализ диаграмм',
     },
     {
       number: 4,
@@ -34,7 +34,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '6',
       points: 1,
-      topic: 'Практические задачи'
+      topic: 'Практические задачи',
     },
     {
       number: 5,
@@ -42,21 +42,16 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '5,1',
       points: 1,
-      topic: 'Арифметические вычисления'
+      topic: 'Арифметические вычисления',
     },
     {
       number: 6,
       text: 'В магазине продаётся несколько видов творога в разных упаковках и по разной цене. Какую упаковку надо купить, чтобы цена за 1 кг творога была наименьшей?\n\n1) 90 г за 23 р.\n2) 200 г за 48 р.\n3) 350 г за 88 р.\n4) 400 г за 92 р.\n\nВ ответе укажите номер выбранного варианта.',
       type: 'choice',
-      options: [
-        '1',
-        '2',
-        '3',
-        '4'
-      ],
+      options: ['1', '2', '3', '4'],
       correctAnswer: '4',
       points: 1,
-      topic: 'Оптимальный выбор'
+      topic: 'Оптимальный выбор',
     },
     {
       number: 7,
@@ -64,7 +59,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '-8',
       points: 1,
-      topic: 'Линейные уравнения'
+      topic: 'Линейные уравнения',
     },
     {
       number: 8,
@@ -72,7 +67,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '186',
       points: 1,
-      topic: 'Геометрические задачи'
+      topic: 'Геометрические задачи',
     },
     {
       number: 9,
@@ -80,7 +75,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: 'А-4, Б-2, В-3, Г-1',
       points: 1,
-      topic: 'Соответствие величин'
+      topic: 'Соответствие величин',
     },
     {
       number: 10,
@@ -88,7 +83,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '0,05',
       points: 1,
-      topic: 'Теория вероятностей'
+      topic: 'Теория вероятностей',
     },
     {
       number: 11,
@@ -96,7 +91,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '18',
       points: 1,
-      topic: 'Анализ графиков'
+      topic: 'Анализ графиков',
     },
     {
       number: 12,
@@ -104,7 +99,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '630',
       points: 1,
-      topic: 'Проценты'
+      topic: 'Проценты',
     },
     {
       number: 13,
@@ -112,7 +107,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '9',
       points: 1,
-      topic: 'Стереометрия'
+      topic: 'Стереометрия',
     },
     {
       number: 14,
@@ -120,7 +115,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: 'А-2, Б-1, В-2, Г-1',
       points: 1,
-      topic: 'Графики функций'
+      topic: 'Графики функций',
     },
     {
       number: 15,
@@ -128,7 +123,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '0,47',
       points: 1,
-      topic: 'Тригонометрия'
+      topic: 'Тригонометрия',
     },
     {
       number: 16,
@@ -136,7 +131,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '2',
       points: 1,
-      topic: 'Стереометрия - конус'
+      topic: 'Стереометрия - конус',
     },
     {
       number: 17,
@@ -144,7 +139,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: 'А-4, Б-2, В-3, Г-1',
       points: 1,
-      topic: 'Неравенства'
+      topic: 'Неравенства',
     },
     {
       number: 18,
@@ -152,7 +147,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '84600',
       points: 1,
-      topic: 'Арифметическая прогрессия'
+      topic: 'Арифметическая прогрессия',
     },
     {
       number: 19,
@@ -160,7 +155,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '125',
       points: 1,
-      topic: 'Числа и их свойства'
+      topic: 'Числа и их свойства',
     },
     {
       number: 20,
@@ -168,7 +163,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '7',
       points: 1,
-      topic: 'Логические задачи'
+      topic: 'Логические задачи',
     },
     {
       number: 21,
@@ -176,7 +171,7 @@ export const egeMathBase = {
       type: 'short',
       correctAnswer: '12',
       points: 1,
-      topic: 'Логические задачи'
-    }
-  ]
+      topic: 'Логические задачи',
+    },
+  ],
 };

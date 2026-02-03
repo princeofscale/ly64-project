@@ -5,7 +5,7 @@
  * Generates a cryptographically secure random secret for JWT tokens
  */
 
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 console.log('========================================');
 console.log('  JWT Secret Generator');

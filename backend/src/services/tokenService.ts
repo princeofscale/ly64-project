@@ -133,6 +133,7 @@ class TokenService {
 
   verifyAccessToken(token: string): TokenPayload | null {
     try {
+      const { verifyToken } = require('../utils/jwt');
       const decoded = verifyToken(token);
       // Map the decoded token back to TokenPayload format
       return {
@@ -140,7 +141,7 @@ class TokenService {
         email: decoded.email,
         role: 'USER', // Default role, can be extended if needed
       };
-    } catch {
+    } catch (error) {
       return null;
     }
   }

@@ -107,7 +107,10 @@ class SoundService {
     // ADSR envelope
     gainNode.gain.setValueAtTime(0, ctx.currentTime);
     gainNode.gain.linearRampToValueAtTime(this.config.volume, ctx.currentTime + attack);
-    gainNode.gain.linearRampToValueAtTime(this.config.volume * 0.7, ctx.currentTime + attack + decay);
+    gainNode.gain.linearRampToValueAtTime(
+      this.config.volume * 0.7,
+      ctx.currentTime + attack + decay
+    );
     gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
 
     oscillator.start(ctx.currentTime);

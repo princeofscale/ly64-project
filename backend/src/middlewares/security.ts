@@ -1,52 +1,44 @@
-import { Request, Response, NextFunction } from 'express';
-import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import hpp from 'hpp';
 import { escape } from 'validator';
 
-// ==========================================
-// HTTP Security Headers (Helmet)
-// ==========================================
+import type { Request, Response, NextFunction } from 'express';
+
 export const securityHeaders = helmet({
-  // Content Security Policy
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "blob:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
+      imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+      connectSrc: ["'self'", 'ws:', 'wss:'],
+      fontSrc: ["'self'", 'data:'],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      upgradeInsecureRequests: [],
     },
   },
-  // Prevent clickjacking
   frameguard: { action: 'deny' },
-  // Prevent MIME type sniffing
   noSniff: true,
-  // XSS filter
   xssFilter: true,
-  // Hide X-Powered-By header
   hidePoweredBy: true,
-  // HSTS (HTTP Strict Transport Security)
   hsts: {
-    maxAge: 31536000, // 1 year
+    maxAge: 31536000,
     includeSubDomains: true,
     preload: true,
   },
-  // Referrer Policy
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  dnsPrefetchControl: { allow: false },
+  ieNoOpen: true,
+  permittedCrossDomainPolicies: { permittedPolicies: 'none' },
 });
 
-// ==========================================
-// Rate Limiting
-// ==========================================
-
-// General API rate limiter - 100 requests per 15 minutes
 export const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 100,
   message: {
     error: 'Слишком много запросов. Попробуйте позже.',
@@ -54,12 +46,10 @@ export const generalLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  // Use default keyGenerator which handles IPv6 properly
 });
 
-// Strict limiter for auth endpoints - 5 attempts per 15 minutes
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 5,
   message: {
     error: 'Слишком много попыток входа. Попробуйте через 15 минут.',
@@ -67,13 +57,11 @@ export const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: true, // Don't count successful logins
-  // Use default keyGenerator which handles IPv6 properly
+  skipSuccessfulRequests: true,
 });
 
-// Registration limiter - 3 registrations per hour from same IP
 export const registrationLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
+  windowMs: 60 * 60 * 1000,
   max: 3,
   message: {
     error: 'Слишком много попыток регистрации. Попробуйте через час.',
@@ -81,12 +69,10 @@ export const registrationLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  // Use default keyGenerator which handles IPv6 properly
 });
 
-// Password reset limiter - 3 requests per hour
 export const passwordResetLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
+  windowMs: 60 * 60 * 1000,
   max: 3,
   message: {
     error: 'Слишком много запросов на сброс пароля. Попробуйте через час.',
@@ -94,12 +80,10 @@ export const passwordResetLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  // Use default keyGenerator which handles IPv6 properly
 });
 
-// Admin actions limiter - more generous but still protected
 export const adminLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 200,
   message: {
     error: 'Слишком много административных запросов.',
@@ -107,23 +91,28 @@ export const adminLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  // Use default keyGenerator which handles IPv6 properly
 });
 
-// ==========================================
-// HTTP Parameter Pollution Protection
-// ==========================================
 export const parameterPollutionProtection = hpp({
-  whitelist: ['tags', 'subjects', 'ids'], // Allow arrays for these params
+  whitelist: ['tags', 'subjects', 'ids'],
 });
 
-// ==========================================
-// XSS Sanitization Middleware
-// ==========================================
 const sanitizeValue = (value: unknown): unknown => {
   if (typeof value === 'string') {
-    // Escape HTML entities to prevent XSS
-    return escape(value);
+    let sanitized = value;
+
+    sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+
+    sanitized = sanitized.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
+    sanitized = sanitized.replace(/on\w+\s*=\s*[^\s>]*/gi, '');
+
+    sanitized = sanitized.replace(/javascript:/gi, '');
+
+    sanitized = sanitized.replace(/data:text\/html/gi, '');
+
+    sanitized = escape(sanitized);
+
+    return sanitized;
   }
   if (Array.isArray(value)) {
     return value.map(sanitizeValue);
@@ -138,8 +127,7 @@ const sanitizeValue = (value: unknown): unknown => {
   return value;
 };
 
-// Fields that should NOT be sanitized (e.g., passwords, tokens)
-const skipFields = ['password', 'confirmPassword', 'token', 'refreshToken'];
+const skipFields = ['password', 'confirmPassword', 'token', 'refreshToken', 'accessToken'];
 
 export const xssSanitizer = (req: Request, _res: Response, next: NextFunction) => {
   if (req.body && typeof req.body === 'object') {
@@ -153,12 +141,10 @@ export const xssSanitizer = (req: Request, _res: Response, next: NextFunction) =
     }
     req.body = sanitized;
   }
+
   next();
 };
 
-// ==========================================
-// SQL Injection Pattern Detection
-// ==========================================
 const sqlInjectionPatterns = [
   /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|TRUNCATE)\b)/gi,
   /(--)|(;)/g,
@@ -190,16 +176,16 @@ export const sqlInjectionProtection = (req: Request, res: Response, next: NextFu
     return false;
   };
 
-  // Check query params
   const queryInjection = checkValue(req.query);
   if (queryInjection) {
-    console.warn(`[SECURITY] SQL Injection attempt in query: ${queryInjection.substring(0, 100)} from IP: ${req.ip}`);
+    console.warn(
+      `[SECURITY] SQL Injection attempt in query: ${queryInjection.substring(0, 100)} from IP: ${req.ip}`
+    );
     return res.status(400).json({
       error: 'Обнаружены недопустимые символы в запросе',
     });
   }
 
-  // Check body (skip password fields)
   if (req.body && typeof req.body === 'object') {
     const bodyToCheck = { ...req.body };
     delete bodyToCheck.password;
@@ -207,7 +193,9 @@ export const sqlInjectionProtection = (req: Request, res: Response, next: NextFu
 
     const bodyInjection = checkValue(bodyToCheck);
     if (bodyInjection) {
-      console.warn(`[SECURITY] SQL Injection attempt in body: ${bodyInjection.substring(0, 100)} from IP: ${req.ip}`);
+      console.warn(
+        `[SECURITY] SQL Injection attempt in body: ${bodyInjection.substring(0, 100)} from IP: ${req.ip}`
+      );
       return res.status(400).json({
         error: 'Обнаружены недопустимые символы в запросе',
       });
@@ -217,9 +205,6 @@ export const sqlInjectionProtection = (req: Request, res: Response, next: NextFu
   next();
 };
 
-// ==========================================
-// Request Size Limiter
-// ==========================================
 export const requestSizeLimiter = (maxSizeKB: number = 100) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const contentLength = parseInt(req.headers['content-length'] || '0', 10);
@@ -234,9 +219,6 @@ export const requestSizeLimiter = (maxSizeKB: number = 100) => {
   };
 };
 
-// ==========================================
-// Account Lockout Storage (in-memory, use Redis in production)
-// ==========================================
 interface LockoutEntry {
   attempts: number;
   lockedUntil: number | null;
@@ -244,7 +226,7 @@ interface LockoutEntry {
 
 const lockoutStore = new Map<string, LockoutEntry>();
 const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
+const LOCKOUT_DURATION = 15 * 60 * 1000;
 
 export const checkAccountLockout = (email: string): { locked: boolean; remainingTime?: number } => {
   const entry = lockoutStore.get(email.toLowerCase());
@@ -260,7 +242,6 @@ export const checkAccountLockout = (email: string): { locked: boolean; remaining
     };
   }
 
-  // Reset if lockout expired
   if (entry.lockedUntil && Date.now() >= entry.lockedUntil) {
     lockoutStore.delete(email.toLowerCase());
     return { locked: false };
@@ -291,24 +272,17 @@ export const clearFailedLogins = (email: string): void => {
   lockoutStore.delete(email.toLowerCase());
 };
 
-// ==========================================
-// Security Logging Middleware
-// ==========================================
 export const securityLogger = (req: Request, _res: Response, next: NextFunction) => {
-  const suspiciousHeaders = [
-    'x-forwarded-host',
-    'x-original-url',
-    'x-rewrite-url',
-  ];
+  const suspiciousHeaders = ['x-forwarded-host', 'x-original-url', 'x-rewrite-url'];
 
-  // Log suspicious activity
   for (const header of suspiciousHeaders) {
     if (req.headers[header]) {
-      console.warn(`[SECURITY] Suspicious header detected: ${header}=${req.headers[header]} from IP: ${req.ip}`);
+      console.warn(
+        `[SECURITY] Suspicious header detected: ${header}=${req.headers[header]} from IP: ${req.ip}`
+      );
     }
   }
 
-  // Log potential path traversal attempts
   if (req.path.includes('..') || req.path.includes('%2e%2e')) {
     console.warn(`[SECURITY] Path traversal attempt: ${req.path} from IP: ${req.ip}`);
   }
@@ -316,19 +290,13 @@ export const securityLogger = (req: Request, _res: Response, next: NextFunction)
   next();
 };
 
-// ==========================================
-// Secure Cookie Settings
-// ==========================================
 export const secureCookieConfig = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'strict' as const,
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
-// ==========================================
-// IP Whitelist/Blacklist (for admin routes)
-// ==========================================
 const ipBlacklist = new Set<string>();
 
 export const addToBlacklist = (ip: string): void => {
@@ -353,10 +321,6 @@ export const checkBlacklist = (req: Request, res: Response, next: NextFunction) 
   next();
 };
 
-// ==========================================
-// Advanced Rate Limiting (IP + User combined)
-// ==========================================
-
 interface RateLimitEntry {
   count: number;
   resetAt: number;
@@ -379,7 +343,6 @@ class AdvancedRateLimiter {
   constructor(config: AdvancedRateLimitConfig) {
     this.config = config;
 
-    // Очистка устаревших записей каждую минуту
     setInterval(() => this.cleanup(), 60 * 1000);
   }
 
@@ -412,10 +375,12 @@ class AdvancedRateLimiter {
     }
   }
 
-  public check(ip: string, userId?: string): { allowed: boolean; retryAfter?: number; reason?: string } {
+  public check(
+    ip: string,
+    userId?: string
+  ): { allowed: boolean; retryAfter?: number; reason?: string } {
     const now = Date.now();
 
-    // Проверка по IP
     const ipEntry = this.getOrCreate(this.ipStore, ip);
     if (ipEntry.count >= this.config.maxRequestsPerIP) {
       return {
@@ -425,7 +390,6 @@ class AdvancedRateLimiter {
       };
     }
 
-    // Проверка по пользователю (если авторизован)
     if (userId) {
       const userEntry = this.getOrCreate(this.userStore, userId);
       if (userEntry.count >= this.config.maxRequestsPerUser) {
@@ -436,7 +400,6 @@ class AdvancedRateLimiter {
         };
       }
 
-      // Комбинированная проверка (IP + User)
       const combinedKey = `${ip}:${userId}`;
       const combinedEntry = this.getOrCreate(this.combinedStore, combinedKey);
       if (combinedEntry.count >= this.config.maxRequestsCombined) {
@@ -447,7 +410,6 @@ class AdvancedRateLimiter {
         };
       }
 
-      // Инкремент
       userEntry.count++;
       combinedEntry.count++;
     }
@@ -466,30 +428,31 @@ class AdvancedRateLimiter {
   }
 }
 
-// Создаём лимитеры для разных эндпоинтов
 export const apiRateLimiter = new AdvancedRateLimiter({
-  windowMs: 15 * 60 * 1000,     // 15 минут
-  maxRequestsPerIP: 300,        // 300 запросов с одного IP
-  maxRequestsPerUser: 500,      // 500 запросов от одного пользователя
-  maxRequestsCombined: 200,     // 200 запросов от комбинации IP+User
+  windowMs: 15 * 60 * 1000,
+  maxRequestsPerIP: 300,
+  maxRequestsPerUser: 500,
+  maxRequestsCombined: 200,
 });
 
 export const testSubmitRateLimiter = new AdvancedRateLimiter({
-  windowMs: 60 * 60 * 1000,     // 1 час
-  maxRequestsPerIP: 50,         // 50 отправок теста с одного IP
-  maxRequestsPerUser: 30,       // 30 отправок от одного пользователя
-  maxRequestsCombined: 20,      // 20 отправок от комбинации IP+User
+  windowMs: 60 * 60 * 1000,
+  maxRequestsPerIP: 50,
+  maxRequestsPerUser: 30,
+  maxRequestsCombined: 20,
 });
 
 export const sensitiveActionsLimiter = new AdvancedRateLimiter({
-  windowMs: 60 * 60 * 1000,     // 1 час
-  maxRequestsPerIP: 10,         // 10 чувствительных действий с одного IP
-  maxRequestsPerUser: 20,       // 20 чувствительных действий от пользователя
-  maxRequestsCombined: 10,      // 10 от комбинации
+  windowMs: 60 * 60 * 1000,
+  maxRequestsPerIP: 10,
+  maxRequestsPerUser: 20,
+  maxRequestsCombined: 10,
 });
 
-// Middleware для применения продвинутого rate limiting
-export const advancedRateLimitMiddleware = (limiter: AdvancedRateLimiter, customMessage?: string) => {
+export const advancedRateLimitMiddleware = (
+  limiter: AdvancedRateLimiter,
+  customMessage?: string
+) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const ip = req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
     const userId = (req as any).user?.id;
@@ -497,7 +460,9 @@ export const advancedRateLimitMiddleware = (limiter: AdvancedRateLimiter, custom
     const result = limiter.check(ip, userId);
 
     if (!result.allowed) {
-      console.warn(`[RATE_LIMIT] Blocked: IP=${ip}, User=${userId || 'anonymous'}, Reason=${result.reason}`);
+      console.warn(
+        `[RATE_LIMIT] Blocked: IP=${ip}, User=${userId || 'anonymous'}, Reason=${result.reason}`
+      );
 
       res.setHeader('Retry-After', result.retryAfter?.toString() || '60');
       res.setHeader('X-RateLimit-Reason', result.reason || 'Rate limit exceeded');
@@ -513,13 +478,11 @@ export const advancedRateLimitMiddleware = (limiter: AdvancedRateLimiter, custom
   };
 };
 
-// Middleware для отправки тестов
 export const testSubmitRateLimitMiddleware = advancedRateLimitMiddleware(
   testSubmitRateLimiter,
   'Слишком много попыток отправки теста. Попробуйте через час.'
 );
 
-// Middleware для чувствительных действий (смена пароля и т.д.)
 export const sensitiveActionsRateLimitMiddleware = advancedRateLimitMiddleware(
   sensitiveActionsLimiter,
   'Слишком много попыток. Попробуйте позже.'

@@ -1,6 +1,7 @@
-import { ITimerService, IObservable, IObserver } from '../interfaces';
-import { TimerState } from '../types';
 import { TIMER_CONFIG } from '../constants';
+
+import type { ITimerService, IObservable, IObserver } from '../interfaces';
+import type { TimerState } from '../types';
 
 type TimerCallback = (state: TimerState) => void;
 type CompleteCallback = () => void;

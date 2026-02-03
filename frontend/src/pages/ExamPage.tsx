@@ -87,10 +87,7 @@ export default function ExamPage() {
   // Показываем ошибку
   if (error || !exam) {
     return (
-      <ErrorScreen
-        error={error || 'Экзамен не найден'}
-        onBack={async () => navigate('/dashboard')}
-      />
+      <ErrorScreen error={error || 'Экзамен не найден'} onBack={() => navigate('/dashboard')} />
     );
   }
 
@@ -216,9 +213,7 @@ const ExamContent: React.FC<ExamContentProps> = ({ exam, onComplete, onTimeExpir
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 relative overflow-hidden">
-      {/* Фоновая сетка */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
 
       {/* Заголовок */}
       <ExamHeader
@@ -263,10 +258,13 @@ const ExamContent: React.FC<ExamContentProps> = ({ exam, onComplete, onTimeExpir
  * Экран загрузки
  */
 const LoadingScreen: React.FC = () => (
-  <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-    <div className="text-center">
-      <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-      <p className="text-gray-400 font-sans">Загрузка экзамена...</p>
+  <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
+    <div className="relative">
+      <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+      <div
+        className="absolute inset-0 w-16 h-16 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin"
+        style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}
+      />
     </div>
   </div>
 );
@@ -275,11 +273,11 @@ const LoadingScreen: React.FC = () => (
  * Экран ошибки
  */
 const ErrorScreen: React.FC<{ error: string; onBack: () => void }> = ({ error, onBack }) => (
-  <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+  <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
     <div className="text-center">
       <div className="text-6xl mb-4">😕</div>
-      <h1 className="text-2xl font-display font-bold text-white mb-2">Ошибка</h1>
-      <p className="text-gray-400 font-sans mb-6">{error}</p>
+      <h1 className="text-2xl font-display font-bold text-slate-900 mb-2">Ошибка</h1>
+      <p className="text-slate-600 font-sans mb-6">{error}</p>
       <Button onClick={onBack}>Вернуться к панели</Button>
     </div>
   </div>

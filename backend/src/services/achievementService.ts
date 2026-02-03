@@ -119,7 +119,7 @@ export class AchievementService {
       case 'complete_first_test':
         return user.testAttempts.some((attempt: any) => attempt.completedAt !== null);
 
-      case 'complete_10_tests': {
+      case 'complete_10_tests':
         const completedTests = user.testAttempts.filter(
           (attempt: any) => attempt.completedAt !== null
         );

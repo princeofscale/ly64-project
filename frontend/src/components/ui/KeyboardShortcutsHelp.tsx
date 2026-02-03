@@ -3,9 +3,10 @@
  * Панель помощи по горячим клавишам
  */
 
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Keyboard, X } from 'lucide-react';
+import { useState } from 'react';
+
 import { testShortcutsHelp } from '../../hooks/useKeyboardShortcuts';
 
 interface KeyboardShortcutsHelpProps {
@@ -62,9 +63,7 @@ export function KeyboardShortcutsHelp({
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
                   <div className="flex items-center gap-3">
                     <Keyboard className="text-blue-500" size={24} />
-                    <h2 className="text-lg font-semibold text-white">
-                      Горячие клавиши
-                    </h2>
+                    <h2 className="text-lg font-semibold text-white">Горячие клавиши</h2>
                   </div>
                   <button
                     onClick={() => setIsOpen(false)}
@@ -77,10 +76,7 @@ export function KeyboardShortcutsHelp({
                 {/* Shortcuts list */}
                 <div className="p-6 space-y-3">
                   {shortcuts.map((shortcut, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between py-2"
-                    >
+                    <div key={index} className="flex items-center justify-between py-2">
                       <span className="text-gray-300">{shortcut.description}</span>
                       <div className="flex items-center gap-1">
                         {shortcut.keys.map((key, keyIndex) => (
@@ -101,7 +97,8 @@ export function KeyboardShortcutsHelp({
                 {/* Footer */}
                 <div className="px-6 py-4 bg-gray-800/50 border-t border-gray-800">
                   <p className="text-sm text-gray-400 text-center">
-                    Нажмите <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">?</kbd> для открытия этой панели
+                    Нажмите <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">?</kbd> для
+                    открытия этой панели
                   </p>
                 </div>
               </div>

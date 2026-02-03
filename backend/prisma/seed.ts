@@ -1,5 +1,7 @@
 import { PrismaClient } from '@prisma/client';
+
 import { seedAchievements } from './seeds/achievements';
+import { seedAdminUser } from './seeds/adminUser';
 import { seedDiagnosticTests } from './seeds/diagnosticTests';
 import { seedRegularTests } from './seeds/regularTests';
 import { seedTestUser } from './seeds/testUser';
@@ -25,7 +27,7 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error(e);
     process.exit(1);
   })

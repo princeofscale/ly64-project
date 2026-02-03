@@ -11,7 +11,6 @@ async function testLogin() {
   console.log('🔑 Password:', password);
   console.log();
 
-  // Find user
   const user = await prisma.user.findUnique({
     where: { email },
   });
@@ -27,8 +26,12 @@ async function testLogin() {
   console.log('   Name:', user.name);
   console.log();
 
-  // Check password
   console.log('🔐 Checking password...');
+  if (!user.password) {
+    console.log('❌ User has no password set!');
+    await prisma.$disconnect();
+    return;
+  }
   const isValid = await bcrypt.compare(password, user.password);
 
   if (isValid) {

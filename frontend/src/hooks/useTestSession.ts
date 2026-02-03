@@ -1,8 +1,11 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+
 import { TestSession } from '../core/models';
-import { IExam, ITask } from '../core/interfaces';
-import { TestStatus, UserAnswer, TestResults } from '../core/types';
-import { TestSessionStorage, SavedTestSession } from '../core/services';
+import { TestSessionStorage } from '../core/services';
+
+import type { IExam, ITask } from '../core/interfaces';
+import type { SavedTestSession } from '../core/services';
+import type { TestStatus, UserAnswer, TestResults } from '../core/types';
 
 interface UseTestSessionOptions {
   exam: IExam;
@@ -45,7 +48,7 @@ export function useTestSession(options: UseTestSessionOptions): UseTestSessionRe
     sessionMetadata,
     onComplete,
     onTimeExpired,
-    onSessionRestored
+    onSessionRestored,
   } = options;
 
   const storage = useMemo(() => new TestSessionStorage(), []);
@@ -133,10 +136,13 @@ export function useTestSession(options: UseTestSessionOptions): UseTestSessionRe
   const currentTask = session.getCurrentTask();
   const currentTaskIndex = session.getCurrentTaskIndex();
 
-  const goToTask = useCallback((taskNumber: number) => {
-    session.goToTask(taskNumber);
-    triggerUpdate();
-  }, [session, triggerUpdate]);
+  const goToTask = useCallback(
+    (taskNumber: number) => {
+      session.goToTask(taskNumber);
+      triggerUpdate();
+    },
+    [session, triggerUpdate]
+  );
 
   const nextTask = useCallback(() => {
     session.nextTask();
@@ -148,27 +154,36 @@ export function useTestSession(options: UseTestSessionOptions): UseTestSessionRe
     triggerUpdate();
   }, [session, triggerUpdate]);
 
-  const submitAnswer = useCallback((answer: string) => {
-    const task = session.getCurrentTask();
-    if (task) {
-      session.submitAnswer(task.number, answer);
-      if (autoSave) {
-        // Сохраняем ответы сразу
-        storage.backupAnswers(session.getAllAnswers() as Map<number, unknown>);
-        // Сохраняем всю сессию
-        saveSession();
+  const submitAnswer = useCallback(
+    (answer: string) => {
+      const task = session.getCurrentTask();
+      if (task) {
+        session.submitAnswer(task.number, answer);
+        if (autoSave) {
+          // Сохраняем ответы сразу
+          storage.backupAnswers(session.getAllAnswers() as Map<number, unknown>);
+          // Сохраняем всю сессию
+          saveSession();
+        }
+        triggerUpdate();
       }
-      triggerUpdate();
-    }
-  }, [session, autoSave, storage, triggerUpdate, saveSession]);
+    },
+    [session, autoSave, storage, triggerUpdate, saveSession]
+  );
 
-  const getAnswer = useCallback((taskNumber: number) => {
-    return session.getAnswer(taskNumber);
-  }, [session]);
+  const getAnswer = useCallback(
+    (taskNumber: number) => {
+      return session.getAnswer(taskNumber);
+    },
+    [session]
+  );
 
-  const isTaskAnswered = useCallback((taskNumber: number) => {
-    return session.isTaskAnswered(taskNumber);
-  }, [session]);
+  const isTaskAnswered = useCallback(
+    (taskNumber: number) => {
+      return session.isTaskAnswered(taskNumber);
+    },
+    [session]
+  );
 
   const progress = session.getProgress();
   const answeredCount = session.getAnsweredCount();
@@ -204,22 +219,25 @@ export function useTestSession(options: UseTestSessionOptions): UseTestSessionRe
     triggerUpdate();
   }, [session, triggerUpdate]);
 
-  const getTaskStatus = useCallback((taskNumber: number): 'current' | 'answered' | 'unanswered' | 'flagged' => {
-    if (session.isCurrentTask(taskNumber)) {
-      return 'current';
-    }
-    const answer = session.getAnswer(taskNumber);
-    if (!answer) {
+  const getTaskStatus = useCallback(
+    (taskNumber: number): 'current' | 'answered' | 'unanswered' | 'flagged' => {
+      if (session.isCurrentTask(taskNumber)) {
+        return 'current';
+      }
+      const answer = session.getAnswer(taskNumber);
+      if (!answer) {
+        return 'unanswered';
+      }
+      if (answer.status === 'flagged') {
+        return 'flagged';
+      }
+      if (answer.value.trim()) {
+        return 'answered';
+      }
       return 'unanswered';
-    }
-    if (answer.status === 'flagged') {
-      return 'flagged';
-    }
-    if (answer.value.trim()) {
-      return 'answered';
-    }
-    return 'unanswered';
-  }, [session]);
+    },
+    [session]
+  );
 
   return {
     session,

@@ -1,5 +1,4 @@
 import { SUBJECT_LABELS } from '@lyceum64/shared';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -9,7 +8,6 @@ import { Card } from '../components/ui/Card';
 import { getActiveTestService } from '../core/services';
 import { ConfettiService } from '../core/services/ConfettiService';
 import testService from '../services/testService';
-import { cardVariants, slideInRightVariants, fadeInVariants } from '../utils/animations';
 
 import type { TestVariant } from '../services/testService';
 
@@ -198,14 +196,12 @@ export default function ExamTestPage() {
 
   const handleNext = () => {
     if (currentTaskIndex < tasks.length - 1) {
-      setQuestionDirection('next');
       setCurrentTaskIndex(prev => prev + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentTaskIndex > 0) {
-      setQuestionDirection('prev');
       setCurrentTaskIndex(prev => prev - 1);
     }
   };
@@ -303,17 +299,20 @@ export default function ExamTestPage() {
 
   const getTimeColor = () => {
     const totalTime = (examVariant?.duration || 180) * 60;
-    if (timeLeft > totalTime * 0.5) return 'text-cyan-400';
-    if (timeLeft > totalTime * 0.25) return 'text-yellow-400';
-    return 'text-red-400';
+    if (timeLeft > totalTime * 0.5) return 'text-blue-600';
+    if (timeLeft > totalTime * 0.25) return 'text-amber-600';
+    return 'text-red-600';
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400 font-sans">Загрузка теста...</p>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+          <div
+            className="absolute inset-0 w-16 h-16 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin"
+            style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}
+          />
         </div>
       </div>
     );
@@ -321,11 +320,11 @@ export default function ExamTestPage() {
 
   if (error || !examVariant) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <div className="text-6xl mb-4">⚠️</div>
-          <p className="text-gray-400 font-sans mb-4">{error || 'Тест не найден'}</p>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-slate-600 font-sans mb-4">{error || 'Тест не найден'}</p>
+          <p className="text-sm text-slate-500 mb-6">
             Войдите в систему, чтобы начать прохождение теста.
           </p>
           <Button onClick={async () => navigate('/dashboard')}>Вернуться к панели</Button>
@@ -373,22 +372,20 @@ export default function ExamTestPage() {
     };
 
     return (
-      <div className="min-h-screen bg-gray-950 relative overflow-hidden py-12 px-4">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
-
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white py-12 px-4">
         <div className="relative z-10 max-w-3xl mx-auto">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 text-center animate-scale-in">
+          <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-8 text-center shadow-2xl">
             <div className="text-6xl mb-4">{getScoreEmoji()}</div>
-            <h1 className="text-4xl font-display font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl font-display font-bold text-slate-900 mb-2">
               {getScoreMessage()}
             </h1>
-            <p className="text-gray-400 mb-6">Тест завершен</p>
+            <p className="text-slate-600 mb-6">Тест завершен</p>
 
-            <div className="mb-8 p-6 bg-gray-800/50 rounded-2xl">
-              <div className="text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+            <div className="mb-8 p-6 bg-slate-50 rounded-2xl">
+              <div className="text-5xl font-bold text-blue-600 mb-2">
                 {scorePercent}%
               </div>
-              <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden mb-4">
+              <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden mb-4">
                 <div
                   className={`h-full rounded-full transition-all duration-1000 ${
                     scorePercent >= 80
@@ -402,23 +399,23 @@ export default function ExamTestPage() {
               </div>
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-cyan-400">
+                  <div className="text-2xl font-bold text-blue-600">
                     {correctCount}/{tasks.length}
                   </div>
-                  <div className="text-sm text-gray-400">правильных ответов</div>
+                  <div className="text-sm text-slate-600">правильных ответов</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-purple-400">
+                  <div className="text-2xl font-bold text-violet-600">
                     {totalPoints}/{maxPoints}
                   </div>
-                  <div className="text-sm text-gray-400">первичных баллов</div>
+                  <div className="text-sm text-slate-600">первичных баллов</div>
                 </div>
               </div>
             </div>
 
             {/* Детальный разбор заданий */}
             <div className="mb-8">
-              <h2 className="text-xl font-bold text-gray-200 mb-4 text-left">Детальный разбор</h2>
+              <h2 className="text-xl font-bold text-slate-900 mb-4 text-left">Детальный разбор</h2>
               <div className="space-y-3">
                 {(
                   testResults?.questionResults ||
@@ -438,10 +435,10 @@ export default function ExamTestPage() {
                       key={result.number}
                       className={`p-4 rounded-xl border-2 ${
                         result.isCorrect
-                          ? 'bg-green-500/10 border-green-500/30'
+                          ? 'bg-green-50 border-green-200'
                           : isAnswered
-                            ? 'bg-red-500/10 border-red-500/30'
-                            : 'bg-gray-800/50 border-gray-700/50'
+                            ? 'bg-red-50 border-red-200'
+                            : 'bg-slate-50 border-slate-200'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -453,15 +450,15 @@ export default function ExamTestPage() {
                               {result.isCorrect ? '✓' : isAnswered ? '✗' : '○'}
                             </div>
                             <div>
-                              <div className="font-semibold text-gray-200">
+                              <div className="font-semibold text-slate-900">
                                 Задание {result.number}
                                 {result.topic && !result.topic.match(/^(Д?\d+|[0-9]+)$/) && (
-                                  <span className="text-sm text-gray-500 ml-2">
+                                  <span className="text-sm text-slate-500 ml-2">
                                     ({result.topic})
                                   </span>
                                 )}
                               </div>
-                              <div className="text-sm text-gray-400">
+                              <div className="text-sm text-slate-600">
                                 {result.points || 1}{' '}
                                 {result.points === 1
                                   ? 'балл'
@@ -475,12 +472,12 @@ export default function ExamTestPage() {
                           <div className="ml-11 space-y-2 text-sm">
                             {isAnswered && (
                               <div>
-                                <span className="text-gray-500">Ваш ответ:</span>{' '}
+                                <span className="text-slate-600">Ваш ответ:</span>{' '}
                                 <span
                                   className={
                                     result.isCorrect
-                                      ? 'text-green-400 font-medium'
-                                      : 'text-red-400 font-medium'
+                                      ? 'text-green-600 font-medium'
+                                      : 'text-red-600 font-medium'
                                   }
                                 >
                                   {result.userAnswer}
@@ -489,23 +486,23 @@ export default function ExamTestPage() {
                             )}
                             {!result.isCorrect && (
                               <div>
-                                <span className="text-gray-500">Правильный ответ:</span>{' '}
-                                <span className="text-green-400 font-medium">
+                                <span className="text-slate-600">Правильный ответ:</span>{' '}
+                                <span className="text-green-600 font-medium">
                                   {result.correctAnswer}
                                 </span>
                               </div>
                             )}
-                            {!isAnswered && <div className="text-gray-500 italic">Не отвечено</div>}
+                            {!isAnswered && <div className="text-slate-600 italic">Не отвечено</div>}
                           </div>
                         </div>
 
                         <div
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
                             result.isCorrect
-                              ? 'bg-green-500/20 text-green-400'
+                              ? 'bg-green-100 text-green-700'
                               : isAnswered
-                                ? 'bg-red-500/20 text-red-400'
-                                : 'bg-gray-700/50 text-gray-500'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-slate-100 text-slate-600'
                           }`}
                         >
                           {result.isCorrect ? `+${result.points || 1}` : '0'}
@@ -518,8 +515,8 @@ export default function ExamTestPage() {
             </div>
 
             <div className="flex gap-4 justify-center">
-              <Button onClick={async () => navigate('/dashboard')}>К панели управления</Button>
-              <Button variant="outline" onClick={async () => navigate('/leaderboard')}>
+              <Button onClick={() => navigate('/dashboard')}>К панели управления</Button>
+              <Button variant="outline" onClick={() => navigate('/leaderboard')}>
                 🏆 Таблица лидеров
               </Button>
             </div>
@@ -532,35 +529,19 @@ export default function ExamTestPage() {
   const progressPercentage = ((currentTaskIndex + 1) / tasks.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-950 relative overflow-hidden">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
-
-      {/* Modern Header */}
-      <motion.div
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-xl border-b border-gray-700/50 shadow-lg"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            {/* Left: Title */}
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="text-xl sm:text-2xl font-display font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+              <div className="text-2xl font-display font-bold text-slate-900">
                 {getExamTitle()}
               </div>
-              <span className="hidden sm:inline-block px-3 py-1 bg-gray-800 text-gray-300 text-sm rounded-lg font-medium">
-                {grade} класс
-              </span>
+              <div className="text-sm text-slate-600 font-sans">{grade} класс</div>
             </div>
 
-            {/* Right: Timer, Progress, Settings */}
-            <div className="flex items-center gap-4 sm:gap-6">
-              {/* Timer */}
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800/80 rounded-xl border border-gray-700"
-              >
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -587,48 +568,27 @@ export default function ExamTestPage() {
                 <span className="text-gray-400">{tasks.length}</span>
               </div>
 
-              {/* Settings Button */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowSettings(!showSettings)}
-                className="p-2 bg-gray-800 hover:bg-gray-700 rounded-xl border border-gray-700 transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="w-5 h-5 text-gray-400"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-                  />
-                </svg>
-              </motion.button>
+              <div className="text-sm font-sans text-slate-600">
+                <span className="text-blue-600 font-semibold">{answeredCount}</span> /{' '}
+                {tasks.length} отвечено
+              </div>
 
               {/* Exit Button */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleExit}
-                className="hidden sm:block px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl border border-red-500/30 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors text-sm font-medium"
               >
                 Выйти
               </motion.button>
             </div>
           </div>
 
-          {/* Progress Bar */}
-          <div className="mt-4 w-full bg-gray-800 rounded-full h-2 overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progressPercentage}%` }}
-              className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-full"
-              transition={{ duration: 0.3 }}
+          <div className="mt-3 w-full bg-slate-200 rounded-full h-2">
+            <div
+              className="h-2 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
             />
           </div>
 
@@ -989,55 +949,43 @@ export default function ExamTestPage() {
         </div>
       </div>
 
-      {/* Mobile Question Navigator Modal */}
-      <AnimatePresence>
-        {showQuestionNav && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-50 p-4 lg:hidden"
-            onClick={() => setShowQuestionNav(false)}
-          >
-            <motion.div
-              initial={{ y: 100, scale: 0.9 }}
-              animate={{ y: 0, scale: 1 }}
-              exit={{ y: 100, scale: 0.9 }}
-              onClick={e => e.stopPropagation()}
-              className="bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Навигация по заданиям</h3>
-                <button
-                  onClick={() => setShowQuestionNav(false)}
-                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-6 h-6 text-gray-400"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+      <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
+        <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-8 shadow-xl">
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="px-3 py-1 bg-blue-50 border border-blue-200 rounded-xl text-blue-600 font-display font-semibold">
+                  Задание {currentTask.number}
+                </span>
+                <span className="text-sm text-slate-600 font-sans">
+                  {currentTask.points}{' '}
+                  {currentTask.points === 1 ? 'балл' : currentTask.points < 5 ? 'балла' : 'баллов'}
+                </span>
               </div>
+              {currentTask.topic && !currentTask.topic.match(/^(Д?\d+|[0-9]+)$/) && (
+                <div className="text-sm text-slate-500 font-sans">{currentTask.topic}</div>
+              )}
+            </div>
+          </div>
 
-              <div className="grid grid-cols-5 gap-3 mb-6">
-                {tasks.map((task, index) => (
-                  <motion.button
-                    key={task.number}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => jumpToQuestion(index)}
-                    className={`aspect-square rounded-lg font-display font-bold text-sm transition-all ${
-                      currentTaskIndex === index
-                        ? 'bg-gradient-to-br from-cyan-500 to-blue-500 text-white shadow-lg'
-                        : answers[task.number]
-                          ? 'bg-green-500/20 border-2 border-green-500/50 text-green-400'
-                          : 'bg-gray-700 border-2 border-gray-600 text-gray-400 hover:border-cyan-500/50'
+          <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+            <div
+              className="question-content text-lg font-sans text-slate-900"
+              dangerouslySetInnerHTML={{ __html: currentTask.text }}
+            />
+          </div>
+
+          <div className="mb-8">
+            {currentTask.type === 'choice' && currentTask.options && (
+              <div className="space-y-3">
+                {currentTask.options.map((option, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleAnswer(option)}
+                    className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                      answers[currentTask.number] === option
+                        ? 'border-blue-500 bg-blue-50 text-slate-900'
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-slate-50'
                     }`}
                   >
                     {task.number}
@@ -1045,198 +993,113 @@ export default function ExamTestPage() {
                 ))}
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <div className="w-5 h-5 rounded bg-gradient-to-br from-cyan-500 to-blue-500"></div>
-                  <span>Текущий</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <div className="w-5 h-5 rounded bg-green-500/20 border-2 border-green-500/50"></div>
-                  <span>Отвечено</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <div className="w-5 h-5 rounded bg-gray-700 border-2 border-gray-600"></div>
-                  <span>Не отвечено</span>
-                </div>
+            {currentTask.type === 'short' && (
+              <div>
+                <label className="block text-sm font-sans text-slate-700 mb-2">Введите ответ:</label>
+                <input
+                  type="text"
+                  value={answers[currentTask.number] || ''}
+                  onChange={e => handleAnswer(e.target.value)}
+                  placeholder="Ваш ответ"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-sans"
+                />
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Settings Modal */}
-      <AnimatePresence>
-        {showSettings && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowSettings(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={e => e.stopPropagation()}
-              className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Настройки</h3>
-                <button
-                  onClick={() => setShowSettings(false)}
-                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-6 h-6 text-gray-400"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+            {(currentTask.type === 'detailed' || currentTask.type === 'proof') && (
+              <div>
+                <label className="block text-sm font-sans text-slate-700 mb-2">
+                  {currentTask.type === 'proof' ? 'Напишите доказательство:' : 'Подробное решение:'}
+                </label>
+                <textarea
+                  value={answers[currentTask.number] || ''}
+                  onChange={e => handleAnswer(e.target.value)}
+                  placeholder={
+                    currentTask.type === 'proof'
+                      ? 'Опишите доказательство...'
+                      : 'Опишите решение...'
+                  }
+                  rows={8}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-vertical font-sans"
+                />
               </div>
+            )}
+          </div>
 
-              <div className="space-y-4">
-                <div className="p-4 bg-gray-700/50 rounded-xl">
-                  <h4 className="text-sm font-semibold text-gray-300 mb-2">Статистика теста</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Отвечено:</span>
-                      <span className="text-cyan-400 font-semibold">
-                        {answeredCount} / {tasks.length}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Осталось:</span>
-                      <span className="text-white font-semibold">
-                        {tasks.length - answeredCount}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Прогресс:</span>
-                      <span className="text-purple-400 font-semibold">
-                        {Math.round(progressPercentage)}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
+          <div className="flex items-center justify-between pt-6 border-t border-slate-200">
+            <Button variant="outline" onClick={handlePrevious} disabled={currentTaskIndex === 0}>
+              ← Предыдущее
+            </Button>
 
-                <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
-                  <h4 className="text-sm font-semibold text-cyan-400 mb-2">Горячие клавиши</h4>
-                  <div className="space-y-2 text-xs text-gray-300">
-                    <div className="flex justify-between">
-                      <span>Предыдущий вопрос</span>
-                      <kbd className="px-2 py-1 bg-gray-700 rounded border border-gray-600">←</kbd>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Следующий вопрос</span>
-                      <kbd className="px-2 py-1 bg-gray-700 rounded border border-gray-600">→</kbd>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Завершить тест</span>
-                      <span className="flex gap-1">
-                        <kbd className="px-2 py-1 bg-gray-700 rounded border border-gray-600">
-                          Ctrl
-                        </kbd>
-                        <span>+</span>
-                        <kbd className="px-2 py-1 bg-gray-700 rounded border border-gray-600">
-                          Enter
-                        </kbd>
-                      </span>
-                    </div>
-                  </div>
-                </div>
+            <div className="flex gap-3">
+              {currentTaskIndex === tasks.length - 1 ? (
+                <Button onClick={handleFinish}>Завершить тест</Button>
+              ) : (
+                <Button onClick={handleNext}>Следующее →</Button>
+              )}
+            </div>
+          </div>
+        </div>
 
-                <Button
-                  onClick={handleExit}
-                  variant="outline"
-                  className="w-full border-red-500/30 text-red-400 hover:bg-red-500/20"
-                >
-                  Выйти из теста
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        <div className="mt-6 bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-6 shadow-xl">
+          <h3 className="text-sm font-sans text-slate-600 mb-3">Быстрая навигация:</h3>
+          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+            {tasks.map((task, index) => (
+              <button
+                key={task.number}
+                onClick={() => setCurrentTaskIndex(index)}
+                className={`aspect-square rounded-lg font-display font-semibold text-sm transition-all ${
+                  currentTaskIndex === index
+                    ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white scale-110'
+                    : answers[task.number]
+                      ? 'bg-blue-50 border border-blue-200 text-blue-600'
+                      : 'bg-slate-50 border border-slate-200 text-slate-600 hover:border-blue-300'
+                }`}
+              >
+                {task.number}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-      {/* Exit Confirmation Modal */}
-      <AnimatePresence>
-        {showExitConfirm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700"
-            >
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-8 h-8 text-yellow-400"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">Выйти из теста?</h3>
-                <p className="text-gray-400 mb-4">
-                  Вы ответили на{' '}
-                  <span className="text-cyan-400 font-semibold">{answeredCount}</span> из{' '}
-                  <span className="text-white font-semibold">{tasks.length}</span> вопросов.
-                </p>
-                <p className="text-sm text-gray-500">
-                  Вы можете продолжить позже или завершить тест сейчас.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setShowExitConfirm(false)}
-                  className="w-full px-4 py-3 bg-cyan-500 text-white font-semibold rounded-xl hover:bg-cyan-600 transition-all shadow-lg shadow-cyan-500/20"
-                >
-                  Продолжить тест
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleFinish}
-                  className="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-all"
-                >
-                  Завершить и сохранить
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleConfirmExit}
-                  className="w-full px-4 py-3 bg-gray-700 text-gray-300 font-medium rounded-xl hover:bg-gray-600 transition-all"
-                >
-                  Выйти без сохранения
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {showExitConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full border border-slate-200 animate-scale-in">
+            <h4 className="text-xl font-semibold text-slate-900 mb-3">Выйти из теста?</h4>
+            <p className="text-slate-600 mb-2">
+              Вы ответили на <span className="text-blue-600 font-semibold">{answeredCount}</span> из{' '}
+              <span className="text-slate-900">{tasks.length}</span> вопросов.
+            </p>
+            <p className="text-slate-600 mb-6">
+              Вы можете вернуться и продолжить позже или завершить тест сейчас.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => setShowExitConfirm(false)}
+                className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all"
+              >
+                Продолжить тест
+              </button>
+              <button
+                onClick={handleFinish}
+                className="w-full px-4 py-3 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-all"
+              >
+                Завершить и сохранить результат
+              </button>
+              <button
+                onClick={handleConfirmExit}
+                className="w-full px-4 py-3 bg-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-300 transition-all"
+              >
+                Выйти без сохранения
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

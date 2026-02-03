@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+
 import { Header } from '../components/Header';
 
 interface WheelSegment {
@@ -49,7 +50,8 @@ function SpinWheelPage() {
       // - Сегмент 0 уходит вправо
       // - Под указатель приходит сегмент, который был слева (против часовой)
       // - Это сегмент с индексом (n - R/segmentAngle) mod n
-      const winnerIndex = Math.floor((360 - normalizedRotation) / segmentAngle + segments.length) % segments.length;
+      const winnerIndex =
+        Math.floor((360 - normalizedRotation) / segmentAngle + segments.length) % segments.length;
       setWinner(segments[winnerIndex].label);
       setIsSpinning(false);
     }, 5000);
@@ -69,7 +71,18 @@ function SpinWheelPage() {
       return;
     }
 
-    const colors = ['#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1', '#14b8a6', '#84cc16', '#f97316'];
+    const colors = [
+      '#06b6d4',
+      '#8b5cf6',
+      '#10b981',
+      '#f59e0b',
+      '#ef4444',
+      '#ec4899',
+      '#6366f1',
+      '#14b8a6',
+      '#84cc16',
+      '#f97316',
+    ];
 
     const newSegments = newLabels.map((label, i) => ({
       label,
@@ -145,18 +158,17 @@ function SpinWheelPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gray-950 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
         {/* Фоновые эффекты */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-cyan-500/5 opacity-30" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/20 rounded-full blur-[80px] animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-violet-100/50 rounded-full blur-[120px]" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-100/50 rounded-full blur-[120px]" />
 
         <main className="relative z-10 max-w-6xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
               Колесо Фортуны
             </h1>
-            <p className="text-gray-400 text-lg">
+            <p className="text-slate-600 text-lg">
               Крутите колесо для случайного выбора темы, ученика или любого варианта!
             </p>
           </div>
@@ -171,7 +183,9 @@ function SpinWheelPage() {
                 </div>
 
                 {/* Внешнее свечение */}
-                <div className={`absolute inset-0 rounded-full blur-xl transition-all duration-300 ${isSpinning ? 'bg-gradient-to-r from-purple-500/50 to-cyan-500/50 scale-110' : 'bg-gradient-to-r from-purple-500/20 to-cyan-500/20'}`} />
+                <div
+                  className={`absolute inset-0 rounded-full blur-xl transition-all duration-300 ${isSpinning ? 'bg-gradient-to-r from-violet-200/70 to-blue-200/70 scale-110' : 'bg-gradient-to-r from-violet-200/40 to-blue-200/40'}`}
+                />
 
                 {/* Колесо */}
                 <div
@@ -179,15 +193,31 @@ function SpinWheelPage() {
                   className="relative"
                   style={{
                     transform: `rotate(${rotation}deg)`,
-                    transition: isSpinning ? 'transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
+                    transition: isSpinning
+                      ? 'transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99)'
+                      : 'none',
                   }}
                 >
                   <svg width="400" height="400" viewBox="0 0 400 400">
                     {/* Внешний круг */}
-                    <circle cx="200" cy="200" r="198" fill="none" stroke="#6366f1" strokeWidth="4" />
+                    <circle
+                      cx="200"
+                      cy="200"
+                      r="198"
+                      fill="none"
+                      stroke="#6366f1"
+                      strokeWidth="4"
+                    />
                     {renderWheel()}
                     {/* Центральный круг */}
-                    <circle cx="200" cy="200" r="30" fill="#1f2937" stroke="#6366f1" strokeWidth="3" />
+                    <circle
+                      cx="200"
+                      cy="200"
+                      r="30"
+                      fill="#1f2937"
+                      stroke="#6366f1"
+                      strokeWidth="3"
+                    />
                     <circle cx="200" cy="200" r="15" fill="#6366f1" />
                   </svg>
                 </div>
@@ -199,8 +229,8 @@ function SpinWheelPage() {
                 disabled={isSpinning || segments.length === 0}
                 className={`mt-8 px-12 py-4 rounded-xl font-bold text-xl transition-all duration-300 ${
                   isSpinning || segments.length === 0
-                    ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:scale-105 hover:shadow-[0_0_40px_rgba(139,92,246,0.5)]'
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-violet-500 to-blue-500 text-white hover:scale-105 shadow-lg hover:shadow-xl'
                 }`}
               >
                 {isSpinning ? 'Крутится...' : 'Крутить!'}
@@ -208,9 +238,9 @@ function SpinWheelPage() {
 
               {/* Результат */}
               {winner && (
-                <div className="mt-8 p-6 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 rounded-2xl animate-fade-in">
-                  <p className="text-gray-400 text-sm mb-2">Выпало:</p>
-                  <p className="text-3xl font-bold text-transparent bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text">
+                <div className="mt-8 p-6 bg-gradient-to-r from-violet-50 to-blue-50 border border-violet-200 rounded-2xl animate-fade-in shadow-lg">
+                  <p className="text-slate-600 text-sm mb-2">Выпало:</p>
+                  <p className="text-3xl font-bold text-violet-600">
                     {winner}
                   </p>
                 </div>
@@ -219,24 +249,32 @@ function SpinWheelPage() {
 
             {/* Настройки */}
             <div className="space-y-6">
-              <div className="bg-gray-900/50 border border-gray-700/50 rounded-2xl p-6">
-                <h3 className="text-xl font-bold text-white mb-4">Настроить варианты</h3>
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
+                <h3 className="text-xl font-bold text-slate-900 mb-4">Настроить варианты</h3>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">
+                    <label className="block text-slate-600 text-sm mb-2">
                       Введите варианты (каждый с новой строки или через запятую):
                     </label>
                     <textarea
                       value={customInput}
-                      onChange={(e) => setCustomInput(e.target.value)}
-                      placeholder={"Иванов\nПетров\nСидоров\nКозлова\n\nили: Иванов, Петров, Сидоров"}
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none transition-colors resize-none"
+                      onChange={e => setCustomInput(e.target.value)}
+                      placeholder={
+                        'Иванов\nПетров\nСидоров\nКозлова\n\nили: Иванов, Петров, Сидоров'
+                      }
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-colors resize-none"
                       rows={4}
                     />
                     {customInput.trim() && (
-                      <p className="text-sm text-gray-500 mt-2">
-                        Распознано вариантов: {customInput.split(/[,;\n]+/).map(s => s.trim()).filter(s => s.length > 0).length}
+                      <p className="text-sm text-slate-500 mt-2">
+                        Распознано вариантов:{' '}
+                        {
+                          customInput
+                            .split(/[,;\n]+/)
+                            .map(s => s.trim())
+                            .filter(s => s.length > 0).length
+                        }
                       </p>
                     )}
                   </div>
@@ -244,13 +282,13 @@ function SpinWheelPage() {
                   <div className="flex gap-3">
                     <button
                       onClick={addCustomSegments}
-                      className="flex-1 px-4 py-3 bg-purple-500/20 border border-purple-500/50 text-purple-400 rounded-xl font-medium hover:bg-purple-500/30 transition-colors"
+                      className="flex-1 px-4 py-3 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 transition-colors shadow-lg"
                     >
                       Применить
                     </button>
                     <button
                       onClick={resetToDefault}
-                      className="px-4 py-3 bg-gray-700/50 border border-gray-600 text-gray-400 rounded-xl font-medium hover:bg-gray-700 transition-colors"
+                      className="px-4 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-medium hover:text-slate-900 transition-colors"
                     >
                       Сбросить
                     </button>
@@ -259,16 +297,18 @@ function SpinWheelPage() {
               </div>
 
               {/* Текущие варианты */}
-              <div className="bg-gray-900/50 border border-gray-700/50 rounded-2xl p-6">
-                <h3 className="text-xl font-bold text-white mb-4">
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
+                <h3 className="text-xl font-bold text-slate-900 mb-4">
                   Текущие варианты ({segments.length})
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {segments.map((segment, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1.5 rounded-full text-sm font-medium text-white"
-                      style={{ backgroundColor: segment.color + '40', borderColor: segment.color, borderWidth: 1 }}
+                      className="px-3 py-1.5 rounded-full text-sm font-medium text-white shadow-md"
+                      style={{
+                        backgroundColor: segment.color,
+                      }}
                     >
                       {segment.label}
                     </span>
@@ -277,23 +317,23 @@ function SpinWheelPage() {
               </div>
 
               {/* Подсказки */}
-              <div className="bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 rounded-2xl p-6">
-                <h3 className="text-lg font-bold text-cyan-400 mb-3">Идеи для использования</h3>
-                <ul className="space-y-2 text-gray-400 text-sm">
+              <div className="bg-gradient-to-br from-blue-50 to-violet-50 border border-blue-200 rounded-2xl p-6">
+                <h3 className="text-lg font-bold text-blue-600 mb-3">Идеи для использования</h3>
+                <ul className="space-y-2 text-slate-600 text-sm">
                   <li className="flex items-start">
-                    <span className="text-cyan-400 mr-2">•</span>
+                    <span className="text-blue-500 mr-2">•</span>
                     Выбор ученика для ответа у доски
                   </li>
                   <li className="flex items-start">
-                    <span className="text-purple-400 mr-2">•</span>
+                    <span className="text-violet-500 mr-2">•</span>
                     Случайная тема для обсуждения
                   </li>
                   <li className="flex items-start">
-                    <span className="text-pink-400 mr-2">•</span>
+                    <span className="text-pink-500 mr-2">•</span>
                     Распределение заданий между группами
                   </li>
                   <li className="flex items-start">
-                    <span className="text-yellow-400 mr-2">•</span>
+                    <span className="text-amber-500 mr-2">•</span>
                     Выбор предмета для повторения
                   </li>
                 </ul>

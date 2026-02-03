@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useSyncExternalStore } from 'react';
+
 import soundService from '../core/services/SoundService';
 
 type SoundType =
@@ -23,12 +24,12 @@ let listeners: (() => void)[] = [];
 const subscribe = (listener: () => void) => {
   listeners.push(listener);
   return () => {
-    listeners = listeners.filter((l) => l !== listener);
+    listeners = listeners.filter(l => l !== listener);
   };
 };
 
 const notifyListeners = () => {
-  listeners.forEach((listener) => listener());
+  listeners.forEach(listener => listener());
 };
 
 const getSnapshot = () => ({

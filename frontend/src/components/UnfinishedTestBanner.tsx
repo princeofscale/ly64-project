@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getActiveTestService, ActiveTestData } from '../core/services';
+
+import { getActiveTestService } from '../core/services';
+
+import type { ActiveTestData } from '../core/services';
 
 interface UnfinishedTestBannerProps {
   onAbandon?: () => void;
@@ -32,28 +35,28 @@ export function UnfinishedTestBanner({ onAbandon }: UnfinishedTestBannerProps) {
   const timeAgo = formatTimeAgo(startedAt);
 
   return (
-    <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-6 mb-6">
+    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-6 shadow-lg">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-2xl">⚠️</span>
-            <h3 className="text-lg font-semibold text-amber-400">
-              У вас есть незавершённый тест
-            </h3>
+            <h3 className="text-lg font-semibold text-amber-900">У вас есть незавершённый тест</h3>
           </div>
 
-          <div className="text-gray-300 mb-3">
-            <p className="font-medium text-white">{activeTest.title}</p>
-            <p className="text-sm text-gray-400">Начат {timeAgo}</p>
+          <div className="text-slate-700 mb-3">
+            <p className="font-medium text-slate-900">{activeTest.title}</p>
+            <p className="text-sm text-slate-600">Начат {timeAgo}</p>
           </div>
 
           <div className="flex items-center gap-4 mb-4">
             <div className="flex-1">
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-400">Прогресс</span>
-                <span className="text-amber-400">{activeTest.answeredCount} из {activeTest.totalTasks}</span>
+                <span className="text-slate-600">Прогресс</span>
+                <span className="text-amber-700">
+                  {activeTest.answeredCount} из {activeTest.totalTasks}
+                </span>
               </div>
-              <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-2 bg-amber-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all"
                   style={{ width: `${progress}%` }}
@@ -65,13 +68,13 @@ export function UnfinishedTestBanner({ onAbandon }: UnfinishedTestBannerProps) {
           <div className="flex gap-3">
             <button
               onClick={handleContinue}
-              className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all"
+              className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-xl hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-amber-500/25 transition-all"
             >
               Продолжить тест
             </button>
             <button
               onClick={() => setShowConfirm(true)}
-              className="px-6 py-2.5 bg-gray-700 text-gray-300 font-medium rounded-xl hover:bg-gray-600 transition-all"
+              className="px-6 py-2.5 bg-white text-slate-700 border border-slate-200 font-medium rounded-xl hover:bg-slate-50 transition-all"
             >
               Завершить без сохранения
             </button>
@@ -81,23 +84,22 @@ export function UnfinishedTestBanner({ onAbandon }: UnfinishedTestBannerProps) {
 
       {showConfirm && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700">
-            <h4 className="text-xl font-semibold text-white mb-3">
-              Завершить тест?
-            </h4>
-            <p className="text-gray-400 mb-6">
-              Весь прогресс будет потерян. Вы уверены, что хотите завершить тест без сохранения результата?
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full border border-slate-200 shadow-xl">
+            <h4 className="text-xl font-semibold text-slate-900 mb-3">Завершить тест?</h4>
+            <p className="text-slate-600 mb-6">
+              Весь прогресс будет потерян. Вы уверены, что хотите завершить тест без сохранения
+              результата?
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="flex-1 px-4 py-2.5 bg-gray-700 text-gray-300 font-medium rounded-xl hover:bg-gray-600 transition-all"
+                className="flex-1 px-4 py-2.5 bg-white text-slate-700 border border-slate-200 font-medium rounded-xl hover:bg-slate-50 transition-all"
               >
                 Отмена
               </button>
               <button
                 onClick={handleAbandon}
-                className="flex-1 px-4 py-2.5 bg-red-500 text-white font-medium rounded-xl hover:bg-red-600 transition-all"
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/25"
               >
                 Да, завершить
               </button>

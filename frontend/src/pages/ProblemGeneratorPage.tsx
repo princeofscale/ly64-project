@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { Header } from '../components/Header';
 
 interface Problem {
@@ -200,8 +201,9 @@ function ProblemGeneratorPage() {
   const checkAnswer = () => {
     if (!currentProblem || !userAnswer.trim()) return;
 
-    const correct = String(currentProblem.answer).toLowerCase().replace(/\s/g, '') ===
-                   userAnswer.toLowerCase().replace(/\s/g, '');
+    const correct =
+      String(currentProblem.answer).toLowerCase().replace(/\s/g, '') ===
+      userAnswer.toLowerCase().replace(/\s/g, '');
 
     setIsCorrect(correct);
     setShowAnswer(true);
@@ -213,9 +215,7 @@ function ProblemGeneratorPage() {
 
   const toggleType = (typeId: string) => {
     setSelectedTypes(prev =>
-      prev.includes(typeId)
-        ? prev.filter(t => t !== typeId)
-        : [...prev, typeId]
+      prev.includes(typeId) ? prev.filter(t => t !== typeId) : [...prev, typeId]
     );
   };
 
@@ -224,46 +224,44 @@ function ProblemGeneratorPage() {
     setCurrentProblem(null);
   };
 
-  const accuracy = stats.correct + stats.wrong > 0
-    ? Math.round((stats.correct / (stats.correct + stats.wrong)) * 100)
-    : 0;
+  const accuracy =
+    stats.correct + stats.wrong > 0
+      ? Math.round((stats.correct / (stats.correct + stats.wrong)) * 100)
+      : 0;
 
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gray-950 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-transparent to-rose-500/5 opacity-30" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-pink-500/20 rounded-full blur-[80px] animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-rose-500/20 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-pink-100/50 rounded-full blur-[120px]" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-rose-100/50 rounded-full blur-[120px]" />
 
         <main className="relative z-10 max-w-4xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-pink-400 via-rose-400 to-red-400 bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
               Генератор задач
             </h1>
-            <p className="text-gray-400 text-lg">
-              Тренируйся решать задачи на скорость
-            </p>
+            <p className="text-slate-600 text-lg">Тренируйся решать задачи на скорость</p>
           </div>
 
           {/* Статистика */}
           <div className="flex justify-center gap-6 mb-8">
-            <div className="bg-green-500/20 border border-green-500/30 rounded-xl px-6 py-3 text-center">
-              <p className="text-2xl font-bold text-green-400">{stats.correct}</p>
-              <p className="text-green-400/70 text-sm">Верно</p>
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-6 py-3 text-center shadow-lg">
+              <p className="text-2xl font-bold text-emerald-600">{stats.correct}</p>
+              <p className="text-emerald-600/70 text-sm">Верно</p>
             </div>
-            <div className="bg-red-500/20 border border-red-500/30 rounded-xl px-6 py-3 text-center">
-              <p className="text-2xl font-bold text-red-400">{stats.wrong}</p>
-              <p className="text-red-400/70 text-sm">Ошибок</p>
+            <div className="bg-red-50 border border-red-200 rounded-xl px-6 py-3 text-center shadow-lg">
+              <p className="text-2xl font-bold text-red-600">{stats.wrong}</p>
+              <p className="text-red-600/70 text-sm">Ошибок</p>
             </div>
-            <div className="bg-purple-500/20 border border-purple-500/30 rounded-xl px-6 py-3 text-center">
-              <p className="text-2xl font-bold text-purple-400">{accuracy}%</p>
-              <p className="text-purple-400/70 text-sm">Точность</p>
+            <div className="bg-violet-50 border border-violet-200 rounded-xl px-6 py-3 text-center shadow-lg">
+              <p className="text-2xl font-bold text-violet-600">{accuracy}%</p>
+              <p className="text-violet-600/70 text-sm">Точность</p>
             </div>
             {(stats.correct > 0 || stats.wrong > 0) && (
               <button
                 onClick={resetStats}
-                className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-400 hover:text-white transition-colors"
+                className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-600 hover:text-slate-900 transition-colors shadow-lg"
               >
                 Сбросить
               </button>
@@ -271,8 +269,8 @@ function ProblemGeneratorPage() {
           </div>
 
           {/* Выбор типов задач */}
-          <div className="bg-gray-900/50 border border-gray-700/50 rounded-2xl p-6 mb-8">
-            <h2 className="text-lg font-bold text-white mb-4">Типы задач</h2>
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-8 shadow-lg">
+            <h2 className="text-lg font-bold text-slate-900 mb-4">Типы задач</h2>
             <div className="flex flex-wrap gap-2">
               {PROBLEM_TYPES.map(type => (
                 <button
@@ -280,8 +278,8 @@ function ProblemGeneratorPage() {
                   onClick={() => toggleType(type.id)}
                   className={`px-4 py-2 rounded-xl font-medium transition-all ${
                     selectedTypes.includes(type.id)
-                      ? 'bg-pink-500/20 border border-pink-500/50 text-pink-400'
-                      : 'bg-gray-800 border border-gray-700 text-gray-400 hover:text-white'
+                      ? 'bg-pink-500 text-white shadow-lg'
+                      : 'bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <span className="mr-2">{type.icon}</span>
@@ -292,18 +290,18 @@ function ProblemGeneratorPage() {
           </div>
 
           {/* Задача */}
-          <div className="bg-gray-900/50 border border-gray-700/50 rounded-2xl p-8">
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-lg">
             {currentProblem ? (
               <div className="space-y-6">
                 <div className="text-center">
-                  <p className="text-3xl md:text-4xl font-bold text-white mb-4">
+                  <p className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
                     {currentProblem.question}
                   </p>
 
                   {currentProblem.hint && (
                     <button
                       onClick={() => setShowHint(!showHint)}
-                      className="text-sm text-gray-500 hover:text-gray-400"
+                      className="text-sm text-slate-600 hover:text-slate-900"
                     >
                       {showHint ? `Подсказка: ${currentProblem.hint}` : '💡 Показать подсказку'}
                     </button>
@@ -314,23 +312,25 @@ function ProblemGeneratorPage() {
                   <input
                     type="text"
                     value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && !showAnswer && checkAnswer()}
+                    onChange={e => setUserAnswer(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && !showAnswer && checkAnswer()}
                     placeholder="Ваш ответ"
                     disabled={showAnswer}
-                    className="w-48 px-6 py-4 bg-gray-800 border border-gray-600 rounded-xl text-white text-2xl text-center font-bold focus:border-pink-500 focus:outline-none disabled:opacity-50"
+                    className="w-48 px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-2xl text-center font-bold focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/20 disabled:opacity-50"
                     autoFocus
                   />
                 </div>
 
                 {showAnswer ? (
                   <div className="text-center space-y-4">
-                    <div className={`text-2xl font-bold ${isCorrect ? 'text-green-400' : 'text-red-400'}`}>
+                    <div
+                      className={`text-2xl font-bold ${isCorrect ? 'text-emerald-600' : 'text-red-600'}`}
+                    >
                       {isCorrect ? '✓ Верно!' : `✗ Неверно. Ответ: ${currentProblem.answer}`}
                     </div>
                     <button
                       onClick={generateProblem}
-                      className="px-8 py-3 bg-pink-500/20 border border-pink-500/50 text-pink-400 rounded-xl font-medium hover:bg-pink-500/30 transition-colors"
+                      className="px-8 py-3 bg-pink-500 text-white rounded-xl font-medium hover:bg-pink-600 transition-colors shadow-lg"
                     >
                       Следующая задача →
                     </button>
@@ -340,7 +340,7 @@ function ProblemGeneratorPage() {
                     <button
                       onClick={checkAnswer}
                       disabled={!userAnswer.trim()}
-                      className="px-8 py-3 bg-pink-500/20 border border-pink-500/50 text-pink-400 rounded-xl font-medium hover:bg-pink-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-8 py-3 bg-pink-500 text-white rounded-xl font-medium hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                     >
                       Проверить
                     </button>
@@ -349,13 +349,11 @@ function ProblemGeneratorPage() {
               </div>
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-400 mb-6">
-                  Выберите типы задач и нажмите кнопку
-                </p>
+                <p className="text-slate-600 mb-6">Выберите типы задач и нажмите кнопку</p>
                 <button
                   onClick={generateProblem}
                   disabled={selectedTypes.length === 0}
-                  className="px-8 py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-bold text-xl hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="px-8 py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-bold text-xl hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
                 >
                   Начать тренировку
                 </button>

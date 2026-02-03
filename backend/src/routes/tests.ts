@@ -1,27 +1,27 @@
-import { Router, Request, Response } from 'express';
-import { authenticateToken, AuthRequest } from '../middlewares/auth';
-import { prisma } from '../config/database';
+import { Router } from 'express';
+
+import prisma from '../config/database';
+import { authenticateToken } from '../middlewares/auth';
+import { testSubmitRateLimitMiddleware } from '../middlewares/security';
 import antiCheatService from '../services/antiCheatService';
 import { cacheService } from '../services/cacheService';
-import { testSubmitRateLimitMiddleware } from '../middlewares/security';
+
+import type { AuthRequest } from '../middlewares/auth';
+import type { Request, Response } from 'express';
 
 const router = Router();
 
-// Public endpoint - no auth required to list tests
-// С кэшированием на 10 минут
 router.get('/', async (req: Request, res: Response) => {
   console.log('📋 GET /tests request:', req.query);
   try {
     const { subject, examType, isDiagnostic } = req.query;
 
-    // Генерируем ключ кэша
     const cacheKey = cacheService.generateKey('tests', {
       subject,
       examType,
       isDiagnostic,
     });
 
-    // Проверяем кэш
     const cached = cacheService.get<{ success: boolean; data: unknown }>(cacheKey);
     if (cached) {
       res.setHeader('X-Cache', 'HIT');
@@ -50,7 +50,6 @@ router.get('/', async (req: Request, res: Response) => {
 
     const response = { success: true, data: tests };
 
-    // Сохраняем в кэш на 10 минут
     cacheService.set(cacheKey, response, 10 * 60 * 1000);
     res.setHeader('X-Cache', 'MISS');
 
@@ -65,6 +64,10 @@ router.get('/:testId/start', authenticateToken, async (req: AuthRequest, res: Re
   try {
     const { testId } = req.params;
 
+    if (Array.isArray(testId)) {
+      return res.status(400).json({ success: false, message: 'Некорректный идентификатор теста' });
+    }
+
     const randomized = await antiCheatService.getRandomizedQuestions(testId);
 
     if (!randomized) {
@@ -77,33 +80,48 @@ router.get('/:testId/start', authenticateToken, async (req: AuthRequest, res: Re
   }
 });
 
-router.post('/:testId/submit', authenticateToken, testSubmitRateLimitMiddleware, async (req: AuthRequest, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const { testId } = req.params;
-    const { answers, questionsOrder } = req.body;
+router.post(
+  '/:testId/submit',
+  authenticateToken,
+  testSubmitRateLimitMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const { testId } = req.params;
+      const { answers, questionsOrder } = req.body;
 
-    if (!answers || !Array.isArray(answers)) {
-      return res.status(400).json({ success: false, message: 'Укажите ответы' });
+      if (!answers || !Array.isArray(answers)) {
+        return res.status(400).json({ success: false, message: 'Укажите ответы' });
+      }
+
+      if (Array.isArray(testId)) {
+        return res
+          .status(400)
+          .json({ success: false, message: 'Некорректный идентификатор теста' });
+      }
+
+      const result = await antiCheatService.submitTestWithAntiCheat(
+        userId,
+        testId,
+        answers,
+        questionsOrder || []
+      );
+
+      res.json({ success: true, data: result });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message || 'Ошибка' });
     }
-
-    const result = await antiCheatService.submitTestWithAntiCheat(
-      userId,
-      testId,
-      answers,
-      questionsOrder || []
-    );
-
-    res.json({ success: true, data: result });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message || 'Ошибка' });
   }
-});
+);
 
 router.get('/:testId/results', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const { testId } = req.params;
+
+    if (Array.isArray(testId)) {
+      return res.status(400).json({ success: false, message: 'Некорректный идентификатор теста' });
+    }
 
     const attempts = await prisma.testAttempt.findMany({
       where: { userId, testId },

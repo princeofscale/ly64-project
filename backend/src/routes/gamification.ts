@@ -1,23 +1,14 @@
-/**
- * Gamification Routes
- * API для streak, daily challenges, achievements
- */
+import { Router } from 'express';
 
-import { Router, Response } from 'express';
-import { authenticateToken, AuthRequest } from '../middlewares/auth';
+import { authenticateToken } from '../middlewares/auth';
 import { streakService } from '../services/streakService';
 import { logger } from '../utils/logger';
 
+import type { AuthRequest } from '../middlewares/auth';
+import type { Response } from 'express';
+
 const router = Router();
 
-// ==========================================
-// Streak Endpoints
-// ==========================================
-
-/**
- * GET /api/gamification/streak
- * Получить информацию о streak пользователя
- */
 router.get('/streak', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
@@ -33,14 +24,6 @@ router.get('/streak', authenticateToken, async (req: AuthRequest, res: Response)
   }
 });
 
-// ==========================================
-// Daily Challenges Endpoints
-// ==========================================
-
-/**
- * GET /api/gamification/daily-challenges
- * Получить ежедневные задания
- */
 router.get('/daily-challenges', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
@@ -56,14 +39,6 @@ router.get('/daily-challenges', authenticateToken, async (req: AuthRequest, res:
   }
 });
 
-// ==========================================
-// Activity Endpoints
-// ==========================================
-
-/**
- * POST /api/gamification/activity
- * Записать активность пользователя
- */
 router.post('/activity', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
@@ -85,10 +60,6 @@ router.post('/activity', authenticateToken, async (req: AuthRequest, res: Respon
   }
 });
 
-/**
- * GET /api/gamification/stats
- * Получить статистику активности
- */
 router.get('/stats', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
@@ -114,10 +85,6 @@ router.get('/stats', authenticateToken, async (req: AuthRequest, res: Response) 
   }
 });
 
-/**
- * GET /api/gamification/activity-history
- * Получить историю активности
- */
 router.get('/activity-history', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;

@@ -93,7 +93,7 @@ api.interceptors.request.use(
 
     return config;
   },
-  async (error: any) => {
+  (error: any) => {
     return Promise.reject(error);
   }
 );

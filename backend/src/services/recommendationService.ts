@@ -1,14 +1,4 @@
-/**
- * Recommendation Service
- * Персональные рекомендации на основе анализа ошибок пользователя
- */
-
-import { prisma } from '../config/database';
-import { logger } from '../utils/logger';
-
-// ==========================================
-// Types
-// ==========================================
+import prisma from '../config/database';
 
 interface TopicAnalysis {
   topic: string;
@@ -35,7 +25,7 @@ interface Recommendation {
   topic: string;
   subject: string;
   priority: number;
-  estimatedTime: number; // минуты
+  estimatedTime: number;
   reason: string;
 }
 
@@ -47,32 +37,24 @@ interface UserAnalysis {
   nextSteps: string[];
 }
 
-// ==========================================
-// Topic to Difficulty mapping
-// ==========================================
-
 const topicDifficulty: Record<string, number> = {
-  'arithmetic': 1,
-  'fractions': 1,
-  'percent': 2,
-  'equations_linear': 2,
-  'equations_quadratic': 3,
-  'inequalities': 3,
-  'functions': 3,
-  'geometry_basic': 2,
-  'geometry_advanced': 4,
-  'trigonometry': 4,
-  'probability': 3,
-  'statistics': 2,
-  'sequences': 3,
-  'logarithms': 4,
-  'derivatives': 5,
-  'integrals': 5,
+  arithmetic: 1,
+  fractions: 1,
+  percent: 2,
+  equations_linear: 2,
+  equations_quadratic: 3,
+  inequalities: 3,
+  functions: 3,
+  geometry_basic: 2,
+  geometry_advanced: 4,
+  trigonometry: 4,
+  probability: 3,
+  statistics: 2,
+  sequences: 3,
+  logarithms: 4,
+  derivatives: 5,
+  integrals: 5,
 };
-
-// ==========================================
-// Recommendation Service
-// ==========================================
 
 class RecommendationService {
   private static instance: RecommendationService;
@@ -86,9 +68,6 @@ class RecommendationService {
     return RecommendationService.instance;
   }
 
-  /**
-   * Получить полный анализ пользователя
-   */
   async analyzeUser(userId: string): Promise<UserAnalysis> {
     const attempts = await this.getUserAttempts(userId);
     const topicAnalysis = await this.analyzeTopics(attempts);
@@ -101,9 +80,10 @@ class RecommendationService {
       .filter(t => t.accuracy < 70)
       .sort((a, b) => a.accuracy - b.accuracy);
 
-    const overallAccuracy = topicAnalysis.length > 0
-      ? Math.round(topicAnalysis.reduce((sum, t) => sum + t.accuracy, 0) / topicAnalysis.length)
-      : 0;
+    const overallAccuracy =
+      topicAnalysis.length > 0
+        ? Math.round(topicAnalysis.reduce((sum, t) => sum + t.accuracy, 0) / topicAnalysis.length)
+        : 0;
 
     const recommendations = this.generateRecommendations(weakTopics, strongTopics);
     const nextSteps = this.generateNextSteps(weakTopics, overallAccuracy);
@@ -117,9 +97,6 @@ class RecommendationService {
     };
   }
 
-  /**
-   * Получить слабые области
-   */
   async getWeaknesses(userId: string): Promise<WeaknessArea[]> {
     const attempts = await this.getUserAttempts(userId);
     const topicAnalysis = await this.analyzeTopics(attempts);
@@ -128,10 +105,13 @@ class RecommendationService {
       .filter(t => t.accuracy < 70 && t.totalQuestions >= 3)
       .map(t => ({
         topic: t.topic,
-        subject: 'MATHEMATICS', // TODO: detect from questions
+        subject: 'MATHEMATICS',
         accuracy: t.accuracy,
         questionsAnalyzed: t.totalQuestions,
-        priority: t.accuracy < 40 ? 'high' : t.accuracy < 60 ? 'medium' : 'low',
+        priority: (t.accuracy < 40 ? 'high' : t.accuracy < 60 ? 'medium' : 'low') as
+          | 'high'
+          | 'medium'
+          | 'low',
         recommendation: this.getTopicRecommendation(t),
       }))
       .sort((a, b) => {
@@ -140,23 +120,16 @@ class RecommendationService {
       });
   }
 
-  /**
-   * Получить персонализированные рекомендации
-   */
   async getRecommendations(userId: string, limit: number = 5): Promise<Recommendation[]> {
     const analysis = await this.analyzeUser(userId);
     return analysis.recommendations.slice(0, limit);
   }
 
-  /**
-   * Получить рекомендованные тесты
-   */
   async getRecommendedTests(userId: string): Promise<{
     tests: { id: string; title: string; reason: string; priority: number }[];
   }> {
     const weaknesses = await this.getWeaknesses(userId);
 
-    // Находим тесты по слабым темам
     const tests = await prisma.test.findMany({
       where: {
         isDiagnostic: false,
@@ -172,7 +145,6 @@ class RecommendationService {
 
     const recommendedTests = tests
       .map(test => {
-        // Считаем сколько вопросов по слабым темам
         const weakTopicsCount = test.questions.filter(tq =>
           weaknesses.some(w => tq.question.topic?.toLowerCase().includes(w.topic.toLowerCase()))
         ).length;
@@ -182,9 +154,10 @@ class RecommendationService {
         return {
           id: test.id,
           title: test.title,
-          reason: weakTopicsCount > 0
-            ? `Содержит ${weakTopicsCount} вопросов по вашим слабым темам`
-            : 'Общая практика',
+          reason:
+            weakTopicsCount > 0
+              ? `Содержит ${weakTopicsCount} вопросов по вашим слабым темам`
+              : 'Общая практика',
           priority,
         };
       })
@@ -195,17 +168,10 @@ class RecommendationService {
     return { tests: recommendedTests };
   }
 
-  /**
-   * Получить прогресс по темам
-   */
   async getTopicProgress(userId: string): Promise<TopicAnalysis[]> {
     const attempts = await this.getUserAttempts(userId);
     return this.analyzeTopics(attempts);
   }
-
-  // ==========================================
-  // Private Methods
-  // ==========================================
 
   private async getUserAttempts(userId: string) {
     return prisma.testAttempt.findMany({
@@ -225,16 +191,19 @@ class RecommendationService {
         },
       },
       orderBy: { completedAt: 'desc' },
-      take: 50, // Анализируем последние 50 попыток
+      take: 50,
     });
   }
 
   private async analyzeTopics(attempts: any[]): Promise<TopicAnalysis[]> {
-    const topicStats = new Map<string, {
-      total: number;
-      correct: number;
-      dates: Date[];
-    }>();
+    const topicStats = new Map<
+      string,
+      {
+        total: number;
+        correct: number;
+        dates: Date[];
+      }
+    >();
 
     for (const attempt of attempts) {
       if (!attempt.answers) continue;
@@ -246,7 +215,7 @@ class RecommendationService {
         continue;
       }
 
-      const questionsMap = new Map(
+      const questionsMap = new Map<string, any>(
         attempt.test.questions.map((tq: any) => [tq.question.id, tq.question])
       );
 
@@ -254,7 +223,7 @@ class RecommendationService {
         const question = questionsMap.get(answer.questionId);
         if (!question) continue;
 
-        const topic = question.topic || 'general';
+        const topic = (question as any).topic || 'general';
         const stats = topicStats.get(topic) || { total: 0, correct: 0, dates: [] };
 
         stats.total++;
@@ -269,15 +238,11 @@ class RecommendationService {
 
     for (const [topic, stats] of topicStats.entries()) {
       const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
-      const lastAttempt = stats.dates.length > 0
-        ? new Date(Math.max(...stats.dates.map(d => d.getTime())))
-        : null;
+      const lastAttempt =
+        stats.dates.length > 0 ? new Date(Math.max(...stats.dates.map(d => d.getTime()))) : null;
 
-      // Определяем тренд (сравниваем первую и вторую половину попыток)
       let trend: 'improving' | 'stable' | 'declining' = 'stable';
       if (stats.dates.length >= 4) {
-        // Логика определения тренда по времени
-        // Упрощённая версия - смотрим на последние результаты
         trend = 'stable';
       }
 
@@ -300,7 +265,6 @@ class RecommendationService {
   ): Recommendation[] {
     const recommendations: Recommendation[] = [];
 
-    // Рекомендации по слабым темам
     for (const topic of weakTopics.slice(0, 5)) {
       const priority = topic.accuracy < 40 ? 10 : topic.accuracy < 60 ? 7 : 5;
 
@@ -327,7 +291,6 @@ class RecommendationService {
       });
     }
 
-    // Рекомендации по поддержанию сильных тем
     for (const topic of strongTopics.slice(0, 2)) {
       if (!topic.lastAttempt) continue;
 
@@ -349,7 +312,6 @@ class RecommendationService {
       }
     }
 
-    // Сортируем по приоритету
     return recommendations.sort((a, b) => b.priority - a.priority);
   }
 
@@ -369,7 +331,9 @@ class RecommendationService {
 
     if (weakTopics.length > 0) {
       const topWeakTopic = weakTopics[0];
-      steps.push(`Приоритет: улучшите "${this.formatTopicName(topWeakTopic.topic)}" (${topWeakTopic.accuracy}%)`);
+      steps.push(
+        `Приоритет: улучшите "${this.formatTopicName(topWeakTopic.topic)}" (${topWeakTopic.accuracy}%)`
+      );
     }
 
     return steps;
@@ -390,23 +354,23 @@ class RecommendationService {
 
   private formatTopicName(topic: string): string {
     const names: Record<string, string> = {
-      'arithmetic': 'Арифметика',
-      'fractions': 'Дроби',
-      'percent': 'Проценты',
-      'equations_linear': 'Линейные уравнения',
-      'equations_quadratic': 'Квадратные уравнения',
-      'inequalities': 'Неравенства',
-      'functions': 'Функции',
-      'geometry_basic': 'Базовая геометрия',
-      'geometry_advanced': 'Продвинутая геометрия',
-      'trigonometry': 'Тригонометрия',
-      'probability': 'Вероятность',
-      'statistics': 'Статистика',
-      'sequences': 'Последовательности',
-      'logarithms': 'Логарифмы',
-      'derivatives': 'Производные',
-      'integrals': 'Интегралы',
-      'general': 'Общее',
+      arithmetic: 'Арифметика',
+      fractions: 'Дроби',
+      percent: 'Проценты',
+      equations_linear: 'Линейные уравнения',
+      equations_quadratic: 'Квадратные уравнения',
+      inequalities: 'Неравенства',
+      functions: 'Функции',
+      geometry_basic: 'Базовая геометрия',
+      geometry_advanced: 'Продвинутая геометрия',
+      trigonometry: 'Тригонометрия',
+      probability: 'Вероятность',
+      statistics: 'Статистика',
+      sequences: 'Последовательности',
+      logarithms: 'Логарифмы',
+      derivatives: 'Производные',
+      integrals: 'Интегралы',
+      general: 'Общее',
     };
     return names[topic] || topic;
   }

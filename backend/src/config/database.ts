@@ -70,9 +70,9 @@ class DatabaseConnection {
   }
 
   private setupLifecycleHandlers(): void {
-    process.on(LIFECYCLE_EVENTS.BEFORE_EXIT, async () => this.handleBeforeExit());
-    process.on(LIFECYCLE_EVENTS.SIGINT, async () => this.handleSignal('SIGINT'));
-    process.on(LIFECYCLE_EVENTS.SIGTERM, async () => this.handleSignal('SIGTERM'));
+    process.on(LIFECYCLE_EVENTS.BEFORE_EXIT, () => this.handleBeforeExit());
+    process.on(LIFECYCLE_EVENTS.SIGINT, () => this.handleSignal('SIGINT'));
+    process.on(LIFECYCLE_EVENTS.SIGTERM, () => this.handleSignal('SIGTERM'));
   }
 
   private async handleBeforeExit(): Promise<void> {
@@ -129,8 +129,8 @@ class DatabaseConnection {
 const databaseConnection = new DatabaseConnection();
 
 export const prismaClient = databaseConnection.getClient();
-export const connectDatabase = async () => databaseConnection.connect();
-export const disconnectDatabase = async () => databaseConnection.disconnect();
-export const checkDatabaseHealth = async () => databaseConnection.healthCheck();
+export const connectDatabase = () => databaseConnection.connect();
+export const disconnectDatabase = () => databaseConnection.disconnect();
+export const checkDatabaseHealth = () => databaseConnection.healthCheck();
 
 export default prismaClient;

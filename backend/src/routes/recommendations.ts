@@ -1,25 +1,19 @@
-/**
- * Recommendations Routes
- * API для персональных рекомендаций
- */
+import { Router } from 'express';
 
-import { Router, Response } from 'express';
-import { authenticateToken, AuthRequest } from '../middlewares/auth';
-import { recommendationService } from '../services/recommendationService';
+import { authenticateToken } from '../middlewares/auth';
 import { cacheService } from '../services/cacheService';
+import { recommendationService } from '../services/recommendationService';
 import { logger } from '../utils/logger';
+
+import type { AuthRequest } from '../middlewares/auth';
+import type { Response } from 'express';
 
 const router = Router();
 
-/**
- * GET /api/recommendations/analysis
- * Получить полный анализ пользователя
- */
 router.get('/analysis', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
 
-    // Кэшируем на 5 минут
     const cacheKey = `recommendations:analysis:${userId}`;
     const cached = cacheService.get(cacheKey);
     if (cached) {
@@ -40,10 +34,6 @@ router.get('/analysis', authenticateToken, async (req: AuthRequest, res: Respons
   }
 });
 
-/**
- * GET /api/recommendations/weaknesses
- * Получить слабые области пользователя
- */
 router.get('/weaknesses', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
@@ -59,10 +49,6 @@ router.get('/weaknesses', authenticateToken, async (req: AuthRequest, res: Respo
   }
 });
 
-/**
- * GET /api/recommendations/next
- * Получить рекомендации что делать дальше
- */
 router.get('/next', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
@@ -80,10 +66,6 @@ router.get('/next', authenticateToken, async (req: AuthRequest, res: Response) =
   }
 });
 
-/**
- * GET /api/recommendations/tests
- * Получить рекомендованные тесты
- */
 router.get('/tests', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
@@ -99,10 +81,6 @@ router.get('/tests', authenticateToken, async (req: AuthRequest, res: Response) 
   }
 });
 
-/**
- * GET /api/recommendations/topics
- * Получить прогресс по темам
- */
 router.get('/topics', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;

@@ -8,7 +8,6 @@ interface User {
   username: string;
   avatar?: string;
   desiredDirection?: string;
-  diagnosticCompleted?: boolean;
   role?: string;
 }
 
@@ -43,9 +42,9 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       isRefreshing: false,
 
-      setUser: (user) => set({ user, isAuthenticated: true }),
+      setUser: user => set({ user, isAuthenticated: true }),
 
-      setToken: (token) => set({ token }),
+      setToken: token => set({ token }),
 
       setTokens: (accessToken, refreshToken, expiresIn) =>
         set({
@@ -74,9 +73,9 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
         }),
 
-      setLoading: (loading) => set({ isLoading: loading }),
+      setLoading: loading => set({ isLoading: loading }),
 
-      setRefreshing: (refreshing) => set({ isRefreshing: refreshing }),
+      setRefreshing: refreshing => set({ isRefreshing: refreshing }),
 
       // Проверка истёк ли токен
       isTokenExpired: () => {
@@ -95,7 +94,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({
+      partialize: state => ({
         user: state.user,
         token: state.token,
         refreshToken: state.refreshToken,

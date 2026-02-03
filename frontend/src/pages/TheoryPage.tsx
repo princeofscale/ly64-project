@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+
 import Header from '../components/Header';
 
 // ==========================================
@@ -57,11 +58,7 @@ const mathTopics: TheoryTopic[] = [
 - Вычитание: a/b - c/d = (ad - bc) / bd
 - Умножение: a/b × c/d = ac / bd
 - Деление: a/b ÷ c/d = ad / bc`,
-        formulas: [
-          'a/b + c/d = (ad + bc) / bd',
-          'a/b × c/d = ac / bd',
-          'a/b ÷ c/d = ad / bc',
-        ],
+        formulas: ['a/b + c/d = (ad + bc) / bd', 'a/b × c/d = ac / bd', 'a/b ÷ c/d = ad / bc'],
         examples: [
           {
             problem: 'Вычислите: 2/3 + 1/4',
@@ -83,10 +80,7 @@ const mathTopics: TheoryTopic[] = [
 - Найти p% от числа a: (a × p) / 100
 - Найти число по его p%: (a × 100) / p
 - Найти процентное соотношение: (a / b) × 100%`,
-        formulas: [
-          'p% от a = (a × p) / 100',
-          'Число = (часть × 100) / p',
-        ],
+        formulas: ['p% от a = (a × p) / 100', 'Число = (часть × 100) / p'],
         examples: [
           {
             problem: 'Найдите 15% от 240',
@@ -94,10 +88,7 @@ const mathTopics: TheoryTopic[] = [
             answer: '36',
           },
         ],
-        tips: [
-          '1% = 0.01, 50% = 0.5, 100% = 1',
-          'Чтобы увеличить на p%, умножьте на (1 + p/100)',
-        ],
+        tips: ['1% = 0.01, 50% = 0.5, 100% = 1', 'Чтобы увеличить на p%, умножьте на (1 + p/100)'],
       },
     ],
   },
@@ -147,12 +138,7 @@ const mathTopics: TheoryTopic[] = [
 - D < 0: нет действительных корней
 
 **Теорема Виета:** x₁ + x₂ = -b/a, x₁ × x₂ = c/a`,
-        formulas: [
-          'D = b² - 4ac',
-          'x = (-b ± √D) / 2a',
-          'x₁ + x₂ = -b/a',
-          'x₁ × x₂ = c/a',
-        ],
+        formulas: ['D = b² - 4ac', 'x = (-b ± √D) / 2a', 'x₁ + x₂ = -b/a', 'x₁ × x₂ = c/a'],
         examples: [
           {
             problem: 'Решите: x² - 5x + 6 = 0',
@@ -160,9 +146,7 @@ const mathTopics: TheoryTopic[] = [
             answer: 'x = 2 или x = 3',
           },
         ],
-        tips: [
-          'По теореме Виета: сумма корней = 5, произведение = 6 → корни 2 и 3',
-        ],
+        tips: ['По теореме Виета: сумма корней = 5, произведение = 6 → корни 2 и 3'],
       },
     ],
   },
@@ -313,7 +297,10 @@ const SectionContent: React.FC<{ section: TheorySection }> = ({ section }) => {
           <h5 className="text-sm font-medium text-cyan-400 mb-2">Формулы:</h5>
           <div className="space-y-1">
             {section.formulas.map((formula, idx) => (
-              <div key={idx} className="text-slate-200 font-mono text-sm bg-slate-800/50 px-3 py-1 rounded">
+              <div
+                key={idx}
+                className="text-slate-200 font-mono text-sm bg-slate-800/50 px-3 py-1 rounded"
+              >
                 {formula}
               </div>
             ))}
@@ -357,9 +344,7 @@ const SectionContent: React.FC<{ section: TheorySection }> = ({ section }) => {
                     <div className="text-slate-400 text-sm mb-2">
                       <span className="text-slate-500">Решение:</span> {example.solution}
                     </div>
-                    <div className="text-green-400 font-medium">
-                      Ответ: {example.answer}
-                    </div>
+                    <div className="text-green-400 font-medium">Ответ: {example.answer}</div>
                   </div>
                 ))}
               </motion.div>
@@ -379,9 +364,10 @@ const TheoryPage: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<TheoryTopic | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredTopics = mathTopics.filter(topic =>
-    topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    topic.description.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTopics = mathTopics.filter(
+    topic =>
+      topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      topic.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -391,7 +377,10 @@ const TheoryPage: React.FC = () => {
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link to="/dashboard" className="text-cyan-400 hover:text-cyan-300 text-sm mb-4 inline-block">
+          <Link
+            to="/dashboard"
+            className="text-cyan-400 hover:text-cyan-300 text-sm mb-4 inline-block"
+          >
             ← Назад к дашборду
           </Link>
           <h1 className="text-3xl font-bold text-white mb-2">Теория по математике</h1>
@@ -404,7 +393,7 @@ const TheoryPage: React.FC = () => {
             type="text"
             placeholder="Поиск по темам..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="w-full max-w-md bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
           />
         </div>
@@ -446,7 +435,7 @@ const TheoryPage: React.FC = () => {
 
               {/* Sections */}
               <div className="space-y-4">
-                {selectedTopic.sections.map((section) => (
+                {selectedTopic.sections.map(section => (
                   <SectionContent key={section.id} section={section} />
                 ))}
               </div>
@@ -470,21 +459,15 @@ const TheoryPage: React.FC = () => {
               exit={{ opacity: 0 }}
               className="grid md:grid-cols-2 gap-4"
             >
-              {filteredTopics.map((topic) => (
-                <TopicCard
-                  key={topic.id}
-                  topic={topic}
-                  onClick={() => setSelectedTopic(topic)}
-                />
+              {filteredTopics.map(topic => (
+                <TopicCard key={topic.id} topic={topic} onClick={() => setSelectedTopic(topic)} />
               ))}
             </motion.div>
           )}
         </AnimatePresence>
 
         {filteredTopics.length === 0 && !selectedTopic && (
-          <div className="text-center text-slate-500 py-12">
-            Темы не найдены
-          </div>
+          <div className="text-center text-slate-500 py-12">Темы не найдены</div>
         )}
       </main>
     </div>

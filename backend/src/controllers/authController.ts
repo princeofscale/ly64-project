@@ -1,132 +1,133 @@
-import { Request, Response, NextFunction } from 'express';
-import authService from '../services/authService';
-import { registerSchema, loginSchema } from '../utils/validation';
+import { HTTP_STATUS_CODES } from '../constants/authConstants';
 import { AppError } from '../middlewares/errorHandler';
-import {
-  checkAccountLockout,
-  recordFailedLogin,
-  clearFailedLogins,
-} from '../middlewares/security';
-import {
-  logSuccessfulLogin,
-  logFailedLogin,
-  logBlockedLogin,
-  logRegistration,
-} from '../utils/logger';
+import accountLockoutService from '../services/accountLockoutService';
+import authResponseService from '../services/authResponseService';
+import authService from '../services/authService';
+import { logRegistration } from '../utils/logger';
+import { RequestUtils } from '../utils/requestUtils';
+import { registerSchema, loginSchema } from '../utils/validation';
+
+import type { AuthResult, AuthUser } from '../types/authTypes';
+import type { RegisterInput, LoginInput } from '../utils/validation';
+import type { Request, Response, NextFunction } from 'express';
 
 export class AuthController {
-  async register(req: Request, res: Response, next: NextFunction) {
+  public async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const validatedData = registerSchema.parse(req.body);
+      const validatedData = this.parseRegisterData(req.body);
+      const result = await this.executeRegistration(validatedData, req);
 
-      const result = await authService.register(validatedData);
-
-      // Log successful registration
-      logRegistration(result.user.id, result.user.email, req);
-
-      res.status(201).json({
-        success: true,
-        message: 'Пользователь успешно зарегистрирован',
-        data: result,
-      });
+      authResponseService.sendRegistrationSuccess(res, result);
     } catch (error) {
       next(error);
     }
   }
 
-  async login(req: Request, res: Response, next: NextFunction) {
+  public async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const validatedData = loginSchema.parse(req.body);
+      const validatedData = this.parseLoginData(req.body);
 
-      // Check if account is locked due to too many failed attempts
-      const lockoutStatus = checkAccountLockout(validatedData.email);
-      if (lockoutStatus.locked) {
-        // Log blocked login attempt
-        logBlockedLogin(validatedData.email, req);
+      this.checkAccountLockout(validatedData.email, req);
 
-        throw new AppError(
-          `Аккаунт временно заблокирован из-за множества неудачных попыток входа. Попробуйте через ${lockoutStatus.remainingTime} минут.`,
-          429
-        );
-      }
+      const result = await this.executeLogin(validatedData, req);
 
-      try {
-        const result = await authService.login(validatedData);
-
-        // Clear failed login attempts on successful login
-        clearFailedLogins(validatedData.email);
-
-        // Log successful login
-        logSuccessfulLogin(result.user.id, result.user.email, req);
-
-        res.status(200).json({
-          success: true,
-          message: 'Вход выполнен успешно',
-          data: result,
-        });
-      } catch (loginError) {
-        // Record failed login attempt
-        const failedAttempt = recordFailedLogin(validatedData.email);
-
-        // Log failed login
-        logFailedLogin(
-          validatedData.email,
-          req,
-          loginError instanceof Error ? loginError.message : 'Unknown error'
-        );
-
-        if (failedAttempt.locked) {
-          // Log account locked
-          logBlockedLogin(validatedData.email, req);
-
-          throw new AppError(
-            'Аккаунт заблокирован на 15 минут из-за множества неудачных попыток входа.',
-            429
-          );
-        }
-
-        // Re-throw the original error with attempt count hint
-        if (loginError instanceof AppError) {
-          const remainingAttempts = 5 - failedAttempt.attempts;
-          if (remainingAttempts > 0 && remainingAttempts <= 3) {
-            loginError.message += ` Осталось попыток: ${remainingAttempts}`;
-          }
-        }
-        throw loginError;
-      }
+      authResponseService.sendLoginSuccess(res, result);
     } catch (error) {
       next(error);
     }
   }
 
-  async getCurrentUser(req: Request, res: Response, next: NextFunction) {
+  public async getCurrentUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = (req as any).userId;
+      const userId = RequestUtils.extractUserId(req);
+      const user = await this.fetchCurrentUser(userId);
 
-      if (!userId) {
-        throw new AppError('Не авторизован', 401);
-      }
-
-      const user = await authService.getCurrentUser(userId);
-
-      res.status(200).json({
-        success: true,
-        data: user,
-      });
+      authResponseService.sendCurrentUser(res, user);
     } catch (error) {
       next(error);
     }
   }
 
-  async logout(req: Request, res: Response, next: NextFunction) {
+  public async logout(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      res.status(200).json({
-        success: true,
-        message: 'Выход выполнен успешно',
-      });
+      authResponseService.sendLogoutSuccess(res);
     } catch (error) {
       next(error);
     }
+  }
+
+  private parseRegisterData(body: unknown): RegisterInput {
+    return registerSchema.parse(body);
+  }
+
+  private parseLoginData(body: unknown): LoginInput {
+    return loginSchema.parse(body);
+  }
+
+  private async executeRegistration(data: RegisterInput, request: Request): Promise<AuthResult> {
+    const result = await authService.register(data);
+
+    logRegistration(result.user.id, result.user.email, request);
+
+    return result;
+  }
+
+  private checkAccountLockout(email: string, request: Request): void {
+    const lockoutStatus = accountLockoutService.checkLockout(email);
+
+    if (lockoutStatus.locked) {
+      accountLockoutService.logBlockedLogin(email, request);
+
+      const message = accountLockoutService.formatLockoutMessage(lockoutStatus.remainingTime);
+      throw new AppError(message, HTTP_STATUS_CODES.TOO_MANY_REQUESTS);
+    }
+  }
+
+  private async executeLogin(data: LoginInput, request: Request): Promise<AuthResult> {
+    try {
+      const result = await authService.login(data);
+
+      accountLockoutService.clearAttempts(data.email);
+      accountLockoutService.logSuccessfulLogin(result.user.id, result.user.email, request);
+
+      return result;
+    } catch (error) {
+      this.handleLoginFailure(data.email, request, error);
+      throw error;
+    }
+  }
+
+  private handleLoginFailure(email: string, request: Request, error: unknown): void {
+    const errorMessage = RequestUtils.extractErrorMessage(error);
+    const failedAttempt = accountLockoutService.recordFailedAttempt(email);
+
+    accountLockoutService.logFailedLogin(email, request, errorMessage);
+
+    if (failedAttempt.locked) {
+      accountLockoutService.logBlockedLogin(email, request);
+
+      const lockoutMessage = accountLockoutService.formatLockoutMessage();
+      throw new AppError(lockoutMessage, HTTP_STATUS_CODES.TOO_MANY_REQUESTS);
+    }
+
+    this.appendRemainingAttemptsToError(error, failedAttempt.attempts);
+  }
+
+  private appendRemainingAttemptsToError(error: unknown, attempts: number): void {
+    if (!(error instanceof AppError)) {
+      return;
+    }
+
+    if (!accountLockoutService.shouldShowRemainingAttempts(attempts)) {
+      return;
+    }
+
+    const attemptsMessage = accountLockoutService.formatRemainingAttemptsMessage(attempts);
+    error.message = `${error.message} ${attemptsMessage}`;
+  }
+
+  private async fetchCurrentUser(userId: string): Promise<AuthUser> {
+    return authService.getCurrentUser(userId);
   }
 }
 

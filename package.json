@@ -1,5 +1,5 @@
 {
-  "name": "lyceum64-prep-platform",
+  "name": "lyceum64-study-platform",
   "version": "0.1.0",
   "description": "Веб-платформа для подготовки к поступлению в Лицей-интернат №64 г. Саратова",
   "private": true,
@@ -17,7 +17,20 @@
     "build:backend": "npm run build --workspace=backend",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
-    "type-check": "npm run type-check --workspaces"
+    "lint:fix": "npm run lint --workspaces -- --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "type-check": "npm run type-check --workspaces",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{js,jsx,json,css,md}": [
+      "prettier --write"
+    ]
   },
   "keywords": [
     "edtech",
@@ -25,9 +38,24 @@
     "lyceum",
     "exam-preparation"
   ],
-  "author": "",
+  "author": "princeofscale",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@eslint/js": "^9.39.2",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-unused-imports": "^4.3.0",
+    "globals": "^17.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0"
   }
 }

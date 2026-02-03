@@ -3,7 +3,7 @@
  * Контракты для всех основных сущностей приложения
  */
 
-import {
+import type {
   QuestionType,
   ExamType,
   Subject,

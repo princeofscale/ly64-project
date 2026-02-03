@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useParams, useNavigate } from 'react-router-dom';
+
 import { Button } from '../components/Button';
 import { useAuthStore } from '../store/authStore';
 
@@ -48,16 +49,15 @@ export default function TestPage() {
     try {
       let url = '';
       if (subject) {
-        const testsResponse = await fetch(
-          `/api/tests?subject=${subject}&isDiagnostic=true`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const testsResponse = await fetch(`/api/tests?subject=${subject}&isDiagnostic=true`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const testsData = await testsResponse.json();
         if (testsData.data && testsData.data.length > 0) {
           url = `/api/tests/${testsData.data[0].id}/start`;
         } else {
           toast.error('Тест не найден');
-          navigate('/diagnostic');
+          navigate('/dashboard');
           return;
         }
       } else if (testId) {
@@ -94,7 +94,7 @@ export default function TestPage() {
     if (timeLeft === null || timeLeft <= 0) return;
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
+      setTimeLeft(prev => {
         if (prev === null || prev <= 1) {
           clearInterval(timer);
           handleSubmit();
@@ -124,12 +124,12 @@ export default function TestPage() {
       timestamp: Date.now(),
     };
 
-    setAnswers((prev) => [...prev, newAnswer]);
+    setAnswers(prev => [...prev, newAnswer]);
     setSelectedAnswer(null);
     setQuestionStartTime(Date.now());
 
     if (currentIndex < testData.questions.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
+      setCurrentIndex(prev => prev + 1);
     } else {
       handleSubmit([...answers, newAnswer]);
     }
@@ -159,31 +159,15 @@ export default function TestPage() {
       if (data.success) {
         if (subject) {
           // Собираем детали об ошибках для рекомендаций
-          const wrongAnswers = data.data.questionResults
-            ?.filter((q: any) => !q.isCorrect)
-            .map((q: any) => ({
-              questionId: q.questionId,
-              topic: q.topic,
-              userAnswer: q.userAnswer,
-              correctAnswer: q.correctAnswer,
-            })) || [];
-
-          await fetch('/api/diagnostic/submit', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              subject,
-              score: data.data.score,
-              details: {
-                wrongAnswers,
-                totalQuestions: data.data.totalQuestions,
-                correctCount: data.data.correctCount,
-              },
-            }),
-          });
+          const wrongAnswers =
+            data.data.questionResults
+              ?.filter((q: any) => !q.isCorrect)
+              .map((q: any) => ({
+                questionId: q.questionId,
+                topic: q.topic,
+                userAnswer: q.userAnswer,
+                correctAnswer: q.correctAnswer,
+              })) || [];
         }
 
         toast.success(`Тест завершён! Результат: ${data.data.score}%`);
@@ -192,11 +176,7 @@ export default function TestPage() {
           toast.error('Обнаружена подозрительная активность', { duration: 5000 });
         }
 
-        if (subject) {
-          navigate('/diagnostic');
-        } else {
-          navigate('/dashboard');
-        }
+        navigate('/dashboard');
       }
     } catch (error) {
       toast.error('Ошибка отправки');
@@ -213,8 +193,14 @@ export default function TestPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+          <div
+            className="absolute inset-0 w-16 h-16 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin"
+            style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}
+          />
+        </div>
       </div>
     );
   }
@@ -225,17 +211,15 @@ export default function TestPage() {
   const progress = ((currentIndex + 1) / testData.questions.length) * 100;
 
   return (
-    <div className="min-h-screen py-8 px-4 bg-gray-950">
+    <div className="min-h-screen py-8 px-4 bg-gradient-to-b from-blue-50 via-white to-white">
       <div className="max-w-3xl mx-auto">
-        <div className="bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-700">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-bold text-white">
-              {testData.test.title}
-            </h1>
+            <h1 className="text-xl font-bold text-slate-900">{testData.test.title}</h1>
             {timeLeft !== null && (
               <div
                 className={`px-4 py-2 rounded-lg font-mono text-lg ${
-                  timeLeft < 60 ? 'bg-red-500/20 text-red-400' : 'bg-gray-800 text-gray-300'
+                  timeLeft < 60 ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-slate-50 text-slate-700 border border-slate-200'
                 }`}
               >
                 {formatTime(timeLeft)}
@@ -244,22 +228,22 @@ export default function TestPage() {
           </div>
 
           <div className="mb-6">
-            <div className="flex justify-between text-sm text-gray-400 mb-2">
+            <div className="flex justify-between text-sm text-slate-600 mb-2">
               <span>
                 Вопрос {currentIndex + 1} из {testData.questions.length}
               </span>
               <span>{Math.round(progress)}%</span>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-slate-200 rounded-full h-2">
               <div
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 h-2 rounded-full transition-all"
+                className="bg-gradient-to-r from-blue-500 to-violet-500 h-2 rounded-full transition-all"
                 style={{ width: `${progress}%` }}
               />
             </div>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-lg font-medium mb-6 text-white">{currentQuestion.question}</h2>
+            <h2 className="text-lg font-medium mb-6 text-slate-900">{currentQuestion.question}</h2>
 
             {currentQuestion.options && (
               <div className="space-y-3">
@@ -269,11 +253,11 @@ export default function TestPage() {
                     onClick={() => handleAnswer(option)}
                     className={`w-full p-4 text-left border-2 rounded-xl transition-all ${
                       selectedAnswer === option
-                        ? 'border-cyan-500 bg-cyan-500/10 text-white'
-                        : 'border-gray-700 hover:border-cyan-500/50 text-gray-200 hover:bg-gray-800'
+                        ? 'border-blue-500 bg-blue-50 text-slate-900'
+                        : 'border-slate-200 hover:border-blue-300 text-slate-700 hover:bg-slate-50'
                     }`}
                   >
-                    <span className="font-medium mr-3 text-cyan-400">
+                    <span className="font-medium mr-3 text-blue-600">
                       {String.fromCharCode(65 + idx)}.
                     </span>
                     {option}
@@ -283,24 +267,19 @@ export default function TestPage() {
             )}
           </div>
 
-          <div className="flex justify-between items-center pt-6 border-t border-gray-700">
+          <div className="flex justify-between items-center pt-6 border-t border-slate-200">
             {testData.test.preventBackNavigation ? (
-              <span className="text-sm text-gray-500">
-                Возврат к предыдущим вопросам запрещён
-              </span>
+              <span className="text-sm text-slate-500">Возврат к предыдущим вопросам запрещён</span>
             ) : (
               <div />
             )}
 
-            <Button
-              onClick={handleNext}
-              disabled={selectedAnswer === null || submitting}
-            >
+            <Button onClick={handleNext} disabled={selectedAnswer === null || submitting}>
               {submitting
                 ? 'Отправка...'
                 : currentIndex < testData.questions.length - 1
-                ? 'Далее'
-                : 'Завершить'}
+                  ? 'Далее'
+                  : 'Завершить'}
             </Button>
           </div>
         </div>

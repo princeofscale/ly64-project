@@ -2,10 +2,6 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-/**
- * Seed для достижений
- * Создает базовый набор достижений для пользователей
- */
 export async function seedAchievements() {
   console.log('🏆 Seeding achievements...');
 
@@ -103,7 +99,6 @@ export async function seedAchievements() {
     },
   ];
 
-  // Создаем достижения, если их еще нет
   for (const achievement of achievements) {
     const existing = await prisma.achievement.findFirst({
       where: { name: achievement.name },
@@ -122,10 +117,9 @@ export async function seedAchievements() {
   console.log('✨ Achievements seeding completed!');
 }
 
-// Если скрипт запущен напрямую
 if (require.main === module) {
   seedAchievements()
-    .catch((e) => {
+    .catch(e => {
       console.error('Error seeding achievements:', e);
       process.exit(1);
     })

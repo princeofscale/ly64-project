@@ -1,21 +1,17 @@
+import fs from 'fs';
+import path from 'path';
+
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import path from 'path';
-import fs from 'fs';
-import { Request } from 'express';
 
-// ==========================================
-// Winston Logger Configuration with Daily Rotation
-// ==========================================
+import type { Request } from 'express';
 
 const logDir = process.env.LOG_DIR || 'logs';
 
-// Создаём директорию для логов если не существует
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
 
-// Custom log format
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
@@ -23,7 +19,6 @@ const logFormat = winston.format.combine(
   winston.format.json()
 );
 
-// Console format for development
 const consoleFormat = winston.format.combine(
   winston.format.colorize(),
   winston.format.timestamp({ format: 'HH:mm:ss' }),
@@ -38,11 +33,6 @@ const consoleFormat = winston.format.combine(
   })
 );
 
-// ==========================================
-// Daily Rotate File Transports
-// ==========================================
-
-// Error logs - rotate daily, keep 30 days
 const errorRotateTransport = new DailyRotateFile({
   filename: path.join(logDir, 'error-%DATE%.log'),
   datePattern: 'YYYY-MM-DD',
@@ -52,7 +42,6 @@ const errorRotateTransport = new DailyRotateFile({
   zippedArchive: true,
 });
 
-// Combined logs - rotate daily, keep 14 days
 const combinedRotateTransport = new DailyRotateFile({
   filename: path.join(logDir, 'combined-%DATE%.log'),
   datePattern: 'YYYY-MM-DD',
@@ -61,7 +50,6 @@ const combinedRotateTransport = new DailyRotateFile({
   zippedArchive: true,
 });
 
-// Security audit logs - rotate daily, keep 90 days
 const securityRotateTransport = new DailyRotateFile({
   filename: path.join(logDir, 'security-%DATE%.log'),
   datePattern: 'YYYY-MM-DD',
@@ -70,7 +58,6 @@ const securityRotateTransport = new DailyRotateFile({
   zippedArchive: true,
 });
 
-// API access logs - rotate daily, keep 7 days
 const accessRotateTransport = new DailyRotateFile({
   filename: path.join(logDir, 'access-%DATE%.log'),
   datePattern: 'YYYY-MM-DD',
@@ -79,7 +66,6 @@ const accessRotateTransport = new DailyRotateFile({
   zippedArchive: true,
 });
 
-// Event handlers for rotation
 errorRotateTransport.on('rotate', (oldFilename, newFilename) => {
   console.log(`[Logger] Error log rotated: ${oldFilename} -> ${newFilename}`);
 });
@@ -88,25 +74,20 @@ combinedRotateTransport.on('rotate', (oldFilename, newFilename) => {
   console.log(`[Logger] Combined log rotated: ${oldFilename} -> ${newFilename}`);
 });
 
-// Create logger instance
 export const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
   defaultMeta: { service: 'lyceum64-api' },
   transports: [
-    // Write all logs to console in development
     new winston.transports.Console({
       format: process.env.NODE_ENV === 'production' ? logFormat : consoleFormat,
       level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
     }),
-    // Daily rotating error log
     errorRotateTransport,
-    // Daily rotating combined log
     combinedRotateTransport,
   ],
 });
 
-// Security audit logger - separate file for security events
 export const auditLogger = winston.createLogger({
   level: 'info',
   format: logFormat,
@@ -120,7 +101,6 @@ export const auditLogger = winston.createLogger({
   ],
 });
 
-// Access logger for HTTP requests
 export const accessLogger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -130,10 +110,6 @@ export const accessLogger = winston.createLogger({
   defaultMeta: { service: 'lyceum64-access' },
   transports: [accessRotateTransport],
 });
-
-// ==========================================
-// Security Event Types
-// ==========================================
 
 export enum SecurityEvent {
   LOGIN_SUCCESS = 'LOGIN_SUCCESS',
@@ -154,10 +130,6 @@ export enum SecurityEvent {
   DATA_EXPORT = 'DATA_EXPORT',
   DATA_DELETE = 'DATA_DELETE',
 }
-
-// ==========================================
-// Audit Logging Functions
-// ==========================================
 
 interface AuditLogData {
   event: SecurityEvent;
@@ -183,7 +155,6 @@ export const logSecurityEvent = (data: AuditLogData): void => {
     ...details,
   });
 
-  // Also log critical events to main logger
   if (severity === 'critical' || severity === 'high') {
     logger.warn(`[SECURITY] ${event}`, {
       userId,
@@ -194,7 +165,6 @@ export const logSecurityEvent = (data: AuditLogData): void => {
   }
 };
 
-// Helper to extract request info
 export const getRequestInfo = (req: Request) => ({
   ip: req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown',
   userAgent: req.headers['user-agent'] || 'unknown',
@@ -203,7 +173,6 @@ export const getRequestInfo = (req: Request) => ({
   query: req.query,
 });
 
-// Log failed login attempt
 export const logFailedLogin = (email: string, req: Request, reason: string): void => {
   logSecurityEvent({
     event: SecurityEvent.LOGIN_FAILED,
@@ -215,7 +184,6 @@ export const logFailedLogin = (email: string, req: Request, reason: string): voi
   });
 };
 
-// Log successful login
 export const logSuccessfulLogin = (userId: string, email: string, req: Request): void => {
   logSecurityEvent({
     event: SecurityEvent.LOGIN_SUCCESS,
@@ -227,7 +195,6 @@ export const logSuccessfulLogin = (userId: string, email: string, req: Request):
   });
 };
 
-// Log blocked login (rate limit)
 export const logBlockedLogin = (email: string, req: Request): void => {
   logSecurityEvent({
     event: SecurityEvent.LOGIN_BLOCKED,
@@ -238,7 +205,6 @@ export const logBlockedLogin = (email: string, req: Request): void => {
   });
 };
 
-// Log registration
 export const logRegistration = (userId: string, email: string, req: Request): void => {
   logSecurityEvent({
     event: SecurityEvent.REGISTRATION,
@@ -250,7 +216,6 @@ export const logRegistration = (userId: string, email: string, req: Request): vo
   });
 };
 
-// Log admin action
 export const logAdminAction = (
   adminId: string,
   action: string,
@@ -272,7 +237,6 @@ export const logAdminAction = (
   });
 };
 
-// Log suspicious activity
 export const logSuspiciousActivity = (
   type: string,
   req: Request,
@@ -291,7 +255,6 @@ export const logSuspiciousActivity = (
   });
 };
 
-// Log SQL injection attempt
 export const logSqlInjectionAttempt = (req: Request, pattern: string): void => {
   logSecurityEvent({
     event: SecurityEvent.SQL_INJECTION_ATTEMPT,
@@ -306,21 +269,19 @@ export const logSqlInjectionAttempt = (req: Request, pattern: string): void => {
   });
 };
 
-// Log XSS attempt
 export const logXssAttempt = (req: Request, payload: string): void => {
   logSecurityEvent({
     event: SecurityEvent.XSS_ATTEMPT,
     ip: req.ip,
     userAgent: req.headers['user-agent'],
     details: {
-      payload: payload.substring(0, 200), // Limit payload size in log
+      payload: payload.substring(0, 200),
       path: req.path,
     },
     severity: 'critical',
   });
 };
 
-// Log rate limit exceeded
 export const logRateLimitExceeded = (req: Request, endpoint: string): void => {
   logSecurityEvent({
     event: SecurityEvent.RATE_LIMIT_EXCEEDED,
@@ -331,14 +292,9 @@ export const logRateLimitExceeded = (req: Request, endpoint: string): void => {
   });
 };
 
-// ==========================================
-// Request Logging Middleware
-// ==========================================
-
 export const requestLogger = (req: Request, _res: any, next: any): void => {
   const start = Date.now();
 
-  // Log response when finished
   _res.on('finish', () => {
     const duration = Date.now() - start;
     const logData = {

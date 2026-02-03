@@ -1,7 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../utils/jwt';
-import { AppError } from './errorHandler';
 import prisma from '../config/database';
+import { verifyToken } from '../utils/jwt';
+
+import { AppError } from './errorHandler';
+
+import type { Request, Response, NextFunction } from 'express';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -23,7 +25,6 @@ export interface AuthRequest extends Request {
 
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
-
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -31,13 +32,10 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       throw new AppError('Токен не предоставлен', 401);
     }
 
-
     const decoded = verifyToken(token);
-
 
     req.userId = decoded.userId;
 
-    // Загружаем данные пользователя для AuthRequest
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
@@ -60,7 +58,6 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
   }
 };
 
-
 export const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
@@ -73,7 +70,6 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
 
     next();
   } catch (error) {
-    
     next();
   }
 };

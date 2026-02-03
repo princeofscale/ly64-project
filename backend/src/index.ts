@@ -1,164 +1,303 @@
-import express from 'express';
 import { createServer } from 'http';
+
+import compression from 'compression';
 import cors from 'cors';
 import compression from 'compression';
 import dotenv from 'dotenv';
+import express from 'express';
+
 import { errorHandler } from './middlewares/errorHandler';
-import { wsService } from './services/websocketService';
+import { handleNotFound } from './middlewares/notFoundHandler';
 import {
   securityHeaders,
   generalLimiter,
-  adminLimiter,
   parameterPollutionProtection,
   xssSanitizer,
   sqlInjectionProtection,
   securityLogger,
   checkBlacklist,
 } from './middlewares/security';
-import { requestLogger, logger } from './utils/logger';
-import authRoutes from './routes/auth';
-import userRoutes from './routes/user';
-import studentsRoutes from './routes/students';
-import diagnosticRoutes from './routes/diagnostic';
-import testsRoutes from './routes/tests';
 import adminRoutes from './routes/admin';
-import sdamgiaRoutes from './routes/sdamgia';
+import authRoutes from './routes/auth';
+import baseRouter from './routes/base';
 import gamificationRoutes from './routes/gamification';
 import recommendationsRoutes from './routes/recommendations';
+import sdamgiaRoutes from './routes/sdamgia';
+import studentsRoutes from './routes/students';
+import testsRoutes from './routes/tests';
+import userRoutes from './routes/user';
 import testLoaderService from './services/testLoaderService';
+import { wsService } from './services/websocketService';
+import { requestLogger, logger } from './utils/logger';
 
-dotenv.config();
+import type { CorsOptions } from 'cors';
+import type { Application, Request, Response } from 'express';
+import type { Server as HttpServer } from 'http';
 
-const app = express();
-const PORT = process.env.PORT || 3001;
+interface ServerConfiguration {
+  readonly port: number;
+  readonly frontendUrl: string | undefined;
+  readonly nodeEnv: string | undefined;
+}
 
-// Trust proxy for correct IP detection behind reverse proxy
-app.set('trust proxy', 1);
+interface HealthResponse {
+  readonly status: string;
+  readonly message: string;
+}
 
-// ==========================================
-// Security Middleware (ORDER MATTERS!)
-// ==========================================
+interface RootResponse extends HealthResponse {
+  readonly dev: string;
+  readonly telegram: string;
+}
 
-// 1. Security headers (Helmet)
-app.use(securityHeaders);
+class ApplicationServer {
+  private readonly app: Application;
+  private readonly httpServer: HttpServer;
+  private readonly config: ServerConfiguration;
+  private readonly localhostPattern: RegExp = /^http:\/\/localhost:\d+$/;
+  private readonly allowedHttpMethods: ReadonlyArray<string> = [
+    'GET',
+    'POST',
+    'PUT',
+    'DELETE',
+    'PATCH',
+    'OPTIONS',
+  ];
+  private readonly allowedHeaders: ReadonlyArray<string> = ['Content-Type', 'Authorization'];
+  private readonly bodyLimitSize: string = '10mb';
+  private readonly compressionLevel: number = 6;
+  private readonly compressionThreshold: number = 1024;
+  private readonly corsMaxAge: number = 86400;
+  private readonly proxyTrustLevel: number = 1;
 
-// 2. Request logging
-app.use(requestLogger);
+  constructor() {
+    dotenv.config();
 
-// 3. Security logging
-app.use(securityLogger);
+    this.config = this.loadConfiguration();
+    this.app = express();
+    this.httpServer = createServer(this.app);
 
-// 4. Check IP blacklist
-app.use(checkBlacklist);
+    this.setupMiddlewares();
+    this.setupRoutes();
+    this.setupErrorHandling();
+    this.setupWebSocket();
+    this.setupGracefulShutdown();
+  }
 
-// 5. CORS configuration
-const allowedOrigins = process.env.FRONTEND_URL
-  ? [process.env.FRONTEND_URL]
-  : [];
+  private loadConfiguration(): ServerConfiguration {
+    const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.) in development
-    if (!origin && process.env.NODE_ENV !== 'production') {
-      callback(null, true);
+    if (isNaN(port) || port < 1 || port > 65535) {
+      throw new Error('Invalid PORT configuration');
     }
-    // Allow localhost in development
-    else if (process.env.NODE_ENV !== 'production' && origin?.match(/^http:\/\/localhost:\d+$/)) {
-      callback(null, true);
+
+    return {
+      port,
+      frontendUrl: process.env.FRONTEND_URL,
+      nodeEnv: process.env.NODE_ENV,
+    };
+  }
+
+  private setupMiddlewares(): void {
+    this.app.set('trust proxy', this.proxyTrustLevel);
+
+    this.setupSecurityMiddlewares();
+    this.setupCorsMiddleware();
+    this.setupCompressionMiddleware();
+    this.setupBodyParsers();
+    this.setupProtectionMiddlewares();
+    this.setupRateLimiting();
+  }
+
+  private setupSecurityMiddlewares(): void {
+    this.app.use(securityHeaders);
+    this.app.use(requestLogger);
+    this.app.use(securityLogger);
+    this.app.use(checkBlacklist);
+  }
+
+  private setupCorsMiddleware(): void {
+    const corsOptions: CorsOptions = {
+      origin: this.createCorsOriginValidator(),
+      credentials: true,
+      methods: [...this.allowedHttpMethods],
+      allowedHeaders: [...this.allowedHeaders],
+      maxAge: this.corsMaxAge,
+    };
+
+    this.app.use(cors(corsOptions));
+  }
+
+  private createCorsOriginValidator() {
+    const allowedOrigins = this.getAllowedOrigins();
+    const isDevelopment = this.isDevelopmentEnvironment();
+
+    return (
+      origin: string | undefined,
+      callback: (arg0: Error | null, arg1: boolean | undefined) => void
+    ): void => {
+      if (this.shouldAllowOrigin(origin, allowedOrigins, isDevelopment)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'), false);
+      }
+    };
+  }
+
+  private getAllowedOrigins(): ReadonlyArray<string> {
+    return this.config.frontendUrl ? [this.config.frontendUrl] : [];
+  }
+
+  private isDevelopmentEnvironment(): boolean {
+    return this.config.nodeEnv !== 'production';
+  }
+
+  private shouldAllowOrigin(
+    origin: string | undefined,
+    allowedOrigins: ReadonlyArray<string>,
+    isDevelopment: boolean
+  ): boolean {
+    if (!origin && isDevelopment) {
+      return true;
     }
-    // Allow configured frontend URL
-    else if (origin && allowedOrigins.includes(origin)) {
-      callback(null, true);
+
+    if (isDevelopment && origin && this.localhostPattern.test(origin)) {
+      return true;
     }
-    // Block all other origins
-    else {
-      callback(new Error('Not allowed by CORS'));
+
+    if (origin && allowedOrigins.includes(origin)) {
+      return true;
     }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  maxAge: 86400, // 24 hours preflight cache
-}));
 
-// 6. Gzip compression for responses
-app.use(compression({
-  level: 6, // Compression level (1-9, 6 is default balance)
-  threshold: 1024, // Only compress responses > 1KB
-  filter: (req, res) => {
-    // Don't compress if client doesn't accept it
-    if (req.headers['x-no-compression']) {
-      return false;
-    }
-    // Use compression's default filter
-    return compression.filter(req, res);
-  },
-}));
+    return false;
+  }
 
-// 7. Body parsing with size limits
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  private setupCompressionMiddleware(): void {
+    this.app.use(
+      compression({
+        level: this.compressionLevel,
+        threshold: this.compressionThreshold,
+        filter: this.createCompressionFilter(),
+      })
+    );
+  }
 
-// 7. HTTP Parameter Pollution protection
-app.use(parameterPollutionProtection);
+  private createCompressionFilter() {
+    return (req: Request, res: Response): boolean => {
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      return compression.filter(req, res);
+    };
+  }
 
-// 8. XSS sanitization
-app.use(xssSanitizer);
+  private setupBodyParsers(): void {
+    this.app.use(express.json({ limit: this.bodyLimitSize }));
+    this.app.use(express.urlencoded({ extended: true, limit: this.bodyLimitSize }));
+  }
 
-// 9. SQL injection pattern detection
-app.use(sqlInjectionProtection);
+  private setupProtectionMiddlewares(): void {
+    this.app.use(parameterPollutionProtection);
+    this.app.use(xssSanitizer);
+    this.app.use(sqlInjectionProtection);
+  }
 
-// 10. General rate limiting for all routes
-app.use(generalLimiter);
+  private setupRateLimiting(): void {
+    this.app.use(generalLimiter);
+  }
 
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', message: 'Lyceum 64 API is running' });
-});
+  private setupRoutes(): void {
+    this.setupHealthCheckRoutes();
+    this.setupApiRoutes();
+  }
 
-app.use('/api/auth', authRoutes);
+  private setupHealthCheckRoutes(): void {
+    this.app.get('/', (_req: Request, res: Response): void => {
+      const response: RootResponse = {
+        status: 'ok',
+        message: 'API is running',
+        dev: 'princeofscale',
+        telegram: '@tqwit',
+      };
+      res.json(response);
+    });
 
-app.use('/api/users', userRoutes);
+    this.app.get('/api/health', (_req: Request, res: Response): void => {
+      const response: HealthResponse = {
+        status: 'ok',
+        message: 'Lyceum 64 API is running',
+      };
+      res.json(response);
+    });
+  }
 
-app.use('/api/students', studentsRoutes);
+  private setupApiRoutes(): void {
+    this.app.use('/api', baseRouter);
+    this.app.use('/api/auth', authRoutes);
+    this.app.use('/api/users', userRoutes);
+    this.app.use('/api/students', studentsRoutes);
+    this.app.use('/api/tests', testsRoutes);
+    this.app.use('/api/admin', adminRoutes);
+    this.app.use('/api/sdamgia', sdamgiaRoutes);
+    this.app.use('/api/gamification', gamificationRoutes);
+    this.app.use('/api/recommendations', recommendationsRoutes);
+  }
 
-app.use('/api/diagnostic', diagnosticRoutes);
+  private setupErrorHandling(): void {
+    this.app.use(handleNotFound);
+    this.app.use(errorHandler);
+  }
 
-app.use('/api/tests', testsRoutes);
+  private setupWebSocket(): void {
+    wsService.initialize(this.httpServer);
+  }
 
-app.use('/api/admin', adminRoutes);
+  private setupGracefulShutdown(): void {
+    process.on('SIGTERM', (): void => {
+      this.shutdown();
+    });
+  }
 
-app.use('/api/sdamgia', sdamgiaRoutes);
+  private shutdown(): void {
+    logger.info('SIGTERM received, shutting down');
 
-app.use('/api/gamification', gamificationRoutes);
+    wsService.shutdown();
 
-app.use('/api/recommendations', recommendationsRoutes);
+    this.httpServer.close((): void => {
+      logger.info('Server closed');
+      process.exit(0);
+    });
+  }
 
-app.use(errorHandler);
+  public async start(): Promise<void> {
+    this.httpServer.listen(this.config.port, async (): Promise<void> => {
+      this.logServerStartup();
+      await this.initializeServices();
+    });
+  }
 
-// Create HTTP server for both Express and WebSocket
-const server = createServer(app);
+  private logServerStartup(): void {
+    const baseUrl = `http://localhost:${this.config.port}`;
+    const wsUrl = `ws://localhost:${this.config.port}/ws`;
 
-// Initialize WebSocket server
-wsService.initialize(server);
+    logger.info(`Server is running on ${baseUrl}`);
+    logger.info(`API documentation: ${baseUrl}/api`);
+    logger.info(`WebSocket server running on ${wsUrl}`);
+    logger.info(
+      'Security features enabled: Helmet, Rate Limiting, XSS Protection, SQL Injection Protection'
+    );
+  }
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down...');
-  wsService.shutdown();
-  server.close(() => {
-    logger.info('Server closed');
-    process.exit(0);
-  });
-});
+  private async initializeServices(): Promise<void> {
+    await testLoaderService.initialize();
+  }
 
-server.listen(PORT, async () => {
-  logger.info(`🚀 Server is running on http://localhost:${PORT}`);
-  logger.info(`📚 API documentation: http://localhost:${PORT}/api`);
-  logger.info(`🔌 WebSocket server running on ws://localhost:${PORT}/ws`);
-  logger.info(`🔒 Security features enabled: Helmet, Rate Limiting, XSS Protection, SQL Injection Protection`);
+  public getExpressApp(): Application {
+    return this.app;
+  }
+}
 
-  // Initialize test loader - automatically loads tests from sdamgia_api if database is empty
-  await testLoaderService.initialize();
-});
+const server = new ApplicationServer();
+server.start();
 
-export default app;
+export default server.getExpressApp();

@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+
 import { TimerService } from '../core/services';
-import { TimerState } from '../core/types';
+
+import type { TimerState } from '../core/types';
 
 interface UseTimerOptions {
   onComplete?: () => void;
@@ -41,7 +43,7 @@ export function useTimer(
   const prevStatus = useRef<'normal' | 'warning' | 'critical'>('normal');
 
   useEffect(() => {
-    const unsubscribeTick = timerService.current.onTick((newState) => {
+    const unsubscribeTick = timerService.current.onTick(newState => {
       setState(newState);
 
       if (newState.status !== prevStatus.current) {

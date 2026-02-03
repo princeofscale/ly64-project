@@ -1,15 +1,7 @@
-/**
- * Streak & Daily Challenge Service
- * Управление сериями активности и ежедневными заданиями
- */
-
-import { prisma } from '../config/database';
+import prisma from '../config/database';
 import { logger } from '../utils/logger';
-import { wsService } from './websocketService';
 
-// ==========================================
-// Types
-// ==========================================
+import { wsService } from './websocketService';
 
 interface StreakInfo {
   currentStreak: number;
@@ -38,10 +30,6 @@ interface ActivityResult {
   pointsEarned: number;
 }
 
-// ==========================================
-// Streak Service
-// ==========================================
-
 class StreakService {
   private static instance: StreakService;
 
@@ -54,9 +42,6 @@ class StreakService {
     return StreakService.instance;
   }
 
-  /**
-   * Получить информацию о streak пользователя
-   */
   async getStreak(userId: string): Promise<StreakInfo> {
     let streak = await prisma.userStreak.findUnique({
       where: { userId },
@@ -84,9 +69,6 @@ class StreakService {
     };
   }
 
-  /**
-   * Обновить streak при активности
-   */
   async updateStreak(userId: string): Promise<{ updated: boolean; newStreak: number }> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -108,29 +90,23 @@ class StreakService {
       return { updated: true, newStreak: 1 };
     }
 
-    const lastActivity = streak.lastActivityDate
-      ? new Date(streak.lastActivityDate)
-      : null;
+    const lastActivity = streak.lastActivityDate ? new Date(streak.lastActivityDate) : null;
 
     if (lastActivity) {
       lastActivity.setHours(0, 0, 0, 0);
     }
 
-    // Уже был активен сегодня
     if (lastActivity && lastActivity.getTime() === today.getTime()) {
       return { updated: false, newStreak: streak.currentStreak };
     }
 
-    // Проверяем был ли активен вчера
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
     let newStreak: number;
     if (lastActivity && lastActivity.getTime() === yesterday.getTime()) {
-      // Продолжаем серию
       newStreak = streak.currentStreak + 1;
     } else {
-      // Серия прервана, начинаем заново
       newStreak = 1;
     }
 
@@ -151,26 +127,20 @@ class StreakService {
     return { updated: true, newStreak };
   }
 
-  /**
-   * Получить или создать ежедневные задания
-   */
   async getDailyChallenges(userId: string): Promise<DailyChallengeInfo[]> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Проверяем есть ли задания на сегодня
     let challenges = await prisma.dailyChallenge.findMany({
       where: {
         date: today,
       },
     });
 
-    // Если заданий нет - генерируем
     if (challenges.length === 0) {
       challenges = await this.generateDailyChallenges(today);
     }
 
-    // Получаем прогресс пользователя
     const completions = await prisma.dailyChallengeCompletion.findMany({
       where: {
         userId,
@@ -196,9 +166,6 @@ class StreakService {
     });
   }
 
-  /**
-   * Генерация ежедневных заданий
-   */
   private async generateDailyChallenges(date: Date): Promise<any[]> {
     const challengeTemplates = [
       {
@@ -238,7 +205,6 @@ class StreakService {
       },
     ];
 
-    // Выбираем 3 случайных задания
     const shuffled = challengeTemplates.sort(() => Math.random() - 0.5);
     const selected = shuffled.slice(0, 3);
 
@@ -257,9 +223,6 @@ class StreakService {
     return challenges;
   }
 
-  /**
-   * Обновить прогресс ежедневного задания
-   */
   async updateChallengeProgress(
     userId: string,
     type: string,
@@ -297,16 +260,12 @@ class StreakService {
         });
       }
 
-      // Уже выполнено
       if (completion.completed) continue;
 
-      // Обновляем прогресс в зависимости от типа
       let newProgress: number;
       if (type === 'score_percentage' || type === 'correct_streak') {
-        // Для этих типов value - это достигнутое значение
         newProgress = Math.max(completion.progress, value);
       } else {
-        // Для остальных - накопительно
         newProgress = completion.progress + value;
       }
 
@@ -322,13 +281,11 @@ class StreakService {
       });
 
       if (completed) {
-        // Начисляем баллы за выполнение
         await this.recordActivity(userId, 'challenge_completed', challenge.reward, {
           challengeId: challenge.id,
           title: challenge.title,
         });
 
-        // Отправляем уведомление через WebSocket
         wsService.sendToUser(userId, 'challenge_completed', {
           challengeId: challenge.id,
           title: challenge.title,
@@ -354,16 +311,12 @@ class StreakService {
     return updated;
   }
 
-  /**
-   * Записать активность пользователя
-   */
   async recordActivity(
     userId: string,
     type: string,
     points: number = 0,
     metadata?: Record<string, unknown>
   ): Promise<ActivityResult> {
-    // Записываем активность
     await prisma.userActivity.create({
       data: {
         userId,
@@ -373,31 +326,26 @@ class StreakService {
       },
     });
 
-    // Обновляем streak
     const streakResult = await this.updateStreak(userId);
 
-    // Обновляем прогресс ежедневных заданий
     let challengesUpdated: DailyChallengeInfo[] = [];
 
     switch (type) {
       case 'test_completed':
         challengesUpdated = await this.updateChallengeProgress(userId, 'complete_tests', 1);
         break;
-      case 'high_score': {
+      case 'high_score':
         const score = (metadata as any)?.score || 0;
         challengesUpdated = await this.updateChallengeProgress(userId, 'score_percentage', score);
         break;
-      }
-      case 'correct_streak': {
+      case 'correct_streak':
         const streak = (metadata as any)?.streak || 0;
         challengesUpdated = await this.updateChallengeProgress(userId, 'correct_streak', streak);
         break;
-      }
-      case 'time_spent': {
+      case 'time_spent':
         const minutes = (metadata as any)?.minutes || 0;
         challengesUpdated = await this.updateChallengeProgress(userId, 'time_spent', minutes);
         break;
-      }
       case 'theory_viewed':
         challengesUpdated = await this.updateChallengeProgress(userId, 'theory_viewed', 1);
         break;
@@ -411,10 +359,10 @@ class StreakService {
     };
   }
 
-  /**
-   * Получить статистику активности
-   */
-  async getActivityStats(userId: string, days: number = 30): Promise<{
+  async getActivityStats(
+    userId: string,
+    days: number = 30
+  ): Promise<{
     totalPoints: number;
     activitiesByType: Record<string, number>;
     dailyActivity: { date: string; points: number }[];
@@ -436,7 +384,6 @@ class StreakService {
       activitiesByType[a.type] = (activitiesByType[a.type] || 0) + 1;
     });
 
-    // Группируем по дням
     const dailyMap = new Map<string, number>();
     activities.forEach(a => {
       const date = a.createdAt.toISOString().split('T')[0];

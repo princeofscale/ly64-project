@@ -24,20 +24,20 @@ import ProblemGeneratorPage from './pages/ProblemGeneratorPage';
 import ProfilePage from './pages/ProfilePage';
 import PublicProfilePage from './pages/PublicProfilePage';
 import RegisterPage from './pages/RegisterPage';
-import SdamgiaTestPage from './pages/SdamgiaTestPage';
 import SpinWheelPage from './pages/SpinWheelPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import TestPage from './pages/TestPage';
 import TestSetupPage from './pages/TestSetupPage';
 import UnitConverterPage from './pages/UnitConverterPage';
 import VariantSelectionPage from './pages/VariantSelectionPage';
+import SdamgiaTestPage from './pages/SdamgiaTestPage';
 
 function App() {
   useAchievementNotifications();
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-950">
+      <div className="min-h-screen bg-white">
         <Toaster
           position="top-right"
           reverseOrder={false}
@@ -45,38 +45,35 @@ function App() {
           toastOptions={{
             duration: 4000,
             style: {
-              background: 'linear-gradient(135deg, rgba(31, 41, 55, 0.95), rgba(17, 24, 39, 0.95))',
-              color: '#f3f4f6',
+              background: '#ffffff',
+              color: '#0f172a',
               padding: '16px',
               borderRadius: '12px',
-              border: '1px solid rgba(75, 85, 99, 0.3)',
-              backdropFilter: 'blur(12px)',
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
             },
             success: {
               duration: 3000,
               style: {
-                background:
-                  'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2))',
-                color: '#6ee7b7',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
+                background: '#f0fdf4',
+                color: '#166534',
+                border: '1px solid #bbf7d0',
               },
               iconTheme: {
-                primary: '#10b981',
-                secondary: '#064e3b',
+                primary: '#22c55e',
+                secondary: '#ffffff',
               },
             },
             error: {
               duration: 4000,
               style: {
-                background:
-                  'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2))',
-                color: '#fca5a5',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
+                background: '#fef2f2',
+                color: '#991b1b',
+                border: '1px solid #fecaca',
               },
               iconTheme: {
                 primary: '#ef4444',
-                secondary: '#7f1d1d',
+                secondary: '#ffffff',
               },
             },
           }}

@@ -10,35 +10,25 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '2,3',
       points: 1,
-      topic: 'Арифметика'
+      topic: 'Арифметика',
     },
     {
       number: 2,
       text: 'На координатной прямой отмечены числа a и b. Какое из следующих неравенств неверно?',
       type: 'choice',
-      options: [
-        'a - b < 0',
-        'ab < 0',
-        'a + b > 0',
-        'a² > b²'
-      ],
+      options: ['a - b < 0', 'ab < 0', 'a + b > 0', 'a² > b²'],
       correctAnswer: 'a + b > 0',
       points: 1,
-      topic: 'Числа на координатной прямой'
+      topic: 'Числа на координатной прямой',
     },
     {
       number: 3,
       text: 'Значение какого из выражений является числом рациональным?\n\n1) (√7 - 3)(√7 + 3)\n2) √5 · √20\n3) (√6 - 2)²\n4) √48 : √3',
       type: 'choice',
-      options: [
-        '1',
-        '2',
-        '3',
-        '4'
-      ],
+      options: ['1', '2', '3', '4'],
       correctAnswer: '1',
       points: 1,
-      topic: 'Иррациональные числа'
+      topic: 'Иррациональные числа',
     },
     {
       number: 4,
@@ -46,7 +36,7 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '-2; 7',
       points: 1,
-      topic: 'Квадратные уравнения'
+      topic: 'Квадратные уравнения',
     },
     {
       number: 5,
@@ -54,7 +44,7 @@ export const ogeMathVariant = {
       type: 'matching',
       correctAnswer: 'А-1, Б-3, В-2',
       points: 1,
-      topic: 'Линейная функция'
+      topic: 'Линейная функция',
     },
     {
       number: 6,
@@ -62,7 +52,7 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '95',
       points: 1,
-      topic: 'Арифметическая прогрессия'
+      topic: 'Арифметическая прогрессия',
     },
     {
       number: 7,
@@ -70,7 +60,7 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '125',
       points: 1,
-      topic: 'Степени'
+      topic: 'Степени',
     },
     {
       number: 8,
@@ -80,11 +70,11 @@ export const ogeMathVariant = {
         'Отрезок [-1; 5]',
         'Отрезок [-5; 1]',
         'Два луча: (-∞; -1] и [5; +∞)',
-        'Два луча: (-∞; -5] и [1; +∞)'
+        'Два луча: (-∞; -5] и [1; +∞)',
       ],
       correctAnswer: 'Отрезок [-1; 5]',
       points: 1,
-      topic: 'Квадратные неравенства'
+      topic: 'Квадратные неравенства',
     },
     {
       number: 9,
@@ -92,7 +82,7 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '20',
       points: 2,
-      topic: 'Арифметическая прогрессия - задача'
+      topic: 'Арифметическая прогрессия - задача',
     },
     {
       number: 10,
@@ -100,7 +90,7 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '0,11',
       points: 1,
-      topic: 'Теория вероятностей'
+      topic: 'Теория вероятностей',
     },
     {
       number: 11,
@@ -108,7 +98,7 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '3',
       points: 1,
-      topic: 'Графики функций'
+      topic: 'Графики функций',
     },
     {
       number: 12,
@@ -116,21 +106,16 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '6',
       points: 1,
-      topic: 'Формулы'
+      topic: 'Формулы',
     },
     {
       number: 13,
       text: 'Укажите решение неравенства:\n\n5x - 7,5 ≥ 6x + 3,2',
       type: 'choice',
-      options: [
-        'x ≥ -10,7',
-        'x ≤ -10,7',
-        'x ≥ 10,7',
-        'x ≤ 10,7'
-      ],
+      options: ['x ≥ -10,7', 'x ≤ -10,7', 'x ≥ 10,7', 'x ≤ 10,7'],
       correctAnswer: 'x ≤ -10,7',
       points: 1,
-      topic: 'Неравенства'
+      topic: 'Неравенства',
     },
     {
       number: 14,
@@ -138,7 +123,7 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '0,994',
       points: 1,
-      topic: 'Теория вероятностей'
+      topic: 'Теория вероятностей',
     },
     {
       number: 15,
@@ -146,7 +131,7 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '5',
       points: 1,
-      topic: 'Прямоугольный треугольник'
+      topic: 'Прямоугольный треугольник',
     },
     {
       number: 16,
@@ -154,7 +139,7 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '8',
       points: 1,
-      topic: 'Окружность и квадрат'
+      topic: 'Окружность и квадрат',
     },
     {
       number: 17,
@@ -162,7 +147,7 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '10',
       points: 1,
-      topic: 'Трапеция'
+      topic: 'Трапеция',
     },
     {
       number: 18,
@@ -170,7 +155,7 @@ export const ogeMathVariant = {
       type: 'short',
       correctAnswer: '2',
       points: 1,
-      topic: 'Тригонометрия на клетчатой бумаге'
+      topic: 'Тригонометрия на клетчатой бумаге',
     },
     {
       number: 19,
@@ -178,7 +163,7 @@ export const ogeMathVariant = {
       type: 'multiple_choice',
       correctAnswer: '1, 2',
       points: 1,
-      topic: 'Геометрические утверждения'
+      topic: 'Геометрические утверждения',
     },
     {
       number: 20,
@@ -187,7 +172,7 @@ export const ogeMathVariant = {
       correctAnswer: '(0; 6); (-5; 31)',
       points: 2,
       topic: 'Системы уравнений',
-      detailedSolution: true
+      detailedSolution: true,
     },
     {
       number: 21,
@@ -196,7 +181,7 @@ export const ogeMathVariant = {
       correctAnswer: '3 часа',
       points: 2,
       topic: 'Задачи на движение',
-      detailedSolution: true
+      detailedSolution: true,
     },
     {
       number: 22,
@@ -205,7 +190,7 @@ export const ogeMathVariant = {
       correctAnswer: 'm = 0 или m < -1',
       points: 2,
       topic: 'Построение и исследование графиков',
-      detailedSolution: true
+      detailedSolution: true,
     },
     {
       number: 23,
@@ -214,7 +199,7 @@ export const ogeMathVariant = {
       correctAnswer: '50',
       points: 2,
       topic: 'Параллелограмм',
-      detailedSolution: true
+      detailedSolution: true,
     },
     {
       number: 24,
@@ -223,7 +208,7 @@ export const ogeMathVariant = {
       correctAnswer: '',
       points: 2,
       topic: 'Доказательство - окружность и трапеция',
-      requiresProof: true
+      requiresProof: true,
     },
     {
       number: 25,
@@ -232,7 +217,7 @@ export const ogeMathVariant = {
       correctAnswer: '8',
       points: 2,
       topic: 'Четырёхугольник и окружность',
-      detailedSolution: true
-    }
-  ]
+      detailedSolution: true,
+    },
+  ],
 };

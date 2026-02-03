@@ -1,71 +1,181 @@
-import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+
+import jwt from 'jsonwebtoken';
+
 import { AppError } from '../middlewares/errorHandler';
 
-// Security: Enforce strong JWT secret in production
-const getJwtSecret = (): string => {
-  const secret = process.env.JWT_SECRET;
+import { logger } from './logger';
 
-  if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      console.error('[SECURITY CRITICAL] JWT_SECRET is not set in production!');
-      // Generate a random secret for this session (tokens will invalidate on restart)
-      const emergencySecret = crypto.randomBytes(64).toString('hex');
-      console.warn('[SECURITY] Using temporary JWT secret. Set JWT_SECRET in environment!');
-      return emergencySecret;
-    }
-    // Development fallback with warning
-    console.warn('[SECURITY WARNING] Using default JWT_SECRET. Set JWT_SECRET in .env for production!');
-    return 'dev-only-secret-change-in-production';
-  }
-
-  // Validate secret strength
-  if (secret.length < 32) {
-    console.warn('[SECURITY WARNING] JWT_SECRET should be at least 32 characters long');
-  }
-
-  return secret;
-};
-
-const JWT_SECRET: string = getJwtSecret();
-const JWT_EXPIRES_IN: string | number = process.env.JWT_EXPIRES_IN || '7d';
+import type { SignOptions, VerifyOptions } from 'jsonwebtoken';
 
 export interface JwtPayload {
-  userId: string;
-  email: string;
-  iat?: number; // Issued at
-  exp?: number; // Expiration
+  readonly userId: string;
+  readonly email: string;
+  readonly iat?: number;
+  readonly exp?: number;
 }
 
-export const generateToken = (payload: JwtPayload): string => {
-  return jwt.sign(
-    {
+interface JwtConfiguration {
+  readonly secret: string;
+  readonly expiresIn: SignOptions['expiresIn'];
+  readonly algorithm: jwt.Algorithm;
+  readonly issuer: string;
+}
+
+interface TokenErrorMessages {
+  readonly expired: string;
+  readonly invalid: string;
+  readonly verification: string;
+}
+
+class JwtService {
+  private readonly config: JwtConfiguration;
+  private readonly minSecretLength: number = 32;
+  private readonly emergencySecretByteLength: number = 64;
+  private readonly defaultDevSecret: string = 'dev-only-secret-change-in-production';
+  private readonly defaultExpiresIn: string = '7d';
+  private readonly unauthorizedStatusCode: number = 401;
+
+  private readonly errorMessages: TokenErrorMessages = {
+    expired: 'Токен истёк. Пожалуйста, войдите снова.',
+    invalid: 'Невалидный токен',
+    verification: 'Ошибка проверки токена',
+  };
+
+  constructor() {
+    this.config = this.initializeConfiguration();
+  }
+
+  private initializeConfiguration(): JwtConfiguration {
+    const secret = this.loadJwtSecret();
+    const expiresIn = this.loadExpiresIn();
+
+    return {
+      secret,
+      expiresIn,
+      algorithm: 'HS256',
+      issuer: 'lyceum64-api',
+    };
+  }
+
+  private loadJwtSecret(): string {
+    const secret = process.env.JWT_SECRET;
+
+    if (!secret) {
+      return this.handleMissingSecret();
+    }
+
+    this.validateSecretLength(secret);
+    return secret;
+  }
+
+  private handleMissingSecret(): string {
+    if (this.isProductionEnvironment()) {
+      return this.generateEmergencySecret();
+    }
+
+    this.logSecurityWarning('Using default JWT_SECRET. Set JWT_SECRET in .env for production');
+    return this.defaultDevSecret;
+  }
+
+  private isProductionEnvironment(): boolean {
+    return process.env.NODE_ENV === 'production';
+  }
+
+  private generateEmergencySecret(): string {
+    logger.error('JWT_SECRET is not set in production environment');
+
+    const emergencySecret = crypto.randomBytes(this.emergencySecretByteLength).toString('hex');
+
+    logger.warn('Using temporary JWT secret. Set JWT_SECRET in environment variables immediately');
+
+    return emergencySecret;
+  }
+
+  private validateSecretLength(secret: string): void {
+    if (secret.length < this.minSecretLength) {
+      this.logSecurityWarning(
+        `JWT_SECRET should be at least ${this.minSecretLength} characters long`
+      );
+    }
+  }
+
+  private logSecurityWarning(message: string): void {
+    logger.warn(`Security: ${message}`);
+  }
+
+  private loadExpiresIn(): SignOptions['expiresIn'] {
+    const expiresIn = process.env.JWT_EXPIRES_IN || this.defaultExpiresIn;
+    return expiresIn as SignOptions['expiresIn'];
+  }
+
+  public generateToken(payload: JwtPayload): string {
+    const tokenPayload = this.createTokenPayload(payload);
+    const signOptions = this.createSignOptions();
+
+    return jwt.sign(tokenPayload, this.config.secret, signOptions);
+  }
+
+  private createTokenPayload(payload: JwtPayload): Pick<JwtPayload, 'userId' | 'email'> {
+    return {
       userId: payload.userId,
       email: payload.email,
-    },
-    JWT_SECRET,
-    {
-      expiresIn: JWT_EXPIRES_IN,
-      algorithm: 'HS256', // Explicitly set algorithm to prevent algorithm confusion attacks
-      issuer: 'lyceum64-api', // Add issuer claim
-    } as jwt.SignOptions
-  );
+    };
+  }
+
+  private createSignOptions(): SignOptions {
+    return {
+      expiresIn: this.config.expiresIn,
+      algorithm: this.config.algorithm,
+      issuer: this.config.issuer,
+    };
+  }
+
+  public verifyToken(token: string): JwtPayload {
+    if (!token || typeof token !== 'string') {
+      throw new AppError(this.errorMessages.invalid, this.unauthorizedStatusCode);
+    }
+
+    try {
+      return this.decodeAndVerifyToken(token);
+    } catch (error) {
+      throw this.handleVerificationError(error);
+    }
+  }
+
+  private decodeAndVerifyToken(token: string): JwtPayload {
+    const verifyOptions = this.createVerifyOptions();
+    const decoded = jwt.verify(token, this.config.secret, verifyOptions);
+
+    return decoded as JwtPayload;
+  }
+
+  private createVerifyOptions(): VerifyOptions {
+    return {
+      algorithms: [this.config.algorithm],
+      issuer: this.config.issuer,
+    };
+  }
+
+  private handleVerificationError(error: unknown): AppError {
+    if (error instanceof jwt.TokenExpiredError) {
+      return new AppError(this.errorMessages.expired, this.unauthorizedStatusCode);
+    }
+
+    if (error instanceof jwt.JsonWebTokenError) {
+      return new AppError(this.errorMessages.invalid, this.unauthorizedStatusCode);
+    }
+
+    return new AppError(this.errorMessages.verification, this.unauthorizedStatusCode);
+  }
+}
+
+const jwtService = new JwtService();
+
+export const generateToken = (payload: JwtPayload): string => {
+  return jwtService.generateToken(payload);
 };
 
 export const verifyToken = (token: string): JwtPayload => {
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
-      algorithms: ['HS256'], // Only accept HS256 to prevent algorithm confusion
-      issuer: 'lyceum64-api', // Verify issuer
-    }) as JwtPayload;
-    return decoded;
-  } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
-      throw new AppError('Токен истёк. Пожалуйста, войдите снова.', 401);
-    }
-    if (error instanceof jwt.JsonWebTokenError) {
-      throw new AppError('Невалидный токен', 401);
-    }
-    throw new AppError('Ошибка проверки токена', 401);
-  }
+  return jwtService.verifyToken(token);
 };

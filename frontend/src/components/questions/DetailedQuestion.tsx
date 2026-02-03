@@ -3,7 +3,7 @@
  * Компонент для вопросов с развернутым ответом
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
 import type { ITask } from '../../core/interfaces';
 
@@ -24,13 +24,13 @@ export const DetailedQuestion: React.FC<DetailedQuestionProps> = ({
 }) => {
   const [localValue, setLocalValue] = useState(currentAnswer);
 
-  // Подсчет слов (используем useMemo вместо useEffect + useState)
-  const wordCount = useMemo(() => {
+  // Подсчет слов
+  useEffect(() => {
     const words = localValue
       .trim()
       .split(/\s+/)
       .filter(w => w.length > 0);
-    return words.length;
+    setWordCount(words.length);
   }, [localValue]);
 
   const handleChange = useCallback(

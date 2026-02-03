@@ -1,15 +1,10 @@
-import { IExam, IExamFactory } from '../interfaces';
-import { ExamType, Subject, Grade, ExamDTO } from '../types';
-import {
-  OGEMathExam,
-  EGEProfileMathExam,
-  EGEBaseMathExam,
-  RegularExam,
-} from '../models';
-
-import { ogeMathVariant } from '../../data/oge-math-variant';
-import { egeMathProfile } from '../../data/ege-math-profile';
 import { egeMathBase } from '../../data/ege-math-base';
+import { egeMathProfile } from '../../data/ege-math-profile';
+import { ogeMathVariant } from '../../data/oge-math-variant';
+import { OGEMathExam, EGEProfileMathExam, EGEBaseMathExam, RegularExam } from '../models';
+
+import type { IExam, IExamFactory } from '../interfaces';
+import type { ExamType, Subject, Grade, ExamDTO } from '../types';
 
 class ExamDataRegistry {
   private static instance: ExamDataRegistry;
@@ -138,10 +133,6 @@ export class ExamNotFoundError extends Error {
   }
 }
 
-export const createExam = (
-  examType: ExamType,
-  subject: Subject,
-  grade: Grade
-): IExam => {
+export const createExam = (examType: ExamType, subject: Subject, grade: Grade): IExam => {
   return ExamFactory.getInstance().create(examType, subject, grade);
 };

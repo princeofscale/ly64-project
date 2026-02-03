@@ -1,18 +1,22 @@
-import { Router, Response } from 'express';
-import { authenticateToken, AuthRequest } from '../middlewares/auth';
 import { exec } from 'child_process';
-import { promisify } from 'util';
 import { writeFile, unlink } from 'fs/promises';
-import path from 'path';
 import os from 'os';
+import path from 'path';
+import { promisify } from 'util';
+
+import { Router } from 'express';
+
+import { authenticateToken } from '../middlewares/auth';
+
+import type { AuthRequest } from '../middlewares/auth';
+import type { Response } from 'express';
 
 const router = Router();
 const execAsync = promisify(exec);
 
-// Маппинг предметов (все доступные в sdamgia)
 const SUBJECT_MAP: Record<string, string> = {
   MATHEMATICS: 'math',
-  MATH_BASE: 'mathb',      // Математика базовая (ЕГЭ)
+  MATH_BASE: 'mathb',
   RUSSIAN: 'rus',
   PHYSICS: 'phys',
   INFORMATICS: 'inf',
@@ -21,16 +25,13 @@ const SUBJECT_MAP: Record<string, string> = {
   HISTORY: 'hist',
   ENGLISH: 'en',
   GEOGRAPHY: 'geo',
-  SOCIAL_STUDIES: 'soc',   // Обществознание
+  SOCIAL_STUDIES: 'soc',
   LITERATURE: 'lit',
   GERMAN: 'de',
   FRENCH: 'fr',
   SPANISH: 'sp',
 };
 
-// Маппинг типов экзаменов по классам
-// 9 класс - ОГЭ, 11 класс - ЕГЭ
-// 4-8, 10 классы - ВПР
 const EXAM_TYPE_MAP: Record<number, string> = {
   4: 'vpr',
   5: 'vpr',
@@ -42,10 +43,8 @@ const EXAM_TYPE_MAP: Record<number, string> = {
   11: 'ege',
 };
 
-// Валидные типы экзаменов для sdamgia API
 const VALID_EXAM_TYPES = ['oge', 'ege', 'vpr'];
 
-// Предметы, доступные для ВПР по классам
 const VPR_SUBJECTS_BY_GRADE: Record<number, string[]> = {
   4: ['math', 'rus'],
   5: ['math', 'rus', 'bio', 'hist'],
@@ -56,25 +55,23 @@ const VPR_SUBJECTS_BY_GRADE: Record<number, string[]> = {
   11: ['math', 'rus', 'bio', 'hist', 'geo', 'soc', 'phys', 'chem', 'en'],
 };
 
-// Количество заданий по предметам для ОГЭ
 const OGE_TASK_COUNT: Record<string, number> = {
   math: 25,
-  rus: 9,     // Изложение + сочинение + тест
+  rus: 9,
   phys: 25,
   inf: 15,
   bio: 29,
   chem: 24,
   hist: 24,
-  en: 15,     // Письменная часть
+  en: 15,
   geo: 30,
   soc: 24,
   lit: 5,
 };
 
-// Количество заданий по предметам для ЕГЭ
 const EGE_TASK_COUNT: Record<string, number> = {
-  math: 18,    // Профиль
-  mathb: 21,   // База
+  math: 18,
+  mathb: 21,
   rus: 27,
   phys: 30,
   inf: 27,
@@ -87,10 +84,6 @@ const EGE_TASK_COUNT: Record<string, number> = {
   lit: 12,
 };
 
-/**
- * GET /api/sdamgia/variants
- * Получить список вариантов для предмета и класса (реальные данные из sdamgia API)
- */
 router.get('/variants', authenticateToken, async (req: AuthRequest, res: Response) => {
   let tempFile: string | null = null;
 
@@ -122,7 +115,6 @@ router.get('/variants', authenticateToken, async (req: AuthRequest, res: Respons
       });
     }
 
-    // Проверка поддержки предмета для ВПР
     if (examType === 'vpr') {
       const availableSubjects = VPR_SUBJECTS_BY_GRADE[gradeNum] || [];
       if (!availableSubjects.includes(sdamgiaSubject)) {
@@ -133,10 +125,8 @@ router.get('/variants', authenticateToken, async (req: AuthRequest, res: Respons
       }
     }
 
-    // Получаем реальные варианты из sdamgia API
     const sdamgiaPath = path.join(process.cwd(), 'sdamgia_api', 'src').replace(/\\/g, '/');
 
-    // Для ВПР нужно передать grade в list_variants
     const gradeParam = examType === 'vpr' ? `, grade=${gradeNum}` : '';
 
     const pythonScript = `
@@ -213,10 +203,6 @@ except Exception as e:
   }
 });
 
-/**
- * GET /api/sdamgia/variant/:variantId
- * Получить конкретный вариант с заданиями
- */
 router.get('/variant/:variantId', authenticateToken, async (req: AuthRequest, res: Response) => {
   let tempFile: string | null = null;
 
@@ -249,7 +235,6 @@ router.get('/variant/:variantId', authenticateToken, async (req: AuthRequest, re
       });
     }
 
-    // Для ВПР обязателен grade
     if (examTypeLower === 'vpr' && !gradeNum) {
       return res.status(400).json({
         success: false,
@@ -257,10 +242,8 @@ router.get('/variant/:variantId', authenticateToken, async (req: AuthRequest, re
       });
     }
 
-    // Создаем временный Python скрипт
     const sdamgiaPath = path.join(process.cwd(), 'sdamgia_api', 'src').replace(/\\/g, '/');
 
-    // Для ВПР передаем grade
     const gradeParam = examTypeLower === 'vpr' ? `, grade=${gradeNum}` : '';
 
     const pythonScript = `
@@ -344,15 +327,13 @@ except Exception as e:
     print(json.dumps({'success': False, 'error': str(e), 'trace': traceback.format_exc()}))
 `;
 
-    // Сохраняем во временный файл
     tempFile = path.join(os.tmpdir(), `sdamgia_${Date.now()}.py`);
     await writeFile(tempFile, pythonScript);
 
-    // Выполняем Python скрипт (увеличен таймаут для загрузки всех заданий)
     const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
     const { stdout, stderr } = await execAsync(`${pythonCmd} "${tempFile}"`, {
-      timeout: 300000, // 5 минут для загрузки всех заданий
-      maxBuffer: 1024 * 1024 * 10, // 10MB буфер для большого JSON
+      timeout: 300000,
+      maxBuffer: 1024 * 1024 * 10,
     });
 
     if (stderr && !stderr.includes('Warning')) {
@@ -382,13 +363,10 @@ except Exception as e:
       error: error.message,
     });
   } finally {
-    // Удаляем временный файл
     if (tempFile) {
       try {
         await unlink(tempFile);
-      } catch (err) {
-        // Игнорируем ошибки удаления
-      }
+      } catch (err) {}
     }
   }
 });

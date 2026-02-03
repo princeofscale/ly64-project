@@ -1,6 +1,9 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SavedTestSession, TestSessionStorage } from '../../core/services';
+import React from 'react';
+
+import { TestSessionStorage } from '../../core/services';
+
+import type { SavedTestSession } from '../../core/services';
 
 interface SessionRecoveryModalProps {
   session: SavedTestSession;
@@ -67,15 +70,11 @@ export const SessionRecoveryModal: React.FC<SessionRecoveryModalProps> = ({
           <div className="bg-slate-700/50 rounded-lg p-4 mb-6 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Предмет:</span>
-              <span className="text-white font-medium">
-                {getSubjectName(session.subject)}
-              </span>
+              <span className="text-white font-medium">{getSubjectName(session.subject)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Тип:</span>
-              <span className="text-white font-medium">
-                {getExamTypeName(session.examType)}
-              </span>
+              <span className="text-white font-medium">{getExamTypeName(session.examType)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Сохранено:</span>

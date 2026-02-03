@@ -89,7 +89,7 @@ export function useAntiCheat(options: UseAntiCheatOptions): UseAntiCheatReturn {
               icon: '🚫',
             });
             break;
-          case 'tab_switch': {
+          case 'tab_switch':
             const switches = antiCheatService.getStats().tabSwitches;
             if (switches <= 3) {
               toast(`Переключение вкладки зафиксировано (${switches}/3)`, {
@@ -98,7 +98,6 @@ export function useAntiCheat(options: UseAntiCheatOptions): UseAntiCheatReturn {
               });
             }
             break;
-          }
         }
       }
     },
@@ -129,17 +128,14 @@ export function useAntiCheat(options: UseAntiCheatOptions): UseAntiCheatReturn {
   // Автозапуск при монтировании
   useEffect(() => {
     if (enabled && sessionId) {
-      antiCheatService.startMonitoring(sessionId);
-      setIsMonitoring(true);
-      const unsubscribe = antiCheatService.onEvent(handleSuspiciousEvent);
+      const cleanup = startMonitoring();
 
       return () => {
-        unsubscribe();
+        cleanup?.();
         antiCheatService.stopMonitoring();
-        setIsMonitoring(false);
       };
     }
-  }, [enabled, sessionId, handleSuspiciousEvent]);
+  }, [enabled, sessionId, startMonitoring]);
 
   // Периодическое обновление статистики
   useEffect(() => {

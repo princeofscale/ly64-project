@@ -19,6 +19,7 @@
 ## 🛠 Технологии
 
 ### Frontend
+
 - **React 18** + TypeScript
 - **Vite** - быстрая сборка
 - **Tailwind CSS** - стилизация
@@ -27,6 +28,7 @@
 - **Axios** - HTTP клиент
 
 ### Backend
+
 - **Node.js** + Express
 - **Prisma ORM** - работа с базой данных
 - **SQLite** - база данных
@@ -34,6 +36,7 @@
 - **bcrypt** - хеширование паролей
 
 ### Инфраструктура
+
 - **Monorepo** - единая кодовая база
 - **ESLint** + **Prettier** - контроль качества кода
 - **Husky** - Git хуки
@@ -42,6 +45,7 @@
 ## 📦 Установка
 
 ### Требования
+
 - Node.js >= 18
 - npm >= 9
 - Python 3.8+ (для загрузки тестов из sdamgia.ru)
@@ -49,17 +53,20 @@
 ### Быстрый старт
 
 1. Клонировать репозиторий:
+
 ```bash
 git clone https://github.com/princeofscale/ly64-project.git
 cd ly64-project
 ```
 
 2. Установить зависимости:
+
 ```bash
 npm install
 ```
 
 3. Настроить окружение:
+
 ```bash
 # Backend
 cp backend/.env.example backend/.env
@@ -71,6 +78,7 @@ cp frontend/.env.example frontend/.env
 ```
 
 4. Инициализировать базу данных:
+
 ```bash
 cd backend
 npx prisma migrate dev
@@ -78,6 +86,7 @@ npx prisma db seed
 ```
 
 5. Загрузить тесты из sdamgia.ru:
+
 ```bash
 cd backend
 pip install -r requirements.txt  # если есть
@@ -87,6 +96,7 @@ python scripts/fetch_sdamgia_tests.py
 6. Запустить проект:
 
 **Вариант 1: Скрипт (рекомендуется)**
+
 ```bash
 # macOS/Linux
 bash start.sh
@@ -96,6 +106,7 @@ start.bat
 ```
 
 **Вариант 2: Вручную**
+
 ```bash
 # Терминал 1 - Backend
 cd backend
@@ -107,6 +118,7 @@ npm run dev
 ```
 
 7. Открыть в браузере:
+
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:3001
 
@@ -120,6 +132,7 @@ Email: test@lyceum64.ru
 ## 📝 Основные команды
 
 ### Backend
+
 ```bash
 npm run dev        # Запуск в режиме разработки
 npm run build      # Сборка для production
@@ -129,6 +142,7 @@ npx prisma studio  # GUI для базы данных
 ```
 
 ### Frontend
+
 ```bash
 npm run dev        # Запуск dev сервера
 npm run build      # Сборка для production
@@ -166,6 +180,7 @@ ly64-project/
 ## 🎯 Архитектура
 
 ### Domain-Driven Design (Frontend)
+
 - **Strategy Pattern** - валидация ответов по типу вопроса
 - **Factory Pattern** - создание экзаменов разных типов
 - **Singleton Pattern** - сервисы (Timer, Storage, ActiveTest)
@@ -185,22 +200,26 @@ ly64-project/
 ## 📊 API Endpoints
 
 ### Аутентификация
+
 - `POST /api/auth/register` - Регистрация
 - `POST /api/auth/login` - Вход
 - `POST /api/auth/refresh` - Обновление токена
 
 ### Тесты
+
 - `GET /api/tests` - Список тестов
 - `GET /api/tests/:id/start` - Начать тест
 - `POST /api/tests/:id/submit` - Отправить ответы
 - `GET /api/tests/:id/results` - Результаты теста
 
 ### Пользователи
+
 - `GET /api/users/profile` - Профиль пользователя
 - `PUT /api/users/profile` - Обновить профиль
 - `GET /api/users/achievements` - Достижения
 
 ### Leaderboard
+
 - `GET /api/students/leaderboard` - Таблица лидеров
 
 ## 🎨 UI/UX
