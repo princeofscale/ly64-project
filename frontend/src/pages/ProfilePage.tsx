@@ -311,9 +311,9 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
         <div className="relative">
-          <div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -321,8 +321,8 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-gray-400">Профиль не найден</div>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
+        <div className="text-slate-600">Профиль не найден</div>
       </div>
     );
   }
@@ -342,20 +342,19 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 relative overflow-hidden py-8">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20" />
-      <div className="absolute top-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px]" />
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px]" />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden py-8">
+      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/50 rounded-full blur-[100px] -z-10" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-violet-100/50 rounded-full blur-[80px] -z-10" />
 
       <div className="relative z-10 max-w-5xl mx-auto px-4">
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl overflow-hidden mb-8">
-          <div className="h-32 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20" />
+        <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl shadow-xl overflow-hidden mb-8">
+          <div className="h-32 bg-gradient-to-r from-blue-50 via-violet-50 to-pink-50" />
 
           <div className="px-8 pb-8">
             <div className="flex flex-col gap-6 -mt-16">
               <div className="flex flex-col md:flex-row md:items-end gap-6">
                 <div className="relative group flex-shrink-0">
-                  <div className="w-32 h-32 rounded-2xl bg-gray-800 border-4 border-gray-900 overflow-hidden">
+                  <div className="w-32 h-32 rounded-2xl bg-slate-100 border-4 border-white shadow-lg overflow-hidden">
                     {user.avatar ? (
                       <img
                         src={user.avatar}
@@ -363,7 +362,7 @@ export default function ProfilePage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-4xl font-bold text-white">
+                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-4xl font-bold text-white">
                         {user.name.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -378,28 +377,28 @@ export default function ProfilePage() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-3 mb-1">
-                    <h1 className="text-2xl md:text-3xl font-bold text-white break-words">
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 break-words">
                       {user.name}
                     </h1>
                     {user.isPublic ? (
-                      <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full whitespace-nowrap">
+                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-xs rounded-full whitespace-nowrap border border-emerald-200">
                         Публичный
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-gray-500/20 text-gray-400 text-xs rounded-full whitespace-nowrap">
+                      <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full whitespace-nowrap border border-slate-200">
                         Приватный
                       </span>
                     )}
                   </div>
-                  <p className="text-cyan-400 font-mono break-all">@{user.username}</p>
-                  {user.bio && <p className="text-gray-400 mt-2 break-words">{user.bio}</p>}
+                  <p className="text-blue-600 font-mono break-all">@{user.username}</p>
+                  {user.bio && <p className="text-slate-600 mt-2 break-words">{user.bio}</p>}
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={copyProfileLink}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl transition-colors flex items-center gap-2 shadow-sm"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -419,7 +418,7 @@ export default function ProfilePage() {
                 </button>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl transition-colors"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-lg shadow-blue-600/25"
                 >
                   Редактировать
                 </button>
@@ -427,29 +426,29 @@ export default function ProfilePage() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-              <div className="bg-gray-800/50 rounded-xl p-4 text-center group hover:bg-gray-800/70 transition-all">
-                <p className="text-3xl font-bold text-cyan-400 group-hover:scale-110 transition-transform">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center group hover:shadow-lg transition-all">
+                <p className="text-3xl font-bold text-blue-600 group-hover:scale-110 transition-transform">
                   {stats?.totalTests || 0}
                 </p>
-                <p className="text-sm text-gray-400">Тестов пройдено</p>
+                <p className="text-sm text-slate-600">Тестов пройдено</p>
               </div>
-              <div className="bg-gray-800/50 rounded-xl p-4 text-center group hover:bg-gray-800/70 transition-all">
-                <p className="text-3xl font-bold text-purple-400 group-hover:scale-110 transition-transform">
+              <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 text-center group hover:shadow-lg transition-all">
+                <p className="text-3xl font-bold text-violet-600 group-hover:scale-110 transition-transform">
                   {stats?.averageScore || 0}%
                 </p>
-                <p className="text-sm text-gray-400">Средний балл</p>
+                <p className="text-sm text-slate-600">Средний балл</p>
               </div>
-              <div className="bg-gray-800/50 rounded-xl p-4 text-center group hover:bg-gray-800/70 transition-all">
-                <p className="text-3xl font-bold text-green-400 group-hover:scale-110 transition-transform">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center group hover:shadow-lg transition-all">
+                <p className="text-3xl font-bold text-emerald-600 group-hover:scale-110 transition-transform">
                   {stats?.bestScore || 0}%
                 </p>
-                <p className="text-sm text-gray-400">Лучший результат</p>
+                <p className="text-sm text-slate-600">Лучший результат</p>
               </div>
-              <div className="bg-gray-800/50 rounded-xl p-4 text-center group hover:bg-gray-800/70 transition-all">
-                <p className="text-3xl font-bold text-amber-400 group-hover:scale-110 transition-transform">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center group hover:shadow-lg transition-all">
+                <p className="text-3xl font-bold text-amber-600 group-hover:scale-110 transition-transform">
                   {unlockedAchievements.length}
                 </p>
-                <p className="text-sm text-gray-400">Достижений</p>
+                <p className="text-sm text-slate-600">Достижений</p>
               </div>
             </div>
 

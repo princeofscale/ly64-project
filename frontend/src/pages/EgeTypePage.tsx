@@ -9,9 +9,9 @@ export default function EgeTypePage() {
 
   if (!grade || !subject) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-400 font-sans mb-4">Ошибка: данные не переданы</p>
+          <p className="text-slate-600 mb-4">Ошибка: данные не переданы</p>
           <Button onClick={() => navigate('/dashboard')}>Вернуться к панели</Button>
         </div>
       </div>
@@ -25,19 +25,17 @@ export default function EgeTypePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden py-12 px-4">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
-
-      <div className="absolute top-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden py-12 px-4">
+      <div className="absolute top-20 right-10 w-96 h-96 bg-blue-100/50 rounded-full blur-[120px] -z-10 animate-pulse" />
       <div
-        className="absolute bottom-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse"
+        className="absolute bottom-20 left-10 w-96 h-96 bg-violet-100/50 rounded-full blur-[120px] -z-10 animate-pulse"
         style={{ animationDelay: '1s' }}
       />
 
       <div className="relative z-10 max-w-5xl mx-auto">
         <button
           onClick={() => navigate(-1)}
-          className="group mb-6 flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors font-sans"
+          className="group mb-6 flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -58,17 +56,17 @@ export default function EgeTypePage() {
 
         <div className="text-center mb-12">
           <div className="text-7xl mb-4 animate-bounce">🎯</div>
-          <h1 className="text-4xl md:text-5xl font-display font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-3">
             Выберите уровень ЕГЭ
           </h1>
-          <p className="text-gray-400 text-lg font-sans">Математика для 11 класса</p>
+          <p className="text-slate-600 text-lg">Математика для 11 класса</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Профильный уровень */}
           <button
             onClick={() => handleTypeSelect('profile')}
-            className="group relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-[0_0_50px_rgba(6,182,212,0.2)] hover:scale-105 animate-slide-up"
+            className="group relative bg-white border-2 border-orange-200 rounded-3xl p-8 hover:border-orange-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 animate-slide-up"
           >
             <div className="absolute top-6 right-6 w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform">
               <svg
@@ -93,34 +91,34 @@ export default function EgeTypePage() {
             </div>
 
             <div className="mb-6">
-              <h2 className="text-3xl font-display font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent mb-2">
+              <h2 className="text-3xl font-bold text-orange-600 mb-2">
                 Профильный
               </h2>
-              <p className="text-gray-400 font-sans text-sm">
+              <p className="text-slate-600 text-sm">
                 Для поступления на технические специальности
               </p>
             </div>
 
             <div className="space-y-3 mb-6">
-              <div className="flex items-start gap-3 text-gray-300 font-sans text-sm">
-                <span className="text-orange-400 mt-1">•</span>
+              <div className="flex items-start gap-3 text-slate-700 text-sm">
+                <span className="text-orange-600 mt-1">•</span>
                 <span>19 заданий повышенной сложности</span>
               </div>
-              <div className="flex items-start gap-3 text-gray-300 font-sans text-sm">
-                <span className="text-orange-400 mt-1">•</span>
+              <div className="flex items-start gap-3 text-slate-700 text-sm">
+                <span className="text-orange-600 mt-1">•</span>
                 <span>Задания с развёрнутым решением</span>
               </div>
-              <div className="flex items-start gap-3 text-gray-300 font-sans text-sm">
-                <span className="text-orange-400 mt-1">•</span>
+              <div className="flex items-start gap-3 text-slate-700 text-sm">
+                <span className="text-orange-600 mt-1">•</span>
                 <span>Максимум 31 первичный балл</span>
               </div>
-              <div className="flex items-start gap-3 text-gray-300 font-sans text-sm">
-                <span className="text-orange-400 mt-1">•</span>
+              <div className="flex items-start gap-3 text-slate-700 text-sm">
+                <span className="text-orange-600 mt-1">•</span>
                 <span>Время: 3 часа 55 минут</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-orange-400 font-sans font-semibold group-hover:text-orange-300 transition-colors">
+            <div className="flex items-center justify-center gap-2 text-orange-600 font-semibold group-hover:text-orange-700 transition-colors">
               <span>Выбрать профильный</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -142,7 +140,7 @@ export default function EgeTypePage() {
           {/* Базовый уровень */}
           <button
             onClick={() => handleTypeSelect('base')}
-            className="group relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 hover:border-green-500/50 transition-all duration-300 hover:shadow-[0_0_50px_rgba(34,197,94,0.2)] hover:scale-105 animate-slide-up"
+            className="group relative bg-white border-2 border-emerald-200 rounded-3xl p-8 hover:border-emerald-400 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 animate-slide-up"
             style={{ animationDelay: '100ms' }}
           >
             <div className="absolute top-6 right-6 w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform">
@@ -163,32 +161,32 @@ export default function EgeTypePage() {
             </div>
 
             <div className="mb-6">
-              <h2 className="text-3xl font-display font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent mb-2">
+              <h2 className="text-3xl font-bold text-emerald-600 mb-2">
                 Базовый
               </h2>
-              <p className="text-gray-400 font-sans text-sm">Для получения аттестата</p>
+              <p className="text-slate-600 text-sm">Для получения аттестата</p>
             </div>
 
             <div className="space-y-3 mb-6">
-              <div className="flex items-start gap-3 text-gray-300 font-sans text-sm">
-                <span className="text-green-400 mt-1">•</span>
+              <div className="flex items-start gap-3 text-slate-700 text-sm">
+                <span className="text-emerald-600 mt-1">•</span>
                 <span>21 задание базового уровня</span>
               </div>
-              <div className="flex items-start gap-3 text-gray-300 font-sans text-sm">
-                <span className="text-green-400 mt-1">•</span>
+              <div className="flex items-start gap-3 text-slate-700 text-sm">
+                <span className="text-emerald-600 mt-1">•</span>
                 <span>Только краткие ответы</span>
               </div>
-              <div className="flex items-start gap-3 text-gray-300 font-sans text-sm">
-                <span className="text-green-400 mt-1">•</span>
+              <div className="flex items-start gap-3 text-slate-700 text-sm">
+                <span className="text-emerald-600 mt-1">•</span>
                 <span>Оценка по пятибалльной шкале</span>
               </div>
-              <div className="flex items-start gap-3 text-gray-300 font-sans text-sm">
-                <span className="text-green-400 mt-1">•</span>
+              <div className="flex items-start gap-3 text-slate-700 text-sm">
+                <span className="text-emerald-600 mt-1">•</span>
                 <span>Время: 3 часа</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-green-400 font-sans font-semibold group-hover:text-green-300 transition-colors">
+            <div className="flex items-center justify-center gap-2 text-emerald-600 font-semibold group-hover:text-emerald-700 transition-colors">
               <span>Выбрать базовый</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -209,7 +207,7 @@ export default function EgeTypePage() {
         </div>
 
         <div
-          className="mt-8 p-6 bg-gray-900/50 border border-gray-700/50 rounded-2xl backdrop-blur-sm animate-fade-in"
+          className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-2xl animate-fade-in"
           style={{ animationDelay: '200ms' }}
         >
           <div className="flex items-start gap-3">
@@ -219,7 +217,7 @@ export default function EgeTypePage() {
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5"
+              className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
             >
               <path
                 strokeLinecap="round"
@@ -228,8 +226,8 @@ export default function EgeTypePage() {
               />
             </svg>
             <div className="flex-1">
-              <p className="text-sm text-gray-400 font-sans">
-                <span className="text-cyan-400 font-semibold">Важно:</span> Профильный уровень
+              <p className="text-sm text-slate-700">
+                <span className="text-blue-600 font-semibold">Важно:</span> Профильный уровень
                 необходим для поступления на технические, экономические и IT-специальности. Базовый
                 уровень достаточен для получения аттестата и поступления на гуманитарные
                 направления.

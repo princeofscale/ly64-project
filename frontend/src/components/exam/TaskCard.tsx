@@ -36,30 +36,30 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const questionInfo = QUESTION_TYPE_INFO[task.type] || QUESTION_TYPE_INFO.short;
 
   return (
-    <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 animate-fade-in">
+    <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-8 shadow-xl animate-fade-in">
       {/* Заголовок задания */}
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
             {/* Номер задания */}
-            <span className="px-3 py-1 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-xl text-cyan-400 font-display font-semibold">
+            <span className="px-3 py-1 bg-blue-50 border border-blue-200 rounded-xl text-blue-600 font-semibold">
               Задание {task.number}
             </span>
 
             {/* Баллы */}
-            <span className="text-sm text-gray-400 font-sans">
+            <span className="text-sm text-slate-600">
               {task.points} {getPointsForm(task.points)}
             </span>
 
             {/* Тип вопроса */}
-            <span className="text-sm text-gray-500 font-sans flex items-center gap-1">
+            <span className="text-sm text-slate-500 flex items-center gap-1">
               <span>{questionInfo.icon}</span>
               <span>{questionInfo.name}</span>
             </span>
           </div>
 
           {/* Тема */}
-          <div className="text-sm text-gray-500 font-sans">{task.topic}</div>
+          <div className="text-sm text-slate-500">{task.topic}</div>
         </div>
 
         {/* Флаг для отметки */}
@@ -75,18 +75,18 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       />
 
       {/* Навигация */}
-      <div className="flex items-center justify-between pt-6 mt-6 border-t border-gray-700/50">
+      <div className="flex items-center justify-between pt-6 mt-6 border-t border-slate-200">
         <button
           onClick={onPrevious}
           disabled={isFirst || disabled}
           className={`
             flex items-center gap-2 px-4 py-2.5
-            rounded-xl font-sans font-medium
+            rounded-xl font-medium
             transition-all duration-200
             ${
               isFirst || disabled
-                ? 'text-gray-600 cursor-not-allowed'
-                : 'text-gray-300 hover:text-white hover:bg-gray-800/50'
+                ? 'text-slate-400 cursor-not-allowed'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
             }
           `}
         >
@@ -101,12 +101,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               disabled={disabled}
               className={`
                 flex items-center gap-2 px-6 py-2.5
-                bg-gradient-to-r from-green-500 to-emerald-500
-                hover:from-green-400 hover:to-emerald-400
-                text-white rounded-xl font-sans font-semibold
+                bg-gradient-to-r from-emerald-500 to-emerald-600
+                hover:from-emerald-400 hover:to-emerald-500
+                text-white rounded-xl font-semibold
                 transition-all duration-200
-                shadow-lg shadow-green-500/25
-                hover:shadow-green-500/40
+                shadow-lg shadow-emerald-500/25
+                hover:shadow-xl hover:shadow-emerald-500/30
                 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
@@ -119,12 +119,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               disabled={disabled}
               className={`
                 flex items-center gap-2 px-6 py-2.5
-                bg-gradient-to-r from-cyan-500 to-blue-500
-                hover:from-cyan-400 hover:to-blue-400
-                text-white rounded-xl font-sans font-semibold
+                bg-gradient-to-r from-blue-500 to-blue-600
+                hover:from-blue-400 hover:to-blue-500
+                text-white rounded-xl font-semibold
                 transition-all duration-200
-                shadow-lg shadow-cyan-500/25
-                hover:shadow-cyan-500/40
+                shadow-lg shadow-blue-500/25
+                hover:shadow-xl hover:shadow-blue-500/30
                 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
@@ -143,7 +143,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
  */
 const FlagButton: React.FC = () => (
   <button
-    className="p-2 rounded-lg text-gray-500 hover:text-yellow-400 hover:bg-yellow-500/10 transition-colors"
+    className="p-2 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
     title="Отметить для проверки"
   >
     <svg

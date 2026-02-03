@@ -192,44 +192,40 @@ function DailyChallengePage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gray-950 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-transparent to-orange-500/5 opacity-30" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-500/20 rounded-full blur-[80px] animate-pulse" />
-        <div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500/20 rounded-full blur-[80px] animate-pulse"
-          style={{ animationDelay: '1s' }}
-        />
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-amber-100/50 rounded-full blur-[120px]" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-100/50 rounded-full blur-[120px]" />
 
         <main className="relative z-10 max-w-3xl mx-auto px-4 py-12">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-full text-yellow-400 text-sm mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 border border-amber-200 rounded-full text-amber-700 text-sm mb-4 shadow-md">
               <span className="animate-pulse">🔥</span>
               <span>Ежедневный челлендж</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
               Задача дня
             </h1>
-            <p className="text-gray-400">Решай одну задачу каждый день и набирай очки!</p>
+            <p className="text-slate-600">Решай одну задачу каждый день и набирай очки!</p>
           </div>
 
           <div className="flex justify-center gap-4 mb-8">
-            <div className="bg-orange-500/20 border border-orange-500/30 rounded-xl px-6 py-3 text-center">
-              <p className="text-2xl font-bold text-orange-400">🔥 {streak}</p>
-              <p className="text-orange-400/70 text-sm">дней подряд</p>
+            <div className="bg-orange-50 border border-orange-200 rounded-xl px-6 py-3 text-center shadow-lg">
+              <p className="text-2xl font-bold text-orange-600">🔥 {streak}</p>
+              <p className="text-orange-600/70 text-sm">дней подряд</p>
             </div>
-            <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl px-6 py-3 text-center">
-              <p className="text-2xl font-bold text-yellow-400">⭐ {totalPoints}</p>
-              <p className="text-yellow-400/70 text-sm">очков</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-6 py-3 text-center shadow-lg">
+              <p className="text-2xl font-bold text-amber-600">⭐ {totalPoints}</p>
+              <p className="text-amber-600/70 text-sm">очков</p>
             </div>
           </div>
 
-          <div className="bg-gray-900/80 border border-gray-700 rounded-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 px-6 py-4 flex items-center justify-between">
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg">
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-4 flex items-center justify-between border-b border-slate-200">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{challenge.subjectIcon}</span>
                 <div>
-                  <p className="text-white font-semibold">{challenge.subject}</p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-slate-900 font-semibold">{challenge.subject}</p>
+                  <p className="text-slate-600 text-sm">
                     {challenge.difficulty === 'easy' && '🟢 Легко'}
                     {challenge.difficulty === 'medium' && '🟡 Средне'}
                     {challenge.difficulty === 'hard' && '🔴 Сложно'}
@@ -239,13 +235,13 @@ function DailyChallengePage() {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-gray-400 text-sm">Следующая через</p>
-                <p className="text-white font-mono">{timeUntilNext}</p>
+                <p className="text-slate-600 text-sm">Следующая через</p>
+                <p className="text-slate-900 font-mono">{timeUntilNext}</p>
               </div>
             </div>
 
             <div className="p-6">
-              <p className="text-xl text-white font-medium mb-6 leading-relaxed">
+              <p className="text-xl text-slate-900 font-medium mb-6 leading-relaxed">
                 {challenge.question}
               </p>
 
@@ -255,24 +251,24 @@ function DailyChallengePage() {
                   const isSelected = selectedAnswer === option;
                   const isCorrectOption = option === challenge.answer;
 
-                  let bgColor = 'bg-gray-800 hover:bg-gray-700';
-                  let borderColor = 'border-gray-700';
-                  let textColor = 'text-gray-300';
+                  let bgColor = 'bg-slate-50 hover:bg-slate-100';
+                  let borderColor = 'border-slate-200';
+                  let textColor = 'text-slate-700';
 
                   if (isAnswered) {
                     if (isCorrectOption) {
-                      bgColor = 'bg-green-500/20';
-                      borderColor = 'border-green-500';
-                      textColor = 'text-green-400';
+                      bgColor = 'bg-emerald-50';
+                      borderColor = 'border-emerald-500';
+                      textColor = 'text-emerald-700';
                     } else if (isSelected && !isCorrectOption) {
-                      bgColor = 'bg-red-500/20';
+                      bgColor = 'bg-red-50';
                       borderColor = 'border-red-500';
-                      textColor = 'text-red-400';
+                      textColor = 'text-red-700';
                     }
                   } else if (isSelected) {
-                    bgColor = 'bg-yellow-500/20';
-                    borderColor = 'border-yellow-500';
-                    textColor = 'text-yellow-400';
+                    bgColor = 'bg-amber-50';
+                    borderColor = 'border-amber-500';
+                    textColor = 'text-amber-700';
                   }
 
                   return (
@@ -297,13 +293,13 @@ function DailyChallengePage() {
 
               {isAnswered && (
                 <div
-                  className={`mt-6 p-4 rounded-xl ${isCorrect ? 'bg-green-500/20 border border-green-500/30' : 'bg-red-500/20 border border-red-500/30'}`}
+                  className={`mt-6 p-4 rounded-xl ${isCorrect ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'}`}
                 >
-                  <p className={`font-bold mb-2 ${isCorrect ? 'text-green-400' : 'text-red-400'}`}>
+                  <p className={`font-bold mb-2 ${isCorrect ? 'text-emerald-700' : 'text-red-700'}`}>
                     {isCorrect ? '🎉 Отлично! +' + challenge.points + ' очков' : '😔 Неверно'}
                   </p>
-                  <p className="text-gray-300 text-sm">
-                    <span className="text-gray-400">Объяснение:</span> {challenge.explanation}
+                  <p className="text-slate-700 text-sm">
+                    <span className="text-slate-600">Объяснение:</span> {challenge.explanation}
                   </p>
                 </div>
               )}
@@ -311,7 +307,7 @@ function DailyChallengePage() {
           </div>
 
           {/* Подсказка */}
-          <p className="text-center text-gray-500 text-sm mt-6">
+          <p className="text-center text-slate-500 text-sm mt-6">
             Новая задача появляется каждый день в полночь
           </p>
         </main>

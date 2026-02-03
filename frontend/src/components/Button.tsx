@@ -23,8 +23,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles = `
-      inline-flex items-center justify-center gap-2 font-medium rounded-lg
-      transition-colors duration-200
+      inline-flex items-center justify-center gap-2 font-medium rounded-xl
+      transition-all duration-200
       focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
       disabled:opacity-50 disabled:cursor-not-allowed
     `;
@@ -32,20 +32,21 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const variantStyles = {
       primary: `
         bg-blue-600 text-white
-        hover:bg-blue-700 active:bg-blue-800
+        hover:bg-blue-700 hover:-translate-y-0.5 active:bg-blue-800
+        shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/30
         focus-visible:ring-blue-500
       `,
       secondary: `
-        bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200
-        border border-slate-200 dark:border-slate-700
-        hover:bg-slate-200 dark:hover:bg-slate-700
-        active:bg-slate-300 dark:active:bg-slate-600
+        bg-white text-slate-700
+        border border-slate-200
+        hover:bg-slate-50
+        active:bg-slate-100
         focus-visible:ring-slate-400
       `,
       ghost: `
-        bg-transparent text-slate-600 dark:text-slate-400
-        hover:bg-slate-100 dark:hover:bg-slate-800
-        active:bg-slate-200 dark:active:bg-slate-700
+        bg-transparent text-slate-600
+        hover:bg-slate-100
+        active:bg-slate-200
         focus-visible:ring-slate-400
       `,
       danger: `

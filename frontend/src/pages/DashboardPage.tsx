@@ -81,40 +81,40 @@ const SUBJECTS = [
 
 const COLOR_CLASSES = {
   blue: {
-    bg: 'bg-blue-50 dark:bg-blue-950/30',
-    border: 'border-blue-200 dark:border-blue-800',
-    icon: 'text-blue-600 dark:text-blue-400',
-    hover: 'hover:border-blue-300 dark:hover:border-blue-700',
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
+    icon: 'text-blue-600',
+    hover: 'hover:border-blue-300',
   },
   violet: {
-    bg: 'bg-violet-50 dark:bg-violet-950/30',
-    border: 'border-violet-200 dark:border-violet-800',
-    icon: 'text-violet-600 dark:text-violet-400',
-    hover: 'hover:border-violet-300 dark:hover:border-violet-700',
+    bg: 'bg-violet-50',
+    border: 'border-violet-200',
+    icon: 'text-violet-600',
+    hover: 'hover:border-violet-300',
   },
   emerald: {
-    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-    border: 'border-emerald-200 dark:border-emerald-800',
-    icon: 'text-emerald-600 dark:text-emerald-400',
-    hover: 'hover:border-emerald-300 dark:hover:border-emerald-700',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-200',
+    icon: 'text-emerald-600',
+    hover: 'hover:border-emerald-300',
   },
   pink: {
-    bg: 'bg-pink-50 dark:bg-pink-950/30',
-    border: 'border-pink-200 dark:border-pink-800',
-    icon: 'text-pink-600 dark:text-pink-400',
-    hover: 'hover:border-pink-300 dark:hover:border-pink-700',
+    bg: 'bg-pink-50',
+    border: 'border-pink-200',
+    icon: 'text-pink-600',
+    hover: 'hover:border-pink-300',
   },
   amber: {
-    bg: 'bg-amber-50 dark:bg-amber-950/30',
-    border: 'border-amber-200 dark:border-amber-800',
-    icon: 'text-amber-600 dark:text-amber-400',
-    hover: 'hover:border-amber-300 dark:hover:border-amber-700',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    icon: 'text-amber-600',
+    hover: 'hover:border-amber-300',
   },
   orange: {
-    bg: 'bg-orange-50 dark:bg-orange-950/30',
-    border: 'border-orange-200 dark:border-orange-800',
-    icon: 'text-orange-600 dark:text-orange-400',
-    hover: 'hover:border-orange-300 dark:hover:border-orange-700',
+    bg: 'bg-orange-50',
+    border: 'border-orange-200',
+    icon: 'text-orange-600',
+    hover: 'hover:border-orange-300',
   },
 };
 
@@ -175,33 +175,37 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-          <p className="text-slate-500 text-sm">Загрузка...</p>
+          <p className="text-slate-600 text-sm">Загрузка...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="relative min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
+      {/* Decorative blur circles */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/50 rounded-full blur-[100px] -z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-violet-100/50 rounded-full blur-[80px] -z-10 pointer-events-none" />
+
       <div className="container-wide py-8 lg:py-12">
         {/* Header */}
         <header className="mb-10 animate-fade-in">
-          <h1 className="text-3xl lg:text-4xl font-semibold text-slate-900 dark:text-slate-50 mb-2">
+          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-2">
             {isAuthenticated ? (
               `${greeting}!`
             ) : (
               <>
-                <Link to="/login" className="text-blue-600 hover:text-blue-700 dark:text-blue-400">
+                <Link to="/login" className="text-blue-600 hover:text-blue-700">
                   Войдите
                 </Link>
-                <span className="text-slate-400"> в систему</span>
+                <span className="text-slate-600"> в систему</span>
               </>
             )}
           </h1>
-          <p className="text-lg text-slate-500 dark:text-slate-400">
+          <p className="text-lg text-slate-600">
             {isAuthenticated ? motivation : 'Готовы покорять новые вершины знаний?'}
           </p>
         </header>
@@ -230,32 +234,32 @@ export default function DashboardPage() {
 
         <Link
           to="/leaderboard"
-          className="group flex items-center justify-between p-5 mb-10 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl hover:border-amber-300 dark:hover:border-amber-700 transition-colors animate-fade-in"
+          className="group flex items-center justify-between p-5 mb-10 bg-amber-50 border border-amber-200 rounded-2xl hover:border-amber-300 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all animate-fade-in"
         >
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-              <Trophy className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+              <Trophy className="w-6 h-6 text-amber-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-slate-50">Таблица лидеров</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <h3 className="font-semibold text-slate-900">Таблица лидеров</h3>
+              <p className="text-sm text-slate-600">
                 Соревнуйся с другими учениками
               </p>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-slate-400 group-hover:translate-x-1 transition-transform" />
+          <ChevronRight className="w-5 h-5 text-slate-600 group-hover:translate-x-1 transition-transform" />
         </Link>
 
         {recentAchievements.length > 0 && (
           <section className="mb-10 animate-fade-in">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                <Award className="w-5 h-5 text-amber-500" />
+              <h2 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
+                <Award className="w-5 h-5 text-amber-600" />
                 Недавние достижения
               </h2>
               <Link
                 to="/profile"
-                className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center gap-1"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1"
               >
                 Смотреть все
                 <ChevronRight className="w-4 h-4" />
@@ -277,10 +281,10 @@ export default function DashboardPage() {
 
         <section className="animate-fade-in">
           <div className="mb-5">
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-50">
+            <h2 className="text-xl font-semibold text-slate-900">
               Начать подготовку
             </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-sm text-slate-600 mt-1">
               {hasActiveTest
                 ? 'Завершите текущий тест, чтобы начать новый'
                 : 'Выберите предмет для тренировки'}
@@ -315,35 +319,35 @@ function StatCard({ title, value, icon: Icon, trend, highlight }: StatCardProps)
   return (
     <div
       className={`
-      p-5 rounded-xl border transition-shadow
+      p-6 rounded-2xl border transition-all duration-300
       ${
         highlight
-          ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'
-          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+          ? 'bg-blue-50 border-blue-200'
+          : 'bg-white border-slate-200'
       }
-      shadow-sm hover:shadow-md
+      shadow-lg hover:shadow-xl hover:-translate-y-1
     `}
     >
       <div className="flex items-start justify-between mb-3">
         <div
           className={`
-          w-10 h-10 rounded-lg flex items-center justify-center
-          ${highlight ? 'bg-blue-100 dark:bg-blue-900/50' : 'bg-slate-100 dark:bg-slate-700'}
+          w-12 h-12 rounded-xl flex items-center justify-center
+          ${highlight ? 'bg-blue-100' : 'bg-slate-100'}
         `}
         >
           <Icon
-            className={`w-5 h-5 ${highlight ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500'}`}
+            className={`w-6 h-6 ${highlight ? 'text-blue-600' : 'text-slate-600'}`}
           />
         </div>
         {trend && (
-          <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 px-2 py-0.5 rounded-full">
+          <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
             {trend}
           </span>
         )}
       </div>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">{title}</p>
+      <p className="text-sm text-slate-600 mb-1">{title}</p>
       <p
-        className={`text-2xl font-semibold ${highlight ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-slate-50'}`}
+        className={`text-3xl font-bold ${highlight ? 'text-blue-600' : 'text-slate-900'}`}
       >
         {value}
       </p>
@@ -366,24 +370,24 @@ function SubjectCard({ subject, disabled, onClick }: SubjectCardProps) {
       onClick={onClick}
       disabled={disabled}
       className={`
-        w-full text-left p-5 rounded-xl border transition-all duration-200
-        ${colors.bg} ${colors.border} ${!disabled && colors.hover}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-sm'}
+        w-full text-left p-6 rounded-2xl border-2 transition-all duration-300
+        bg-white ${colors.border} ${!disabled && colors.hover}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer shadow-lg hover:shadow-xl hover:-translate-y-1'}
         group
       `}
     >
       <div
         className={`
-        w-11 h-11 rounded-lg flex items-center justify-center mb-4
-        bg-white/60 dark:bg-white/10 border border-white/80 dark:border-white/5
+        w-12 h-12 rounded-xl flex items-center justify-center mb-4
+        ${colors.bg}
       `}
       >
-        <Icon className={`w-5 h-5 ${colors.icon}`} />
+        <Icon className={`w-6 h-6 ${colors.icon}`} />
       </div>
 
-      <h3 className="font-semibold text-slate-900 dark:text-slate-50 mb-1">{subject.name}</h3>
+      <h3 className="font-semibold text-slate-900 mb-1">{subject.name}</h3>
 
-      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">
+      <p className="text-sm text-slate-600 mb-4 line-clamp-2">
         {subject.description}
       </p>
 

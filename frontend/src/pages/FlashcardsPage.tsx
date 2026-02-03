@@ -223,21 +223,20 @@ function FlashcardsPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gray-950 relative overflow-hidden">
-        {/* Фон */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-blue-500/5 opacity-30" />
-        <div className="absolute top-20 right-10 w-72 h-72 bg-green-500/20 rounded-full blur-[80px] animate-pulse" />
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
+        {/* Background blur circles */}
+        <div className="absolute top-20 right-20 w-96 h-96 bg-emerald-100/50 rounded-full blur-3xl" />
         <div
-          className="absolute bottom-20 left-10 w-96 h-96 bg-blue-500/20 rounded-full blur-[80px] animate-pulse"
+          className="absolute bottom-20 left-20 w-96 h-96 bg-blue-100/50 rounded-full blur-3xl"
           style={{ animationDelay: '1s' }}
         />
 
         <main className="relative z-10 max-w-6xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
               Флеш-карточки
             </h1>
-            <p className="text-gray-400 text-lg">
+            <p className="text-slate-600 text-lg">
               Эффективный способ запоминания формул, терминов и дат
             </p>
           </div>
@@ -246,10 +245,10 @@ function FlashcardsPage() {
             // Выбор набора
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-white">Выберите набор</h2>
+                <h2 className="text-2xl font-bold text-slate-900">Выберите набор</h2>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="px-4 py-2 bg-green-500/20 border border-green-500/50 text-green-400 rounded-xl font-medium hover:bg-green-500/30 transition-colors"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium shadow-sm transition-colors"
                 >
                   + Создать свой
                 </button>
@@ -259,11 +258,11 @@ function FlashcardsPage() {
                 {sets.map(set => (
                   <div
                     key={set.id}
-                    className="group relative bg-gray-900/50 border border-gray-700/50 rounded-2xl p-6 hover:border-green-500/50 transition-all cursor-pointer"
+                    className="group relative bg-white border border-slate-200 shadow-lg rounded-2xl p-6 hover:border-emerald-400 hover:shadow-xl transition-all cursor-pointer"
                     onClick={() => selectSet(set)}
                   >
                     <div className="flex justify-between items-start mb-3">
-                      <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-lg">
+                      <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-lg font-medium">
                         {set.subject}
                       </span>
                       {set.isCustom && (
@@ -272,7 +271,7 @@ function FlashcardsPage() {
                             e.stopPropagation();
                             deleteSet(set.id);
                           }}
-                          className="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="text-red-600 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <svg
                             className="w-5 h-5"
@@ -290,8 +289,8 @@ function FlashcardsPage() {
                         </button>
                       )}
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-2">{set.name}</h3>
-                    <p className="text-gray-400 text-sm">{set.cards.length} карточек</p>
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">{set.name}</h3>
+                    <p className="text-slate-600 text-sm">{set.cards.length} карточек</p>
                   </div>
                 ))}
               </div>
@@ -301,7 +300,7 @@ function FlashcardsPage() {
             <div>
               <button
                 onClick={() => setSelectedSet(null)}
-                className="mb-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+                className="mb-6 text-slate-600 hover:text-slate-900 transition-colors flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
@@ -315,20 +314,20 @@ function FlashcardsPage() {
               </button>
 
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">{selectedSet.name}</h2>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">{selectedSet.name}</h2>
                 <div className="flex justify-center gap-4 text-sm">
-                  <span className="text-gray-400">
+                  <span className="text-slate-600">
                     Карточка {currentIndex + 1} из {currentCards.length}
                   </span>
-                  <span className="text-green-400">
+                  <span className="text-emerald-600 font-medium">
                     Изучено: {knownCards.size} / {selectedSet.cards.length}
                   </span>
                 </div>
 
                 {/* Прогресс */}
-                <div className="w-full max-w-md mx-auto mt-4 h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div className="w-full max-w-md mx-auto mt-4 h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-300"
+                    className="h-full bg-gradient-to-r from-emerald-500 to-green-500 transition-all duration-300"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -351,23 +350,23 @@ function FlashcardsPage() {
                       >
                         {/* Передняя сторона */}
                         <div
-                          className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-green-500/30 rounded-2xl p-8 flex flex-col items-center justify-center backface-hidden"
+                          className="absolute inset-0 bg-white border-2 border-emerald-300 shadow-lg rounded-2xl p-8 flex flex-col items-center justify-center backface-hidden"
                           style={{ backfaceVisibility: 'hidden' }}
                         >
-                          <p className="text-gray-400 text-sm mb-4">Вопрос</p>
-                          <p className="text-2xl font-bold text-white text-center">
+                          <p className="text-slate-500 text-sm mb-4 font-medium">Вопрос</p>
+                          <p className="text-2xl font-bold text-slate-900 text-center">
                             {currentCard?.front}
                           </p>
-                          <p className="text-gray-500 text-sm mt-6">Нажмите, чтобы перевернуть</p>
+                          <p className="text-slate-400 text-sm mt-6">Нажмите, чтобы перевернуть</p>
                         </div>
 
                         {/* Задняя сторона */}
                         <div
-                          className="absolute inset-0 bg-gradient-to-br from-green-900/50 to-emerald-900/50 border-2 border-green-500/50 rounded-2xl p-8 flex flex-col items-center justify-center"
+                          className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-400 shadow-lg rounded-2xl p-8 flex flex-col items-center justify-center"
                           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
                         >
-                          <p className="text-green-400 text-sm mb-4">Ответ</p>
-                          <p className="text-2xl font-bold text-white text-center">
+                          <p className="text-emerald-600 text-sm mb-4 font-medium">Ответ</p>
+                          <p className="text-2xl font-bold text-slate-900 text-center">
                             {currentCard?.back}
                           </p>
                         </div>

@@ -29,35 +29,35 @@ export const ExamHeader: React.FC<ExamHeaderProps> = ({
   const getTimerColor = () => {
     switch (timerStatus) {
       case 'critical':
-        return 'text-red-400';
+        return 'text-red-600';
       case 'warning':
-        return 'text-yellow-400';
+        return 'text-amber-600';
       default:
-        return 'text-cyan-400';
+        return 'text-slate-700';
     }
   };
 
   const getTimerBgColor = () => {
     switch (timerStatus) {
       case 'critical':
-        return 'bg-red-500/10 border-red-500/30';
+        return 'bg-red-50 border-red-200';
       case 'warning':
-        return 'bg-yellow-500/10 border-yellow-500/30';
+        return 'bg-amber-50 border-amber-200';
       default:
-        return 'bg-cyan-500/10 border-cyan-500/30';
+        return 'bg-slate-50 border-slate-200';
     }
   };
 
   return (
-    <div className="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-xl border-b border-gray-700/50">
+    <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Название экзамена */}
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold text-slate-900">
               {title}
             </h1>
-            {subtitle && <span className="text-sm text-gray-400 font-sans">{subtitle}</span>}
+            {subtitle && <span className="text-sm text-slate-600">{subtitle}</span>}
           </div>
 
           {/* Правая часть: таймер и прогресс */}
@@ -73,8 +73,8 @@ export const ExamHeader: React.FC<ExamHeaderProps> = ({
             </div>
 
             {/* Счетчик заданий */}
-            <div className="text-sm font-sans text-gray-400">
-              <span className="text-cyan-400 font-semibold">{currentTask}</span>
+            <div className="text-sm text-slate-600">
+              <span className="text-blue-600 font-semibold">{currentTask}</span>
               <span className="mx-1">/</span>
               <span>{totalTasks}</span>
             </div>
@@ -82,9 +82,9 @@ export const ExamHeader: React.FC<ExamHeaderProps> = ({
         </div>
 
         {/* Прогресс-бар */}
-        <div className="mt-3 w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+        <div className="mt-3 w-full bg-slate-200 rounded-full h-2 overflow-hidden">
           <div
-            className="h-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-300"
+            className="h-2 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>

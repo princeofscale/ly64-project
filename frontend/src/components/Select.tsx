@@ -10,30 +10,29 @@ export function Select({ label, error, options, className = '', ...props }: Sele
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-400 dark:text-gray-400 mb-2 font-sans">
+        <label className="block text-sm font-medium text-slate-700 mb-1.5">
           {label}
         </label>
       )}
       <select
         className={`
-          w-full px-4 py-3
-          bg-gray-800/50 dark:bg-gray-800/50
-          border ${error ? 'border-red-500/50' : 'border-gray-700'}
-          rounded-xl text-white dark:text-white
-          focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500
-          transition-all duration-300
-          font-sans
+          w-full px-3.5 py-2.5
+          bg-slate-50
+          border ${error ? 'border-red-500' : 'border-slate-200'}
+          rounded-xl text-slate-900
+          focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+          transition-colors duration-200
           ${className}
         `}
         {...props}
       >
         {options.map(opt => (
-          <option key={opt.value} value={opt.value} className="bg-gray-800 text-white">
+          <option key={opt.value} value={opt.value} className="bg-white text-slate-900">
             {opt.label}
           </option>
         ))}
       </select>
-      {error && <p className="mt-2 text-sm text-red-400 font-sans">{error}</p>}
+      {error && <p className="mt-1.5 text-sm text-red-600">{error}</p>}
     </div>
   );
 }

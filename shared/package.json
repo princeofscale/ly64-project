@@ -15,7 +15,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "echo \"No tests yet\""
   },
   "devDependencies": {
     "typescript": "^5.9.3"

@@ -1,12 +1,25 @@
 import type { Request, Response, NextFunction } from 'express';
+import { ZodError } from 'zod';
 
 export interface ApiError extends Error {
   statusCode?: number;
   errors?: any[];
 }
 
-export const errorHandler = (err: ApiError, _req: Request, res: Response, _next: NextFunction) => {
-  const statusCode = err.statusCode || 500;
+export const errorHandler = (err: ApiError | ZodError, _req: Request, res: Response, _next: NextFunction) => {
+  // Handle Zod validation errors
+  if (err instanceof ZodError) {
+    return res.status(400).json({
+      success: false,
+      message: 'Ошибка валидации данных',
+      errors: err.errors.map((e) => ({
+        field: e.path.join('.'),
+        message: e.message,
+      })),
+    });
+  }
+
+  const statusCode = (err as ApiError).statusCode || 500;
   const message = err.message || 'Internal Server Error';
 
   console.error(`Error: ${message}`, err);
@@ -14,7 +27,7 @@ export const errorHandler = (err: ApiError, _req: Request, res: Response, _next:
   res.status(statusCode).json({
     success: false,
     message,
-    errors: err.errors,
+    errors: (err as ApiError).errors,
     ...(process.env.NODE_ENV === 'development' && { stack: 'ошибочка)' }),
   });
 };

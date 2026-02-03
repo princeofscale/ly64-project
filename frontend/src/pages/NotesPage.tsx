@@ -141,20 +141,21 @@ function NotesPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gray-950 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-orange-500/5 opacity-30" />
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
+        <div className="absolute top-20 right-10 w-96 h-96 bg-blue-100/50 rounded-full blur-[120px]" />
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-violet-100/50 rounded-full blur-[120px]" />
 
         <main className="relative z-10 max-w-7xl mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold text-slate-900">
                 Заметки
               </h1>
-              <p className="text-gray-400 mt-1">Ваши личные шпаргалки и конспекты</p>
+              <p className="text-slate-600 mt-1">Ваши личные шпаргалки и конспекты</p>
             </div>
             <button
               onClick={createNote}
-              className="px-4 py-2 bg-amber-500/20 border border-amber-500/50 text-amber-400 rounded-xl font-medium hover:bg-amber-500/30 transition-colors"
+              className="px-4 py-2 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-colors shadow-lg"
             >
               + Новая заметка
             </button>
@@ -169,7 +170,7 @@ function NotesPage() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Поиск заметок..."
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:border-amber-500 focus:outline-none"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
 
               {/* Фильтр по предмету */}
@@ -178,8 +179,8 @@ function NotesPage() {
                   onClick={() => setFilterSubject(null)}
                   className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                     !filterSubject
-                      ? 'bg-amber-500/20 text-amber-400'
-                      : 'bg-gray-800 text-gray-400 hover:text-white'
+                      ? 'bg-blue-500 text-white shadow-lg'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   Все
@@ -190,12 +191,12 @@ function NotesPage() {
                     onClick={() => setFilterSubject(subject.id)}
                     className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                       filterSubject === subject.id
-                        ? 'text-white'
-                        : 'bg-gray-800 text-gray-400 hover:text-white'
+                        ? 'text-white shadow-lg'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900'
                     }`}
                     style={{
                       backgroundColor:
-                        filterSubject === subject.id ? subject.color + '40' : undefined,
+                        filterSubject === subject.id ? subject.color : undefined,
                     }}
                   >
                     {subject.name}
@@ -206,7 +207,7 @@ function NotesPage() {
               {/* Список */}
               <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
                 {filteredNotes.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
+                  <div className="text-center py-12 text-slate-500">
                     {notes.length === 0 ? 'Нет заметок' : 'Ничего не найдено'}
                   </div>
                 ) : (
@@ -216,21 +217,21 @@ function NotesPage() {
                       onClick={() => selectNote(note)}
                       className={`p-4 rounded-xl cursor-pointer transition-all border-l-4 ${
                         selectedNote?.id === note.id
-                          ? 'bg-gray-800 border-amber-500'
-                          : 'bg-gray-900/50 border-transparent hover:bg-gray-800/50'
+                          ? 'bg-white border-blue-500 shadow-lg'
+                          : 'bg-white/70 border-transparent hover:bg-white hover:shadow-md'
                       }`}
                       style={{ borderLeftColor: note.color }}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            {note.pinned && <span className="text-amber-400">📌</span>}
-                            <h3 className="font-medium text-white truncate">{note.title}</h3>
+                            {note.pinned && <span className="text-amber-500">📌</span>}
+                            <h3 className="font-medium text-slate-900 truncate">{note.title}</h3>
                           </div>
-                          <p className="text-gray-500 text-sm truncate mt-1">
+                          <p className="text-slate-600 text-sm truncate mt-1">
                             {note.content || 'Пустая заметка'}
                           </p>
-                          <p className="text-gray-600 text-xs mt-2">{formatDate(note.updatedAt)}</p>
+                          <p className="text-slate-400 text-xs mt-2">{formatDate(note.updatedAt)}</p>
                         </div>
                       </div>
                     </div>
@@ -242,16 +243,16 @@ function NotesPage() {
             {/* Редактор */}
             <div className="lg:col-span-2">
               {selectedNote ? (
-                <div className="bg-gray-900/50 border border-gray-700/50 rounded-2xl p-6 h-full">
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 h-full shadow-lg">
                   {/* Панель инструментов */}
-                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-700">
+                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-200">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => togglePin(selectedNote.id)}
                         className={`p-2 rounded-lg transition-colors ${
                           selectedNote.pinned
-                            ? 'bg-amber-500/20 text-amber-400'
-                            : 'bg-gray-800 text-gray-400 hover:text-white'
+                            ? 'bg-amber-100 text-amber-600'
+                            : 'bg-slate-100 text-slate-600 hover:text-slate-900'
                         }`}
                         title={selectedNote.pinned ? 'Открепить' : 'Закрепить'}
                       >
@@ -260,14 +261,14 @@ function NotesPage() {
                       {!isEditing ? (
                         <button
                           onClick={() => setIsEditing(true)}
-                          className="px-4 py-2 bg-gray-800 text-gray-400 rounded-lg hover:text-white transition-colors"
+                          className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:text-slate-900 transition-colors"
                         >
                           ✏️ Редактировать
                         </button>
                       ) : (
                         <button
                           onClick={saveNote}
-                          className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors"
+                          className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors shadow-lg"
                         >
                           💾 Сохранить
                         </button>
@@ -275,7 +276,7 @@ function NotesPage() {
                     </div>
                     <button
                       onClick={() => deleteNote(selectedNote.id)}
-                      className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+                      className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
                       title="Удалить"
                     >
                       🗑️
@@ -289,14 +290,14 @@ function NotesPage() {
                         type="text"
                         value={editForm.title}
                         onChange={e => setEditForm({ ...editForm, title: e.target.value })}
-                        className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white text-xl font-bold focus:border-amber-500 focus:outline-none"
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xl font-bold focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                         placeholder="Название заметки"
                       />
 
                       <select
                         value={editForm.subject}
                         onChange={e => setEditForm({ ...editForm, subject: e.target.value })}
-                        className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-xl text-white focus:border-amber-500 focus:outline-none"
+                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                       >
                         {SUBJECTS.map(subject => (
                           <option key={subject.id} value={subject.id}>
@@ -308,7 +309,7 @@ function NotesPage() {
                       <textarea
                         value={editForm.content}
                         onChange={e => setEditForm({ ...editForm, content: e.target.value })}
-                        className="w-full h-[400px] px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white focus:border-amber-500 focus:outline-none resize-none font-mono"
+                        className="w-full h-[400px] px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none font-mono"
                         placeholder="Текст заметки..."
                       />
                     </div>
@@ -318,19 +319,19 @@ function NotesPage() {
                       <div className="flex items-center gap-3 mb-4">
                         <span
                           className="px-3 py-1 rounded-lg text-sm text-white"
-                          style={{ backgroundColor: selectedNote.color + '40' }}
+                          style={{ backgroundColor: selectedNote.color }}
                         >
                           {SUBJECTS.find(s => s.id === selectedNote.subject)?.name}
                         </span>
-                        <span className="text-gray-500 text-sm">
+                        <span className="text-slate-500 text-sm">
                           Изменено: {formatDate(selectedNote.updatedAt)}
                         </span>
                       </div>
 
-                      <h2 className="text-2xl font-bold text-white mb-4">{selectedNote.title}</h2>
+                      <h2 className="text-2xl font-bold text-slate-900 mb-4">{selectedNote.title}</h2>
 
-                      <div className="prose prose-invert max-w-none">
-                        <pre className="whitespace-pre-wrap font-sans text-gray-300 leading-relaxed">
+                      <div className="prose max-w-none">
+                        <pre className="whitespace-pre-wrap font-sans text-slate-700 leading-relaxed">
                           {selectedNote.content ||
                             'Заметка пуста. Нажмите "Редактировать" чтобы добавить текст.'}
                         </pre>
@@ -339,15 +340,15 @@ function NotesPage() {
                   )}
                 </div>
               ) : (
-                <div className="bg-gray-900/50 border border-gray-700/50 rounded-2xl p-12 h-full flex flex-col items-center justify-center text-center">
+                <div className="bg-white border border-slate-200 rounded-2xl p-12 h-full flex flex-col items-center justify-center text-center shadow-lg">
                   <div className="text-6xl mb-4">📝</div>
-                  <h3 className="text-xl font-bold text-white mb-2">Выберите заметку</h3>
-                  <p className="text-gray-400 mb-6">
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Выберите заметку</h3>
+                  <p className="text-slate-600 mb-6">
                     Выберите заметку из списка слева или создайте новую
                   </p>
                   <button
                     onClick={createNote}
-                    className="px-6 py-3 bg-amber-500/20 border border-amber-500/50 text-amber-400 rounded-xl font-medium hover:bg-amber-500/30 transition-colors"
+                    className="px-6 py-3 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-colors shadow-lg"
                   >
                     + Создать заметку
                   </button>

@@ -127,19 +127,17 @@ export default function TestSetupPage() {
   const canStartTest = selectedGrade && (!showLevelSelection || selectedLevel);
 
   return (
-    <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden py-12 px-4">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
-
-      <div className="absolute top-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden py-12 px-4">
+      <div className="absolute top-20 right-10 w-96 h-96 bg-blue-100/50 rounded-full blur-[120px] -z-10 animate-pulse" />
       <div
-        className="absolute bottom-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse"
+        className="absolute bottom-20 left-10 w-96 h-96 bg-violet-100/50 rounded-full blur-[120px] -z-10 animate-pulse"
         style={{ animationDelay: '1s' }}
       />
 
       <div className="relative z-10 max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/dashboard')}
-          className="group mb-6 flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors font-sans"
+          className="group mb-6 flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -158,21 +156,21 @@ export default function TestSetupPage() {
           Назад к панели управления
         </button>
 
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-[0_0_50px_rgba(6,182,212,0.1)] animate-slide-up">
+        <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-8 shadow-xl animate-slide-up">
           <div className="text-center mb-8">
             <div className="text-7xl mb-4 animate-bounce">{subjectIcon}</div>
-            <h1 className="text-4xl md:text-5xl font-display font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-3">
               {subjectLabel}
             </h1>
-            <p className="text-gray-400 text-lg font-sans">{subjectDescription}</p>
+            <p className="text-slate-600 text-lg">{subjectDescription}</p>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-2xl font-display font-semibold text-white mb-4 flex items-center">
-              <span className="w-2 h-2 bg-cyan-400 rounded-full mr-3 animate-pulse" />
+            <h2 className="text-2xl font-semibold text-slate-900 mb-4 flex items-center">
+              <span className="w-2 h-2 bg-blue-600 rounded-full mr-3 animate-pulse" />
               Выберите ваш класс
             </h2>
-            <p className="text-gray-400 font-sans mb-6">
+            <p className="text-slate-600 mb-6">
               Мы подберем тест соответствующий вашему уровню
             </p>
 
@@ -186,27 +184,27 @@ export default function TestSetupPage() {
                     animate-scale-in
                     ${
                       selectedGrade === grade
-                        ? 'border-cyan-500 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 shadow-[0_0_30px_rgba(6,182,212,0.3)] scale-105'
-                        : 'border-gray-700 bg-gray-800/50 hover:border-cyan-500/50 hover:bg-gray-800/70'
+                        ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/25 scale-105'
+                        : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-md'
                     }
                   `}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="text-center">
                     <div
-                      className={`text-3xl font-display font-bold mb-2 transition-all duration-300 ${
+                      className={`text-3xl font-bold mb-2 transition-all duration-300 ${
                         selectedGrade === grade
-                          ? 'text-cyan-400 scale-110'
-                          : 'text-white group-hover:text-cyan-400'
+                          ? 'text-blue-600 scale-110'
+                          : 'text-slate-700 group-hover:text-blue-600'
                       }`}
                     >
                       {grade}
                     </div>
                     <div
-                      className={`text-sm font-sans transition-colors ${
+                      className={`text-sm transition-colors ${
                         selectedGrade === grade
-                          ? 'text-cyan-300'
-                          : 'text-gray-400 group-hover:text-gray-300'
+                          ? 'text-blue-600'
+                          : 'text-slate-600 group-hover:text-slate-700'
                       }`}
                     >
                       класс
@@ -214,7 +212,7 @@ export default function TestSetupPage() {
                   </div>
 
                   {selectedGrade === grade && (
-                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full p-1.5 animate-scale-in">
+                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full p-1.5 animate-scale-in shadow-lg">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -239,11 +237,11 @@ export default function TestSetupPage() {
           {/* Выбор уровня (профильный/базовый) */}
           {showLevelSelection && (
             <div className="mb-8 animate-scale-in">
-              <h2 className="text-2xl font-display font-semibold text-white mb-4 flex items-center">
-                <span className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse" />
+              <h2 className="text-2xl font-semibold text-slate-900 mb-4 flex items-center">
+                <span className="w-2 h-2 bg-violet-600 rounded-full mr-3 animate-pulse" />
                 Выберите уровень
               </h2>
-              <p className="text-gray-400 font-sans mb-6">
+              <p className="text-slate-600 mb-6">
                 {subject === 'MATHEMATICS' && selectedGrade === 11
                   ? 'Базовый уровень оценивается по 5-балльной шкале, профильный — по 100-балльной'
                   : 'Выберите уровень сложности ВПР'}
@@ -259,8 +257,8 @@ export default function TestSetupPage() {
                       animate-scale-in
                       ${
                         selectedLevel === option.value
-                          ? 'border-purple-500 bg-gradient-to-r from-purple-500/20 to-pink-500/20 shadow-[0_0_30px_rgba(168,85,247,0.3)] scale-105'
-                          : 'border-gray-700 bg-gray-800/50 hover:border-purple-500/50 hover:bg-gray-800/70'
+                          ? 'border-violet-500 bg-violet-50 shadow-lg shadow-violet-500/25 scale-105'
+                          : 'border-slate-200 bg-white hover:border-violet-300 hover:shadow-md'
                       }
                     `}
                     style={{ animationDelay: `${index * 100}ms` }}
@@ -269,8 +267,8 @@ export default function TestSetupPage() {
                       <div
                         className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
                           selectedLevel === option.value
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500'
-                            : 'bg-gray-700 group-hover:bg-gray-600'
+                            ? 'bg-gradient-to-r from-violet-500 to-violet-600'
+                            : 'bg-slate-100 group-hover:bg-slate-200'
                         }`}
                       >
                         {option.value === 'base' ? (
@@ -307,19 +305,19 @@ export default function TestSetupPage() {
                       </div>
                       <div className="flex-1">
                         <div
-                          className={`text-xl font-display font-bold mb-1 transition-colors ${
+                          className={`text-xl font-bold mb-1 transition-colors ${
                             selectedLevel === option.value
-                              ? 'text-purple-400'
-                              : 'text-white group-hover:text-purple-400'
+                              ? 'text-violet-600'
+                              : 'text-slate-900 group-hover:text-violet-600'
                           }`}
                         >
                           {option.label}
                         </div>
                         <div
-                          className={`text-sm font-sans transition-colors ${
+                          className={`text-sm transition-colors ${
                             selectedLevel === option.value
-                              ? 'text-purple-300'
-                              : 'text-gray-400 group-hover:text-gray-300'
+                              ? 'text-violet-700'
+                              : 'text-slate-600 group-hover:text-slate-700'
                           }`}
                         >
                           {option.description}
@@ -328,7 +326,7 @@ export default function TestSetupPage() {
                     </div>
 
                     {selectedLevel === option.value && (
-                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-1.5 animate-scale-in">
+                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-violet-500 to-violet-600 rounded-full p-1.5 animate-scale-in shadow-lg">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
@@ -353,10 +351,10 @@ export default function TestSetupPage() {
 
           {/* Информация о тесте */}
           {selectedGrade && (!showLevelSelection || selectedLevel) && (
-            <div className="p-6 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-2xl mb-6 animate-scale-in">
+            <div className="p-6 bg-blue-50 border border-blue-200 rounded-2xl mb-6 animate-scale-in">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
@@ -374,16 +372,16 @@ export default function TestSetupPage() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-display font-semibold text-white mb-2">
+                  <h3 className="font-semibold text-slate-900 mb-2">
                     Решить вариант {getExamType(selectedGrade, selectedLevel)}
                   </h3>
-                  <ul className="text-sm text-gray-300 font-sans space-y-1">
+                  <ul className="text-sm text-slate-700 space-y-1">
                     <li className="flex items-center gap-2">
-                      <span className="text-cyan-400">•</span>
+                      <span className="text-blue-600">•</span>
                       Полный вариант {getExamType(selectedGrade, selectedLevel)}
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-cyan-400">•</span>
+                      <span className="text-blue-600">•</span>
                       Время на прохождение: {getExamDuration(selectedGrade, subject || '')}
                     </li>
                   </ul>
@@ -407,7 +405,7 @@ export default function TestSetupPage() {
         </div>
 
         <div
-          className="mt-6 p-4 bg-gray-900/50 border border-gray-700/50 rounded-2xl backdrop-blur-sm animate-fade-in"
+          className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-2xl animate-fade-in"
           style={{ animationDelay: '200ms' }}
         >
           <div className="flex items-start gap-3">
@@ -417,7 +415,7 @@ export default function TestSetupPage() {
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5"
+              className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
             >
               <path
                 strokeLinecap="round"
@@ -426,8 +424,8 @@ export default function TestSetupPage() {
               />
             </svg>
             <div className="flex-1">
-              <p className="text-sm text-gray-400 font-sans">
-                <span className="text-cyan-400 font-semibold">Совет:</span> Выбирайте класс честно -
+              <p className="text-sm text-slate-700">
+                <span className="text-blue-600 font-semibold">Совет:</span> Выбирайте класс честно -
                 это поможет нам точнее оценить ваш уровень и подготовить персональный план обучения
               </p>
             </div>

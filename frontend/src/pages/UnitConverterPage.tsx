@@ -200,20 +200,20 @@ function UnitConverterPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gray-950 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-yellow-500/5 opacity-30" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/20 rounded-full blur-[80px] animate-pulse" />
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
+        {/* Background blur circles */}
+        <div className="absolute top-20 right-20 w-96 h-96 bg-amber-100/50 rounded-full blur-3xl" />
         <div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-yellow-500/20 rounded-full blur-[80px] animate-pulse"
+          className="absolute bottom-20 left-20 w-96 h-96 bg-orange-100/50 rounded-full blur-3xl"
           style={{ animationDelay: '1s' }}
         />
 
         <main className="relative z-10 max-w-4xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-400 via-yellow-400 to-amber-400 bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
               Конвертер единиц
             </h1>
-            <p className="text-gray-400 text-lg">
+            <p className="text-slate-600 text-lg">
               Быстрая конвертация между различными единицами измерения
             </p>
           </div>
@@ -224,10 +224,10 @@ function UnitConverterPage() {
               <button
                 key={key}
                 onClick={() => handleCategoryChange(key)}
-                className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                className={`px-4 py-2 rounded-xl font-medium transition-all shadow-sm ${
                   category === key
-                    ? 'bg-orange-500/20 border border-orange-500/50 text-orange-400'
-                    : 'bg-gray-800 border border-gray-700 text-gray-400 hover:text-white'
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 <span className="mr-2">{cat.icon}</span>
@@ -237,15 +237,15 @@ function UnitConverterPage() {
           </div>
 
           {/* Конвертер */}
-          <div className="bg-gray-900/50 border border-gray-700/50 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 shadow-lg rounded-2xl p-6">
             <div className="grid grid-cols-1 md:grid-cols-[1fr,auto,1fr] gap-4 items-end">
               {/* От */}
               <div>
-                <label className="block text-gray-400 text-sm mb-2">Из</label>
+                <label className="block text-slate-700 text-sm font-medium mb-2">Из</label>
                 <select
                   value={fromUnit}
                   onChange={e => handleFromUnitChange(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white focus:border-orange-500 focus:outline-none mb-2"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 mb-2"
                 >
                   {currentCategory.units.map(unit => (
                     <option key={unit.id} value={unit.id}>
@@ -257,7 +257,7 @@ function UnitConverterPage() {
                   type="number"
                   value={fromValue}
                   onChange={e => handleFromValueChange(e.target.value)}
-                  className="w-full px-4 py-4 bg-gray-800 border border-gray-600 rounded-xl text-white text-2xl font-bold focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-2xl font-bold focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                   placeholder="0"
                 />
               </div>
@@ -266,7 +266,7 @@ function UnitConverterPage() {
               <div className="flex justify-center py-4">
                 <button
                   onClick={swapUnits}
-                  className="p-3 bg-orange-500/20 border border-orange-500/50 text-orange-400 rounded-xl hover:bg-orange-500/30 transition-colors"
+                  className="p-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-sm transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -281,11 +281,11 @@ function UnitConverterPage() {
 
               {/* В */}
               <div>
-                <label className="block text-gray-400 text-sm mb-2">В</label>
+                <label className="block text-slate-700 text-sm font-medium mb-2">В</label>
                 <select
                   value={toUnit}
                   onChange={e => handleToUnitChange(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white focus:border-orange-500 focus:outline-none mb-2"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 mb-2"
                 >
                   {currentCategory.units.map(unit => (
                     <option key={unit.id} value={unit.id}>
@@ -297,7 +297,7 @@ function UnitConverterPage() {
                   type="number"
                   value={toValue}
                   onChange={e => handleToValueChange(e.target.value)}
-                  className="w-full px-4 py-4 bg-gray-800 border border-gray-600 rounded-xl text-white text-2xl font-bold focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-2xl font-bold focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                   placeholder="0"
                 />
               </div>
@@ -306,11 +306,11 @@ function UnitConverterPage() {
             {/* Формула */}
             {fromValue && toValue && (
               <div className="mt-6 text-center">
-                <p className="text-gray-400">
-                  <span className="text-orange-400 font-bold">{fromValue}</span>{' '}
+                <p className="text-slate-600">
+                  <span className="text-amber-600 font-bold">{fromValue}</span>{' '}
                   {currentCategory.units.find(u => u.id === fromUnit)?.name}
                   {' = '}
-                  <span className="text-yellow-400 font-bold">{toValue}</span>{' '}
+                  <span className="text-orange-600 font-bold">{toValue}</span>{' '}
                   {currentCategory.units.find(u => u.id === toUnit)?.name}
                 </p>
               </div>
@@ -322,12 +322,12 @@ function UnitConverterPage() {
             {currentCategory.units.slice(0, 4).map(unit => (
               <div
                 key={unit.id}
-                className="bg-gray-900/30 border border-gray-700/50 rounded-xl p-4 text-center"
+                className="bg-white border border-slate-200 shadow-sm rounded-xl p-4 text-center"
               >
-                <p className="text-2xl font-bold text-white">
+                <p className="text-2xl font-bold text-slate-900">
                   {convert(fromValue || '0', fromUnit, unit.id) || '0'}
                 </p>
-                <p className="text-gray-400 text-sm">{unit.name}</p>
+                <p className="text-slate-600 text-sm">{unit.name}</p>
               </div>
             ))}
           </div>

@@ -243,40 +243,36 @@ function FormulaCalculatorPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gray-950 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 opacity-30" />
-        <div className="absolute top-20 right-10 w-72 h-72 bg-indigo-500/20 rounded-full blur-[80px] animate-pulse" />
-        <div
-          className="absolute bottom-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[80px] animate-pulse"
-          style={{ animationDelay: '1s' }}
-        />
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
+        <div className="absolute top-20 right-10 w-72 h-72 bg-indigo-100/50 rounded-full blur-[120px]" />
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-100/50 rounded-full blur-[120px]" />
 
         <main className="relative z-10 max-w-6xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
               Калькулятор формул
             </h1>
-            <p className="text-gray-400 text-lg">Подставляйте значения - получайте результат</p>
+            <p className="text-slate-600 text-lg">Подставляйте значения - получайте результат</p>
           </div>
 
           {/* Категории */}
           <div className="flex justify-center gap-4 mb-8">
             <button
               onClick={() => handleCategoryChange('physics')}
-              className={`px-6 py-3 rounded-xl font-medium transition-all ${
+              className={`px-6 py-3 rounded-xl font-medium transition-all shadow-lg ${
                 category === 'physics'
-                  ? 'bg-indigo-500/20 border border-indigo-500/50 text-indigo-400'
-                  : 'bg-gray-800 border border-gray-700 text-gray-400 hover:text-white'
+                  ? 'bg-indigo-500 text-white'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900'
               }`}
             >
               ⚛️ Физика
             </button>
             <button
               onClick={() => handleCategoryChange('math')}
-              className={`px-6 py-3 rounded-xl font-medium transition-all ${
+              className={`px-6 py-3 rounded-xl font-medium transition-all shadow-lg ${
                 category === 'math'
-                  ? 'bg-purple-500/20 border border-purple-500/50 text-purple-400'
-                  : 'bg-gray-800 border border-gray-700 text-gray-400 hover:text-white'
+                  ? 'bg-purple-500 text-white'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900'
               }`}
             >
               📐 Математика
@@ -285,8 +281,8 @@ function FormulaCalculatorPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Список формул */}
-            <div className="bg-gray-900/50 border border-gray-700/50 rounded-2xl p-4 max-h-[600px] overflow-y-auto">
-              <h2 className="text-lg font-bold text-white mb-4">Формулы</h2>
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 max-h-[600px] overflow-y-auto shadow-lg">
+              <h2 className="text-lg font-bold text-slate-900 mb-4">Формулы</h2>
               <div className="space-y-2">
                 {FORMULAS[category].map(formula => (
                   <button
@@ -294,16 +290,16 @@ function FormulaCalculatorPage() {
                     onClick={() => handleFormulaChange(formula)}
                     className={`w-full text-left p-3 rounded-xl transition-all ${
                       selectedFormula.id === formula.id
-                        ? 'bg-indigo-500/20 border border-indigo-500/50'
-                        : 'bg-gray-800/50 border border-transparent hover:border-gray-600'
+                        ? 'bg-indigo-50 border border-indigo-500'
+                        : 'bg-slate-50 border border-transparent hover:border-slate-300'
                     }`}
                   >
                     <p
-                      className={`font-medium ${selectedFormula.id === formula.id ? 'text-indigo-400' : 'text-white'}`}
+                      className={`font-medium ${selectedFormula.id === formula.id ? 'text-indigo-700' : 'text-slate-900'}`}
                     >
                       {formula.name}
                     </p>
-                    <p className="text-sm text-gray-500 font-mono">{formula.formula}</p>
+                    <p className="text-sm text-slate-600 font-mono">{formula.formula}</p>
                   </button>
                 ))}
               </div>
@@ -312,33 +308,33 @@ function FormulaCalculatorPage() {
             {/* Калькулятор */}
             <div className="lg:col-span-2 space-y-6">
               {/* Формула */}
-              <div className="bg-gray-900/50 border border-gray-700/50 rounded-2xl p-6">
-                <h2 className="text-xl font-bold text-white mb-2">{selectedFormula.name}</h2>
-                <p className="text-gray-400 mb-4">{selectedFormula.description}</p>
-                <div className="bg-gray-800 rounded-xl p-4 text-center">
-                  <span className="text-3xl font-mono text-indigo-400">
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
+                <h2 className="text-xl font-bold text-slate-900 mb-2">{selectedFormula.name}</h2>
+                <p className="text-slate-600 mb-4">{selectedFormula.description}</p>
+                <div className="bg-slate-50 rounded-xl p-4 text-center border border-slate-200">
+                  <span className="text-3xl font-mono text-indigo-600">
                     {selectedFormula.formula}
                   </span>
                 </div>
               </div>
 
               {/* Ввод значений */}
-              <div className="bg-gray-900/50 border border-gray-700/50 rounded-2xl p-6">
-                <h3 className="text-lg font-bold text-white mb-4">Введите значения</h3>
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">Введите значения</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {selectedFormula.variables.map(variable => (
                     <div key={variable.id}>
-                      <label className="block text-gray-400 text-sm mb-2">{variable.name}</label>
+                      <label className="block text-slate-600 text-sm mb-2">{variable.name}</label>
                       <div className="flex">
                         <input
                           type="number"
                           value={values[variable.id] || ''}
                           onChange={e => handleValueChange(variable.id, e.target.value)}
-                          className="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-l-xl text-white focus:border-indigo-500 focus:outline-none"
+                          className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-l-xl text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                           placeholder="0"
                         />
                         {variable.unit && (
-                          <span className="px-4 py-3 bg-gray-700 border border-gray-600 border-l-0 rounded-r-xl text-gray-400">
+                          <span className="px-4 py-3 bg-slate-100 border border-slate-200 border-l-0 rounded-r-xl text-slate-600">
                             {variable.unit}
                           </span>
                         )}
@@ -350,15 +346,15 @@ function FormulaCalculatorPage() {
 
               {/* Результат */}
               {result && (
-                <div className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-2xl p-6 animate-fade-in">
-                  <h3 className="text-lg font-bold text-white mb-2">Результат</h3>
+                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-6 animate-fade-in shadow-lg">
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">Результат</h3>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-indigo-400">
+                    <span className="text-4xl font-bold text-indigo-600">
                       {result.result.toFixed(4).replace(/\.?0+$/, '')}
                     </span>
-                    <span className="text-xl text-gray-400">{result.unit}</span>
+                    <span className="text-xl text-slate-600">{result.unit}</span>
                   </div>
-                  <p className="text-gray-400 mt-2">{result.name}</p>
+                  <p className="text-slate-600 mt-2">{result.name}</p>
                 </div>
               )}
             </div>

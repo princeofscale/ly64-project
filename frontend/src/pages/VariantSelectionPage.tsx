@@ -85,11 +85,11 @@ export default function VariantSelectionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
         <div className="relative">
-          <div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
           <div
-            className="absolute inset-0 w-16 h-16 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"
+            className="absolute inset-0 w-16 h-16 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin"
             style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}
           />
         </div>
@@ -98,19 +98,17 @@ export default function VariantSelectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 dark:bg-black relative overflow-hidden py-12 px-4">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
-
-      <div className="absolute top-20 right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden py-12 px-4">
+      <div className="absolute top-20 right-10 w-96 h-96 bg-blue-100/50 rounded-full blur-[120px] -z-10 animate-pulse" />
       <div
-        className="absolute bottom-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse"
+        className="absolute bottom-20 left-10 w-96 h-96 bg-violet-100/50 rounded-full blur-[120px] -z-10 animate-pulse"
         style={{ animationDelay: '1s' }}
       />
 
       <div className="relative z-10 max-w-4xl mx-auto">
         <button
           onClick={() => navigate(-1)}
-          className="group mb-6 flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors font-sans"
+          className="group mb-6 flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -129,12 +127,12 @@ export default function VariantSelectionPage() {
           Назад
         </button>
 
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-[0_0_50px_rgba(6,182,212,0.1)] animate-slide-up">
+        <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-8 shadow-xl animate-slide-up">
           <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-display font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-3">
               Выберите вариант
             </h1>
-            <p className="text-gray-400 text-lg font-sans">
+            <p className="text-slate-600 text-lg">
               {subjectLabel} • {grade} класс • {getExamType(grade)}
             </p>
           </div>
@@ -142,26 +140,26 @@ export default function VariantSelectionPage() {
           {unsupportedGrade ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-6">🚧</div>
-              <h2 className="text-2xl font-bold text-white mb-4">Класс не поддерживается</h2>
-              <p className="text-gray-400 font-sans mb-6 max-w-md mx-auto">
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">Класс не поддерживается</h2>
+              <p className="text-slate-600 mb-6 max-w-md mx-auto">
                 Для {grade} класса варианты пока не доступны.
               </p>
-              <Button variant="outline" onClick={() => navigate(-1)}>
+              <Button variant="secondary" onClick={() => navigate(-1)}>
                 Вернуться назад
               </Button>
             </div>
           ) : errorMessage ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-6">⚠️</div>
-              <h2 className="text-2xl font-bold text-white mb-4">Ошибка загрузки</h2>
-              <p className="text-gray-400 font-sans mb-6 max-w-md mx-auto">{errorMessage}</p>
-              <Button variant="outline" onClick={() => navigate(-1)}>
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">Ошибка загрузки</h2>
+              <p className="text-slate-600 mb-6 max-w-md mx-auto">{errorMessage}</p>
+              <Button variant="secondary" onClick={() => navigate(-1)}>
                 Вернуться назад
               </Button>
             </div>
           ) : variants.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-400 font-sans">Варианты не найдены</p>
+              <p className="text-slate-600">Варианты не найдены</p>
             </div>
           ) : (
             <>
@@ -172,28 +170,28 @@ export default function VariantSelectionPage() {
                     onClick={() => setSelectedVariant(variant.id)}
                     className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 hover:scale-105 animate-scale-in ${
                       selectedVariant === variant.id
-                        ? 'border-cyan-500 bg-cyan-500/10 shadow-[0_0_20px_rgba(6,182,212,0.3)]'
-                        : 'border-gray-700/50 bg-gray-800/30 hover:border-cyan-500/50'
+                        ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/25'
+                        : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-md'
                     }`}
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className="text-center">
                       <div
-                        className={`text-3xl font-bold font-display mb-2 transition-colors ${
+                        className={`text-3xl font-bold mb-2 transition-colors ${
                           selectedVariant === variant.id
-                            ? 'text-cyan-400'
-                            : 'text-gray-300 group-hover:text-cyan-400'
+                            ? 'text-blue-600'
+                            : 'text-slate-700 group-hover:text-blue-600'
                         }`}
                       >
                         {variant.number}
                       </div>
-                      <div className="text-xs text-gray-500 font-sans">Вариант</div>
+                      <div className="text-xs text-slate-500">Вариант</div>
                     </div>
 
                     {selectedVariant === variant.id && (
                       <div className="absolute top-2 right-2">
                         <svg
-                          className="w-5 h-5 text-cyan-400"
+                          className="w-5 h-5 text-blue-600"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >

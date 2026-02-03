@@ -87,18 +87,21 @@ export default function LearningPlanPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="text-slate-600">Загрузка плана обучения...</p>
+        </div>
       </div>
     );
   }
 
   if (!plan) {
     return (
-      <div className="min-h-screen py-12 px-4">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white py-12 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-2xl font-bold mb-4">План обучения не найден</h1>
-          <p className="text-gray-600 mb-6">План обучения будет доступен позже</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-4">План обучения не найден</h1>
+          <p className="text-slate-600 mb-6">План обучения будет доступен позже</p>
           <Button onClick={() => navigate('/dashboard')}>Перейти на дашборд</Button>
         </div>
       </div>
@@ -110,26 +113,30 @@ export default function LearningPlanPage() {
   const groupedItems = groupItemsBySubject(plan.items);
 
   return (
-    <div className="min-h-screen py-12 px-4 bg-gray-50">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Персональный план обучения</h1>
-          <p className="text-gray-600 mb-6">
+    <div className="min-h-screen py-12 px-4 bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
+      {/* Background blur circles */}
+      <div className="absolute top-20 right-20 w-96 h-96 bg-blue-100/50 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 left-20 w-96 h-96 bg-violet-100/50 rounded-full blur-3xl" />
+
+      <div className="max-w-4xl mx-auto relative z-10">
+        <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-200 mb-6">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Персональный план обучения</h1>
+          <p className="text-slate-600 mb-6">
             Следуйте плану для эффективной подготовки к поступлению
           </p>
 
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6">
+          <div className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-xl p-6">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-gray-700">Общий прогресс</span>
-              <span className="font-bold text-lg">{progress}%</span>
+              <span className="text-slate-700">Общий прогресс</span>
+              <span className="font-bold text-lg text-slate-900">{progress}%</span>
             </div>
-            <div className="w-full bg-white rounded-full h-4 shadow-inner">
+            <div className="w-full bg-slate-100 rounded-full h-4 shadow-inner">
               <div
-                className="bg-gradient-to-r from-blue-500 to-indigo-500 h-4 rounded-full transition-all"
+                className="bg-gradient-to-r from-blue-600 to-violet-600 h-4 rounded-full transition-all"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <div className="flex justify-between text-sm text-gray-600 mt-2">
+            <div className="flex justify-between text-sm text-slate-600 mt-2">
               <span>Изучено: {plan.completedHours} ч</span>
               <span>Всего: {plan.totalHours} ч</span>
             </div>
@@ -144,11 +151,11 @@ export default function LearningPlanPage() {
           return (
             <div
               key={subject}
-              className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 mb-4"
+              className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 mb-4"
             >
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">{subjectLabel}</h2>
-                <span className="text-sm text-gray-600">
+                <h2 className="text-xl font-bold text-slate-900">{subjectLabel}</h2>
+                <span className="text-sm text-slate-600">
                   {completedCount}/{items.length} тем ({subjectProgress}%)
                 </span>
               </div>
@@ -158,7 +165,7 @@ export default function LearningPlanPage() {
                   <div
                     key={item.id}
                     className={`flex items-center justify-between p-4 rounded-xl border ${
-                      item.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+                      item.completed ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -167,7 +174,7 @@ export default function LearningPlanPage() {
                         className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                           item.completed
                             ? 'bg-green-500 border-green-500 text-white'
-                            : 'border-gray-300 hover:border-blue-500'
+                            : 'border-slate-300 hover:border-blue-600'
                         }`}
                         disabled={item.completed}
                       >
@@ -187,11 +194,11 @@ export default function LearningPlanPage() {
                           </svg>
                         )}
                       </button>
-                      <span className={item.completed ? 'line-through text-gray-500' : ''}>
+                      <span className={item.completed ? 'line-through text-slate-500' : 'text-slate-900'}>
                         {item.topic}
                       </span>
                     </div>
-                    <span className="text-sm text-gray-500">{item.estimatedHours} ч</span>
+                    <span className="text-sm text-slate-500">{item.estimatedHours} ч</span>
                   </div>
                 ))}
               </div>
