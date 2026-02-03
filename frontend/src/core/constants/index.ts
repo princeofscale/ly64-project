@@ -15,6 +15,12 @@ export const EXAM_CONFIG = {
     description: 'Основной государственный экзамен',
     grade: 9 as Grade,
   },
+  EGE: {
+    duration: 235, // 3 часа 55 минут
+    title: 'ЕГЭ',
+    description: 'Единый государственный экзамен',
+    grade: 11 as Grade,
+  },
   EGE_PROFILE: {
     duration: 235, // 3 часа 55 минут
     title: 'ЕГЭ (Профильный)',
@@ -26,6 +32,12 @@ export const EXAM_CONFIG = {
     title: 'ЕГЭ (Базовый)',
     description: 'Единый государственный экзамен базового уровня',
     grade: 11 as Grade,
+  },
+  VPR: {
+    duration: 90, // 1.5 часа
+    title: 'ВПР',
+    description: 'Всероссийская проверочная работа',
+    grade: 8 as Grade,
   },
   REGULAR: {
     duration: 30,
@@ -54,6 +66,8 @@ export const SUBJECT_NAMES: Record<Subject, string> = {
   BIOLOGY: 'Биология',
   RUSSIAN: 'Русский язык',
   INFORMATICS: 'Информатика',
+  HISTORY: 'История',
+  ENGLISH: 'Английский язык',
 } as const;
 
 /**
@@ -66,6 +80,8 @@ export const SUBJECT_ICONS: Record<Subject, string> = {
   BIOLOGY: '🧬',
   RUSSIAN: '📖',
   INFORMATICS: '💻',
+  HISTORY: '📜',
+  ENGLISH: '🇬🇧',
 } as const;
 
 /**
@@ -78,6 +94,8 @@ export const SUBJECT_COLORS: Record<Subject, { from: string; to: string }> = {
   BIOLOGY: { from: 'lime-500', to: 'green-500' },
   RUSSIAN: { from: 'red-500', to: 'orange-500' },
   INFORMATICS: { from: 'blue-500', to: 'indigo-500' },
+  HISTORY: { from: 'amber-500', to: 'yellow-500' },
+  ENGLISH: { from: 'sky-500', to: 'blue-500' },
 } as const;
 
 /**

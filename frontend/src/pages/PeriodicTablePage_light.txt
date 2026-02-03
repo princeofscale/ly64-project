@@ -1,0 +1,13 @@
+Key changes for PeriodicTablePage.tsx light theme:
+
+1. Background: bg-gradient-to-b from-blue-50 via-white to-white
+2. Add blur circles: bg-blue-100/50 and bg-violet-100/50
+3. Title: text-slate-900 (remove gradient)
+4. Subtitle: text-slate-600
+5. Search input: bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+6. Legend text: text-slate-600
+7. Element hover: hover:shadow-lg
+8. Element ring: ring-blue-600 (when selected or highlighted)
+9. Lanthanide/Actinide labels: text-slate-500
+10. Info card: bg-white border-slate-200 shadow-lg
+11. Info card text: text-slate-900 (headings), text-slate-600 (labels), font-medium for values

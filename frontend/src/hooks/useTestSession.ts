@@ -84,7 +84,7 @@ export function useTestSession(options: UseTestSessionOptions): UseTestSessionRe
       const serialized = session.serialize();
       storage.saveSession(serialized, {
         examId: exam.id,
-        examType: exam.type,
+        examType: exam.examType,
         subject: exam.subject,
         grade: exam.grade,
         ...sessionMetadata,
