@@ -49,11 +49,11 @@ export const generalLimiter = rateLimit({
 });
 
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
+  windowMs: 1 * 60 * 1000, // 1 minute for development
+  max: 50, // Increased for development
   message: {
-    error: 'Слишком много попыток входа. Попробуйте через 15 минут.',
-    retryAfter: 15,
+    error: 'Слишком много попыток входа. Попробуйте через минуту.',
+    retryAfter: 1,
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -61,11 +61,11 @@ export const authLimiter = rateLimit({
 });
 
 export const registrationLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 3,
+  windowMs: 1 * 60 * 1000, // 1 minute for development
+  max: 100, // Increased for development
   message: {
-    error: 'Слишком много попыток регистрации. Попробуйте через час.',
-    retryAfter: 60,
+    error: 'Слишком много попыток регистрации. Попробуйте через минуту.',
+    retryAfter: 1,
   },
   standardHeaders: true,
   legacyHeaders: false,
