@@ -184,6 +184,7 @@ export default function ExamTestPage() {
   };
 
   const handleAnswer = (answer: string) => {
+    if (!currentTask) return;
     setAnswers(prev => ({
       ...prev,
       [currentTask.number]: answer,
@@ -493,6 +494,16 @@ export default function ExamTestPage() {
               </Button>
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentTask) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-slate-600">Задания не найдены</p>
         </div>
       </div>
     );
