@@ -22,7 +22,7 @@ export class AntiCheatService {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
     }
     return shuffled;
   }
@@ -40,14 +40,24 @@ export class AntiCheatService {
 
     if (!test) return null;
 
-    let questions = test.questions.map(tq => ({
-      id: tq.question.id,
-      question: tq.question.question,
-      type: tq.question.type,
-      difficulty: tq.question.difficulty,
-      options: tq.question.options ? JSON.parse(tq.question.options) : null,
-      topic: tq.question.topic,
-    }));
+    let questions = test.questions.map(tq => {
+      let options = null;
+      if (tq.question.options) {
+        try {
+          options = JSON.parse(tq.question.options);
+        } catch {
+          options = null;
+        }
+      }
+      return {
+        id: tq.question.id,
+        question: tq.question.question,
+        type: tq.question.type,
+        difficulty: tq.question.difficulty,
+        options,
+        topic: tq.question.topic,
+      };
+    });
 
     if (test.randomizeQuestions) {
       questions = this.shuffleArray(questions);
@@ -127,7 +137,12 @@ export class AntiCheatService {
       const testQuestion = test.questions.find(tq => tq.question.id === answer.questionId);
       if (!testQuestion) continue;
 
-      const correctAnswer = JSON.parse(testQuestion.question.correctAnswer);
+      let correctAnswer: unknown;
+      try {
+        correctAnswer = JSON.parse(testQuestion.question.correctAnswer);
+      } catch {
+        correctAnswer = testQuestion.question.correctAnswer;
+      }
 
       if (Array.isArray(answer.answer) && Array.isArray(correctAnswer)) {
         const isCorrect =

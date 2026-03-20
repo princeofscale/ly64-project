@@ -16,7 +16,8 @@ export type Subject =
   | 'RUSSIAN'
   | 'INFORMATICS'
   | 'HISTORY'
-  | 'ENGLISH';
+  | 'ENGLISH'
+  | 'SOCIAL';
 
 export type Grade = 8 | 9 | 10 | 11;
 

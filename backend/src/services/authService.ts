@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 
 import prisma from '../config/database';
 import { AppError } from '../middlewares/errorHandler';
+import { logger } from '../utils/logger';
 
 import achievementService from './achievementService';
 import emailValidationService from './emailValidationService';
@@ -13,8 +14,7 @@ const SALT_ROUNDS = 10;
 
 export class AuthService {
   async generateUsername(email: string): Promise<string> {
-    const baseUsername = email
-      .split('@')[0]
+    const baseUsername = (email.split('@')[0] ?? 'user')
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '_');
 
@@ -115,7 +115,7 @@ export class AuthService {
 
     achievementService
       .checkAndUnlockAchievements(user.id)
-      .catch(err => console.error('Error unlocking achievements:', err));
+      .catch(err => logger.error('Error unlocking achievements:', err));
 
     const tokens = await tokenService.generateTokenPair({
       id: user.id,

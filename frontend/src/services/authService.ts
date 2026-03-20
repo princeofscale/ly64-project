@@ -41,9 +41,6 @@ interface AuthResponse {
 }
 
 export const authService = {
-  /**
-   * Register new user
-   */
   async register(data: RegisterData): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/register', data);
 
@@ -55,9 +52,6 @@ export const authService = {
     return response.data;
   },
 
-  /**
-   * Login user
-   */
   async login(data: LoginData): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/login', data);
 
@@ -69,22 +63,20 @@ export const authService = {
     return response.data;
   },
 
-  /**
-   * Logout from current device
-   */
   async logout(): Promise<void> {
     try {
       await authApi.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch {
     } finally {
       useAuthStore.getState().logout();
+      try {
+        localStorage.removeItem('active-test');
+        localStorage.removeItem('sdamgia-test-answers');
+      } catch {
+      }
     }
   },
 
-  /**
-   * Logout from all devices
-   */
   async logoutAll(): Promise<void> {
     try {
       await authApi.logoutAll();
@@ -93,16 +85,10 @@ export const authService = {
     }
   },
 
-  /**
-   * Get active sessions
-   */
   async getSessions() {
     return authApi.getSessions();
   },
 
-  /**
-   * Get current user data
-   */
   async getCurrentUser() {
     const response = await api.get('/auth/me');
     return response.data;

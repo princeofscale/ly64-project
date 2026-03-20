@@ -1,13 +1,13 @@
 import { Eye, EyeOff, ArrowLeft, GraduationCap, Mail, Lock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-
-import { useAuthStore } from '@/store/authStore';
-
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+
 import { authService } from '../services/authService';
 
 import type { FormEvent } from 'react';
+
+import { useAuthStore } from '@/store/authStore';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -20,72 +20,67 @@ export default function LoginPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
-  const [shake, setShake] = useState(false);
   const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      void navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
-    setShake(false);
 
     try {
       await authService.login(formData);
       toast.success('Вход выполнен успешно!');
-      setTimeout(() => navigate('/dashboard'), 500);
+      setTimeout(() => void navigate('/dashboard'), 500);
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : 'Неверный email или пароль';
       toast.error(errorMessage);
-      setTimeout(() => setShake(false), 650);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-4 py-12">
-      {/* Background decorations */}
+    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ backgroundColor: 'var(--color-bg)' }}>
+      {}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100/50 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4" />
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-violet-100/50 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/4" />
 
       <div className="relative w-full max-w-md">
-        {/* Logo */}
+        {}
         <Link to="/" className="flex items-center justify-center gap-3 mb-8">
           <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/25">
             <GraduationCap className="w-6 h-6 text-white" />
           </div>
           <div>
-            <p className="font-bold text-slate-900">Лицей-интернат №64</p>
-            <p className="text-sm text-slate-500">Платформа подготовки</p>
+            <p className="font-bold" style={{ color: 'var(--color-text)' }}>Лицей-интернат №64</p>
+            <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Платформа подготовки</p>
           </div>
         </Link>
 
-        {/* Card */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/50 animate-fade-in">
-          {/* Header */}
+        {}
+        <div className="border rounded-2xl p-8 shadow-xl animate-fade-in" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+          {}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">Добро пожаловать!</h1>
+            <h1 className="text-2xl font-bold  mb-2" style={{ color: 'var(--color-text)' }}>Добро пожаловать!</h1>
             <p className="text-slate-500">Войдите, чтобы продолжить обучение</p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          {}
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+              <label htmlFor="email-input" className="block text-sm font-medium text-slate-700 mb-2">Email</label>
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
                   <Mail className="w-5 h-5 text-slate-400" />
                 </div>
                 <input
+                  id="email-input"
                   type="email"
                   name="email"
                   value={formData.email}
@@ -96,17 +91,16 @@ export default function LoginPage() {
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                 />
               </div>
-              <span className="text-2xl font-bold">LY64</span>
             </div>
-          </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Пароль</label>
+              <label htmlFor="password-input" className="block text-sm font-medium text-slate-700 mb-2">Пароль</label>
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
                   <Lock className="w-5 h-5 text-slate-400" />
                 </div>
                 <input
+                  id="password-input"
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
@@ -141,9 +135,15 @@ export default function LoginPage() {
                 'Войти'
               )}
             </button>
+
+            <div className="text-center mt-3">
+              <p className="text-xs text-slate-400">
+                Забыли пароль? Обратитесь к администратору.
+              </p>
+            </div>
           </form>
 
-          {/* Divider */}
+          {}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-200" />
@@ -153,7 +153,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Footer */}
+          {}
           <div className="text-center">
             <p className="text-slate-600">
               Нет аккаунта?{' '}
@@ -164,7 +164,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Back link */}
+        {}
         <div className="mt-6 text-center">
           <Link
             to="/"
@@ -175,67 +175,6 @@ export default function LoginPage() {
           </Link>
         </div>
       </div>
-
-      <style>{`
-        @keyframes blob {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          25% { transform: translate(20px, -50px) scale(1.1); }
-          50% { transform: translate(-20px, 20px) scale(0.9); }
-          75% { transform: translate(20px, 20px) scale(1.05); }
-        }
-
-        @keyframes slide-in-left {
-          from {
-            opacity: 0;
-            transform: translateX(-30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes slide-in-right {
-          from {
-            opacity: 0;
-            transform: translateX(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-          20%, 40%, 60%, 80% { transform: translateX(10px); }
-        }
-
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-
-        .animate-slide-in-left {
-          animation: slide-in-left 0.6s ease-out;
-        }
-
-        .animate-slide-in-right {
-          animation: slide-in-right 0.6s ease-out;
-        }
-
-        .animate-shake {
-          animation: shake 0.65s cubic-bezier(.36,.07,.19,.97) both;
-        }
-      `}</style>
     </div>
   );
 }

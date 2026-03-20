@@ -22,7 +22,7 @@ export function PageContainer({
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
-      {/* Decorative blur circles */}
+      {}
       {withDecorations && (
         <>
           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/50 rounded-full blur-[100px] -z-10 pointer-events-none" />
@@ -31,7 +31,7 @@ export function PageContainer({
         </>
       )}
 
-      {/* Content */}
+      {}
       <div className={`${maxWidthClasses[maxWidth]} mx-auto px-4 sm:px-6 lg:px-8 py-8 ${className}`}>
         {children}
       </div>

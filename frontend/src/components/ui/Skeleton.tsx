@@ -1,8 +1,3 @@
-/**
- * Skeleton Loading Components
- * Компоненты скелетонной загрузки
- */
-
 import { motion } from 'framer-motion';
 
 import type { ReactNode } from 'react';
@@ -13,15 +8,12 @@ interface SkeletonProps {
   style?: React.CSSProperties;
 }
 
-/**
- * Base skeleton component with shimmer animation
- */
 export function Skeleton({ className = '', animate = true, style }: SkeletonProps) {
   return (
-    <div className={`relative overflow-hidden bg-gray-800 rounded ${className}`} style={style}>
+    <div className={`relative overflow-hidden bg-slate-200 rounded ${className}`} style={style}>
       {animate && (
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-100/50 to-transparent"
           animate={{
             x: ['-100%', '100%'],
           }}
@@ -36,9 +28,6 @@ export function Skeleton({ className = '', animate = true, style }: SkeletonProp
   );
 }
 
-/**
- * Text skeleton (single line)
- */
 export function SkeletonText({
   width = '100%',
   className = '',
@@ -50,9 +39,6 @@ export function SkeletonText({
   return <Skeleton className={`h-4 ${className}`} style={{ width: widthStyle }} />;
 }
 
-/**
- * Paragraph skeleton (multiple lines)
- */
 export function SkeletonParagraph({
   lines = 3,
   className = '',
@@ -69,9 +55,6 @@ export function SkeletonParagraph({
   );
 }
 
-/**
- * Avatar skeleton
- */
 export function SkeletonAvatar({
   size = 'md',
   className = '',
@@ -89,12 +72,9 @@ export function SkeletonAvatar({
   return <Skeleton className={`rounded-full ${sizeClasses[size]} ${className}`} />;
 }
 
-/**
- * Card skeleton
- */
 export function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-gray-900 rounded-xl p-6 ${className}`}>
+    <div className={`bg-white border border-slate-200 rounded-xl p-6 ${className}`}>
       <div className="flex items-center gap-4 mb-4">
         <SkeletonAvatar size="lg" />
         <div className="flex-1 space-y-2">
@@ -111,12 +91,9 @@ export function SkeletonCard({ className = '' }: { className?: string }) {
   );
 }
 
-/**
- * Test card skeleton
- */
 export function SkeletonTestCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-gray-900 rounded-xl p-6 ${className}`}>
+    <div className={`bg-white border border-slate-200 rounded-xl p-6 ${className}`}>
       <div className="flex justify-between items-start mb-4">
         <Skeleton className="h-6 w-2/3" />
         <Skeleton className="h-6 w-16 rounded-full" />
@@ -132,13 +109,9 @@ export function SkeletonTestCard({ className = '' }: { className?: string }) {
   );
 }
 
-/**
- * Profile skeleton
- */
 export function SkeletonProfile({ className = '' }: { className?: string }) {
   return (
     <div className={`${className}`}>
-      {/* Header */}
       <div className="flex items-center gap-6 mb-8">
         <SkeletonAvatar size="xl" />
         <div className="flex-1 space-y-3">
@@ -147,17 +120,15 @@ export function SkeletonProfile({ className = '' }: { className?: string }) {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-8">
         {[1, 2, 3].map(i => (
-          <div key={i} className="bg-gray-900 rounded-xl p-4">
+          <div key={i} className="bg-white border border-slate-200 rounded-xl p-4">
             <Skeleton className="h-8 w-16 mb-2" />
             <Skeleton className="h-4 w-24" />
           </div>
         ))}
       </div>
 
-      {/* Content */}
       <div className="space-y-4">
         <Skeleton className="h-6 w-32 mb-4" />
         <SkeletonCard />
@@ -167,9 +138,6 @@ export function SkeletonProfile({ className = '' }: { className?: string }) {
   );
 }
 
-/**
- * Table skeleton
- */
 export function SkeletonTable({
   rows = 5,
   cols = 4,
@@ -181,16 +149,14 @@ export function SkeletonTable({
 }) {
   return (
     <div className={`${className}`}>
-      {/* Header */}
-      <div className="flex gap-4 py-3 border-b border-gray-800">
+      <div className="flex gap-4 py-3 border-b border-slate-200">
         {Array.from({ length: cols }).map((_, i) => (
           <Skeleton key={i} className="h-4 flex-1" />
         ))}
       </div>
 
-      {/* Rows */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
-        <div key={rowIndex} className="flex gap-4 py-4 border-b border-gray-800/50">
+        <div key={rowIndex} className="flex gap-4 py-4 border-b border-slate-100">
           {Array.from({ length: cols }).map((_, colIndex) => (
             <Skeleton
               key={colIndex}
@@ -204,9 +170,6 @@ export function SkeletonTable({
   );
 }
 
-/**
- * Leaderboard skeleton
- */
 export function SkeletonLeaderboard({
   rows = 10,
   className = '',
@@ -217,7 +180,7 @@ export function SkeletonLeaderboard({
   return (
     <div className={`space-y-3 ${className}`}>
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 bg-gray-900 rounded-xl p-4">
+        <div key={i} className="flex items-center gap-4 bg-white border border-slate-200 rounded-xl p-4">
           <Skeleton className="h-8 w-8 rounded-full" />
           <SkeletonAvatar size="md" />
           <div className="flex-1">
@@ -231,19 +194,15 @@ export function SkeletonLeaderboard({
   );
 }
 
-/**
- * Question skeleton
- */
 export function SkeletonQuestion({ className = '' }: { className?: string }) {
   return (
     <div className={`${className}`}>
       <Skeleton className="h-6 w-24 mb-4" />
       <SkeletonParagraph lines={2} className="mb-6" />
 
-      {/* Answer options */}
       <div className="space-y-3">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="flex items-center gap-3 bg-gray-900 rounded-lg p-4">
+          <div key={i} className="flex items-center gap-3 bg-white border border-slate-200 rounded-lg p-4">
             <Skeleton className="h-5 w-5 rounded-full" />
             <Skeleton className="h-4 flex-1" />
           </div>
@@ -253,29 +212,23 @@ export function SkeletonQuestion({ className = '' }: { className?: string }) {
   );
 }
 
-/**
- * Dashboard skeleton
- */
 export function SkeletonDashboard({ className = '' }: { className?: string }) {
   return (
     <div className={`${className}`}>
-      {/* Welcome section */}
       <div className="mb-8">
         <Skeleton className="h-8 w-64 mb-2" />
         <Skeleton className="h-4 w-48" />
       </div>
 
-      {/* Stats grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="bg-gray-900 rounded-xl p-6">
+          <div key={i} className="bg-white border border-slate-200 rounded-xl p-6">
             <Skeleton className="h-10 w-16 mb-2" />
             <Skeleton className="h-4 w-24" />
           </div>
         ))}
       </div>
 
-      {/* Recent tests */}
       <div className="mb-8">
         <Skeleton className="h-6 w-40 mb-4" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -284,7 +237,6 @@ export function SkeletonDashboard({ className = '' }: { className?: string }) {
         </div>
       </div>
 
-      {/* Achievements */}
       <div>
         <Skeleton className="h-6 w-32 mb-4" />
         <div className="flex gap-3">
@@ -297,9 +249,6 @@ export function SkeletonDashboard({ className = '' }: { className?: string }) {
   );
 }
 
-/**
- * Wrapper component that shows skeleton while loading
- */
 interface SkeletonWrapperProps {
   isLoading: boolean;
   skeleton: ReactNode;

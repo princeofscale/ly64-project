@@ -1,8 +1,3 @@
-/**
- * Sound Service
- * Управление звуковыми эффектами в приложении
- */
-
 type SoundType =
   | 'click'
   | 'success'
@@ -21,9 +16,6 @@ interface SoundConfig {
 
 const STORAGE_KEY = 'sound-settings';
 
-/**
- * Web Audio API based sound generator
- */
 class SoundService {
   private static instance: SoundService;
   private audioContext: AudioContext | null = null;
@@ -49,16 +41,14 @@ class SoundService {
       if (saved) {
         this.config = { ...this.config, ...JSON.parse(saved) };
       }
-    } catch (error) {
-      console.error('[SoundService] Failed to load settings:', error);
+    } catch {
     }
   }
 
   private saveSettings(): void {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.config));
-    } catch (error) {
-      console.error('[SoundService] Failed to save settings:', error);
+    } catch {
     }
   }
 
@@ -66,23 +56,18 @@ class SoundService {
     if (!this.audioContext) {
       try {
         this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      } catch (error) {
-        console.error('[SoundService] AudioContext not supported');
+      } catch {
         return null;
       }
     }
 
-    // Resume suspended context (happens after user interaction requirement)
     if (this.audioContext.state === 'suspended') {
-      this.audioContext.resume();
+      void this.audioContext.resume();
     }
 
     return this.audioContext;
   }
 
-  /**
-   * Play a synthesized sound
-   */
   private playTone(
     frequency: number,
     duration: number,
@@ -104,7 +89,6 @@ class SoundService {
     oscillator.type = type;
     oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
 
-    // ADSR envelope
     gainNode.gain.setValueAtTime(0, ctx.currentTime);
     gainNode.gain.linearRampToValueAtTime(this.config.volume, ctx.currentTime + attack);
     gainNode.gain.linearRampToValueAtTime(
@@ -117,9 +101,6 @@ class SoundService {
     oscillator.stop(ctx.currentTime + duration);
   }
 
-  /**
-   * Play multiple tones in sequence (melody)
-   */
   private playMelody(
     notes: { freq: number; duration: number; delay: number }[],
     type: OscillatorType = 'sine'
@@ -136,34 +117,27 @@ class SoundService {
     });
   }
 
-  /**
-   * Play sound by type
-   */
   public play(sound: SoundType): void {
     if (!this.config.enabled) return;
 
     switch (sound) {
       case 'click':
-        // Short click sound
         this.playTone(800, 0.05, 'square', 0.001, 0.01);
         break;
 
       case 'success':
-        // Pleasant success ding
         this.playMelody([
-          { freq: 523.25, duration: 0.15, delay: 0 }, // C5
-          { freq: 659.25, duration: 0.15, delay: 0.1 }, // E5
-          { freq: 783.99, duration: 0.2, delay: 0.2 }, // G5
+          { freq: 523.25, duration: 0.15, delay: 0 },
+          { freq: 659.25, duration: 0.15, delay: 0.1 },
+          { freq: 783.99, duration: 0.2, delay: 0.2 },
         ]);
         break;
 
       case 'error':
-        // Error buzz
         this.playTone(200, 0.3, 'sawtooth', 0.01, 0.05);
         break;
 
       case 'warning':
-        // Warning beep
         this.playMelody([
           { freq: 440, duration: 0.1, delay: 0 },
           { freq: 440, duration: 0.1, delay: 0.15 },
@@ -171,51 +145,46 @@ class SoundService {
         break;
 
       case 'complete':
-        // Test completion fanfare
         this.playMelody([
-          { freq: 523.25, duration: 0.1, delay: 0 }, // C5
-          { freq: 587.33, duration: 0.1, delay: 0.1 }, // D5
-          { freq: 659.25, duration: 0.1, delay: 0.2 }, // E5
-          { freq: 783.99, duration: 0.1, delay: 0.3 }, // G5
-          { freq: 1046.5, duration: 0.3, delay: 0.4 }, // C6
+          { freq: 523.25, duration: 0.1, delay: 0 },
+          { freq: 587.33, duration: 0.1, delay: 0.1 },
+          { freq: 659.25, duration: 0.1, delay: 0.2 },
+          { freq: 783.99, duration: 0.1, delay: 0.3 },
+          { freq: 1046.5, duration: 0.3, delay: 0.4 },
         ]);
         break;
 
       case 'achievement':
-        // Achievement unlock sound
         this.playMelody(
           [
-            { freq: 392, duration: 0.1, delay: 0 }, // G4
-            { freq: 523.25, duration: 0.1, delay: 0.1 }, // C5
-            { freq: 659.25, duration: 0.1, delay: 0.2 }, // E5
-            { freq: 783.99, duration: 0.15, delay: 0.3 }, // G5
-            { freq: 1046.5, duration: 0.3, delay: 0.45 }, // C6
+            { freq: 392, duration: 0.1, delay: 0 },
+            { freq: 523.25, duration: 0.1, delay: 0.1 },
+            { freq: 659.25, duration: 0.1, delay: 0.2 },
+            { freq: 783.99, duration: 0.15, delay: 0.3 },
+            { freq: 1046.5, duration: 0.3, delay: 0.45 },
           ],
           'triangle'
         );
         break;
 
       case 'navigation':
-        // Subtle navigation tick
         this.playTone(600, 0.03, 'sine', 0.001, 0.01);
         break;
 
       case 'timer':
-        // Timer tick (warning when time is low)
         this.playTone(440, 0.05, 'square', 0.001, 0.02);
         break;
 
       case 'levelUp':
-        // Level up / rank increase
         this.playMelody(
           [
-            { freq: 261.63, duration: 0.1, delay: 0 }, // C4
-            { freq: 329.63, duration: 0.1, delay: 0.08 }, // E4
-            { freq: 392, duration: 0.1, delay: 0.16 }, // G4
-            { freq: 523.25, duration: 0.1, delay: 0.24 }, // C5
-            { freq: 659.25, duration: 0.1, delay: 0.32 }, // E5
-            { freq: 783.99, duration: 0.2, delay: 0.4 }, // G5
-            { freq: 1046.5, duration: 0.4, delay: 0.55 }, // C6
+            { freq: 261.63, duration: 0.1, delay: 0 },
+            { freq: 329.63, duration: 0.1, delay: 0.08 },
+            { freq: 392, duration: 0.1, delay: 0.16 },
+            { freq: 523.25, duration: 0.1, delay: 0.24 },
+            { freq: 659.25, duration: 0.1, delay: 0.32 },
+            { freq: 783.99, duration: 0.2, delay: 0.4 },
+            { freq: 1046.5, duration: 0.4, delay: 0.55 },
           ],
           'triangle'
         );
@@ -223,7 +192,6 @@ class SoundService {
     }
   }
 
-  // Configuration methods
   public setVolume(volume: number): void {
     this.config.volume = Math.max(0, Math.min(1, volume));
     this.saveSettings();

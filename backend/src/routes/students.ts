@@ -1,12 +1,15 @@
 import { Router } from 'express';
 
+import { authenticateToken } from '../middlewares/auth';
 import studentsService from '../services/studentsService';
+import { logger } from '../utils/logger';
 
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
+import type { AuthRequest } from '../middlewares/auth';
 
 const router = Router();
 
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', authenticateToken, async (_req: AuthRequest, res: Response) => {
   try {
     const students = await studentsService.getStudents();
     res.json({
@@ -14,7 +17,7 @@ router.get('/', async (_req: Request, res: Response) => {
       data: students,
     });
   } catch (error) {
-    console.error('Error getting students:', error);
+    logger.error('Error getting students:', error);
     res.status(500).json({
       success: false,
       message: 'Не удалось получить список учащихся',

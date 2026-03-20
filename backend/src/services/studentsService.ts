@@ -1,6 +1,8 @@
 import axios from 'axios';
 import https from 'https';
 
+import { logger } from '../utils/logger';
+
 interface StudentsResponse {
   isValid: boolean;
   data: string[];
@@ -21,10 +23,6 @@ export class StudentsService {
     try {
       const response = await axios.get<StudentsResponse>(this.apiUrl, {
         timeout: 10000,
-
-        httpsAgent: new (require('https').Agent)({
-          rejectUnauthorized: false,
-        }),
       });
 
       if (response.data.isValid && Array.isArray(response.data.data)) {
@@ -35,7 +33,7 @@ export class StudentsService {
 
       return [];
     } catch (error) {
-      console.error('Error fetching students list:', error);
+      logger.error('Error fetching students list:', error);
 
       if (cachedStudents) {
         return cachedStudents;

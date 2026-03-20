@@ -40,7 +40,6 @@ export function useAntiCheat(options: UseAntiCheatOptions): UseAntiCheatReturn {
   const [warnings, setWarnings] = useState<string[]>([]);
   const lastWarningTime = useRef<number>(0);
 
-  // Обновление статистики
   const updateStats = useCallback(() => {
     const currentStats = antiCheatService.getStats();
     setStats(currentStats);
@@ -49,11 +48,11 @@ export function useAntiCheat(options: UseAntiCheatOptions): UseAntiCheatReturn {
     if (limits.exceeded) {
       setWarnings(limits.warnings);
 
-      // Показываем предупреждение не чаще чем раз в 30 секунд
       const now = Date.now();
-      if (showWarnings && now - lastWarningTime.current > 30000) {
+      const firstWarning = limits.warnings[0];
+      if (showWarnings && firstWarning && now - lastWarningTime.current > 30000) {
         lastWarningTime.current = now;
-        toast.error(limits.warnings[0], {
+        toast.error(firstWarning, {
           duration: 5000,
           icon: '⚠️',
         });
@@ -62,34 +61,35 @@ export function useAntiCheat(options: UseAntiCheatOptions): UseAntiCheatReturn {
     }
   }, [showWarnings, onLimitExceeded]);
 
-  // Обработка подозрительных событий
   const handleSuspiciousEvent = useCallback(
     (event: SuspiciousEvent) => {
       updateStats();
       onSuspiciousActivity?.(event);
 
-      // Показываем тост для некоторых событий
       if (showWarnings) {
         switch (event.type) {
-          case 'copy_attempt':
+          case 'copy_attempt': {
             toast.error('Копирование текста запрещено во время теста', {
               duration: 2000,
               icon: '🚫',
             });
             break;
-          case 'right_click':
+          }
+          case 'right_click': {
             toast.error('Контекстное меню недоступно', {
               duration: 1500,
               icon: '🚫',
             });
             break;
-          case 'dev_tools':
+          }
+          case 'dev_tools': {
             toast.error('Инструменты разработчика недоступны', {
               duration: 2000,
               icon: '🚫',
             });
             break;
-          case 'tab_switch':
+          }
+          case 'tab_switch': {
             const switches = antiCheatService.getStats().tabSwitches;
             if (switches <= 3) {
               toast(`Переключение вкладки зафиксировано (${switches}/3)`, {
@@ -98,20 +98,18 @@ export function useAntiCheat(options: UseAntiCheatOptions): UseAntiCheatReturn {
               });
             }
             break;
+          }
         }
       }
     },
     [updateStats, showWarnings, onSuspiciousActivity]
   );
 
-  // Запуск мониторинга
   const startMonitoring = useCallback(() => {
-    if (!enabled) return;
+    if (!enabled) return undefined;
 
     antiCheatService.startMonitoring(sessionId);
-    setIsMonitoring(true);
 
-    // Подписываемся на события
     const unsubscribe = antiCheatService.onEvent(handleSuspiciousEvent);
 
     return () => {
@@ -119,25 +117,26 @@ export function useAntiCheat(options: UseAntiCheatOptions): UseAntiCheatReturn {
     };
   }, [enabled, sessionId, handleSuspiciousEvent]);
 
-  // Остановка мониторинга
   const stopMonitoring = useCallback((): AntiCheatReport => {
     setIsMonitoring(false);
     return antiCheatService.stopMonitoring();
   }, []);
 
-  // Автозапуск при монтировании
   useEffect(() => {
-    if (enabled && sessionId) {
-      const cleanup = startMonitoring();
+    if (!enabled || !sessionId) return;
 
-      return () => {
-        cleanup?.();
-        antiCheatService.stopMonitoring();
-      };
-    }
-  }, [enabled, sessionId, startMonitoring]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMonitoring(true);
+    antiCheatService.startMonitoring(sessionId);
+    const unsubscribe = antiCheatService.onEvent(handleSuspiciousEvent);
 
-  // Периодическое обновление статистики
+    return () => {
+      unsubscribe();
+      antiCheatService.stopMonitoring();
+      setIsMonitoring(false);
+    };
+  }, [enabled, sessionId, handleSuspiciousEvent]);
+
   useEffect(() => {
     if (!isMonitoring) return;
 
@@ -145,7 +144,6 @@ export function useAntiCheat(options: UseAntiCheatOptions): UseAntiCheatReturn {
     return () => clearInterval(interval);
   }, [isMonitoring, updateStats]);
 
-  // Рассчёт подозрительности
   const suspiciousScore = Math.min(
     stats.tabSwitches * 15 + stats.copyAttempts * 10 + Math.floor(stats.blurTime / 10000) * 5,
     100

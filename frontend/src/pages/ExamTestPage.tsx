@@ -1,14 +1,26 @@
 import { SUBJECT_LABELS } from '@lyceum64/shared';
-import { useState, useEffect, useCallback } from 'react';
+import DOMPurify from 'dompurify';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import { BookmarkButton } from '../components/BookmarkButton';
 import { Button } from '../components/Button';
-import { Card } from '../components/ui/Card';
+import { CommentSection } from '../components/CommentSection';
+import CoordinateLine from '../components/sdamgia/CoordinateLine';
+import TestErrorAnalysis from '../components/TestErrorAnalysis';
+import { TheoryDrawer } from '../components/theory';
 import { getActiveTestService } from '../core/services';
 import { ConfettiService } from '../core/services/ConfettiService';
+import { AnswerValidationStrategyFactory } from '../core/strategies/AnswerValidationStrategies';
+import { findTheoryForTask } from '../data/theory/theoryLookup';
+import { analyzeTestErrors } from '../data/topicAdvice';
+import api from '../services/api';
 import testService from '../services/testService';
+import { exportTestResultPDF } from '../utils/pdfExport';
 
+import type { TheoryTopic } from '../data/theory/types';
+import type { AnalyzedQuestion } from '../data/topicAdvice';
 import type { TestVariant } from '../services/testService';
 
 interface Task {
@@ -24,10 +36,63 @@ interface Task {
   requiresProof?: boolean;
 }
 
+/** Detect if a task requires an interactive coordinate line input */
+function isCoordinateLineTask(task: Task): boolean {
+  if (task.type !== 'short') return false;
+  const text = task.text.toLowerCase().replace(/<[^>]+>/g, ' ');
+  const hasCoordLine = /координатн\w*\s+прям|числов\w*\s+прям/.test(text);
+  const hasMarkAction = /отметь|постав|нанес|изобраз|укажи|найди\w*\s+точк|определи\w*\s+координат|поставь|отмеч/.test(text);
+  return hasCoordLine && hasMarkAction;
+}
+
+/** Estimate coordinate range from the correct answer and task text */
+function getCoordRange(task: Task): [number, number] {
+  const stripped = task.text.replace(/<[^>]+>/g, ' ');
+  const nums: number[] = [];
+
+  // Parse correct answer
+  const answer = parseFloat(task.correctAnswer.replace(',', '.'));
+  if (!isNaN(answer)) nums.push(answer);
+
+  // Extract numbers mentioned in text (reference points like A(2), B(-3.5), etc.)
+  const refPattern = /[A-ZА-ЯЁa-zа-яё]\s*\(\s*([−–-]?\s*\d+(?:[.,]\d+)?)\s*\)/g;
+  let m: RegExpExecArray | null;
+  while ((m = refPattern.exec(stripped)) !== null) {
+    const val = parseFloat(m[1]!.replace(/[−–]/g, '-').replace(',', '.').replace(/\s/g, ''));
+    if (!isNaN(val)) nums.push(val);
+  }
+
+  if (nums.length === 0) return [-5, 7];
+
+  const lo = Math.min(...nums);
+  const hi = Math.max(...nums);
+  return [Math.floor(lo) - 3, Math.ceil(hi) + 3];
+}
+
+/** Parse labeled reference points from task HTML (e.g. A(2), B(-3)) */
+function parseTaskReferencePoints(task: Task): Array<{ value: number; label: string }> {
+  const text = task.text.replace(/<[^>]+>/g, ' ');
+  const points: Array<{ value: number; label: string }> = [];
+  const seen = new Set<string>();
+
+  const pattern = /([A-ZА-ЯЁ])\s*\(\s*([−–-]?\s*\d+(?:[.,]\d+)?)\s*\)/g;
+  let m: RegExpExecArray | null;
+  while ((m = pattern.exec(text)) !== null) {
+    const label = m[1]!.toUpperCase();
+    if (seen.has(label)) continue;
+    const val = parseFloat(m[2]!.replace(/[−–]/g, '-').replace(',', '.').replace(/\s/g, ''));
+    if (!isNaN(val)) {
+      points.push({ value: val, label });
+      seen.add(label);
+    }
+  }
+  return points;
+}
+
 export default function ExamTestPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { grade, subject, egeType } = location.state || {};
+  const { grade, subject, egeType, examMode } = location.state || {};
 
   const [examVariant, setExamVariant] = useState<TestVariant | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,34 +106,47 @@ export default function ExamTestPage() {
   const [showResults, setShowResults] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [isTestRegistered, setIsTestRegistered] = useState(false);
-  const [testResults, setTestResults] = useState<any>(null);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showQuestionNav, setShowQuestionNav] = useState(false);
-  const [questionDirection, setQuestionDirection] = useState<'next' | 'prev'>('next');
+  const [taskTimeSpent, setTaskTimeSpent] = useState<Record<string, number>>({});
+  const [taskEnteredAt, setTaskEnteredAt] = useState<number>(Date.now());
+  const [theoryTopic, setTheoryTopic] = useState<TheoryTopic | null>(null);
+  // Used to track tab switches in exam mode
+  const [, setTabSwitchCount] = useState(0);
+  interface TestResults {
+    score: number;
+    correctCount: number;
+    totalQuestions: number;
+    questionResults?: Array<{
+      number: number;
+      userAnswer: string | null;
+      correctAnswer: string;
+      isCorrect: boolean;
+      points: number;
+      topic: string;
+    }>;
+  }
+  const [testResults, setTestResults] = useState<TestResults | null>(null);
 
-  // Load test data from API
   useEffect(() => {
-    const loadTestData = async () => {
-      console.log('📖 ExamTestPage loadTestData:', { grade, subject, egeType });
+    let mounted = true;
 
+    const loadTestData = async () => {
       if (!grade || !subject) {
-        console.warn('⚠️ Missing parameters:', { grade, subject });
-        setError('Не указаны параметры теста');
-        setLoading(false);
+        if (mounted) {
+          setError('Не указаны параметры теста');
+          setLoading(false);
+        }
         return;
       }
 
       try {
-        setLoading(true);
+        if (mounted) setLoading(true);
 
-        // Определяем тип экзамена в зависимости от класса
         let apiExamType: string;
         if (grade === 8 || grade === 10) {
           apiExamType = 'VPR';
         } else if (grade === 9) {
           apiExamType = 'OGE';
         } else if (grade === 11) {
-          // Для математики используем EGE_BASE/EGE_PROFILE, для остальных предметов - EGE
           if (subject === 'MATHEMATICS') {
             apiExamType = egeType === 'base' ? 'EGE_BASE' : 'EGE_PROFILE';
           } else {
@@ -78,38 +156,37 @@ export default function ExamTestPage() {
           apiExamType = 'REGULAR';
         }
 
-        console.log('🎯 Calling getTestVariant:', { subject, apiExamType, grade });
         const variant = await testService.getTestVariant(subject, apiExamType, grade);
+
+        if (!mounted) return;
 
         if (variant) {
           setExamVariant(variant);
-          // Устанавливаем время только если duration определен
           if (variant.duration && variant.duration > 0) {
             setTimeLeft(variant.duration * 60);
           } else {
-            // Значение по умолчанию: 3 часа для ОГЭ/ЕГЭ
             setTimeLeft(180 * 60);
           }
           setError(null);
         } else {
           setError('Тест не найден. Убедитесь, что вы авторизованы.');
         }
-      } catch (err) {
-        console.error('Error loading test:', err);
-        setError('Ошибка загрузки теста');
+      } catch {
+        if (mounted) setError('Ошибка загрузки теста');
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
-    loadTestData();
+    void loadTestData();
+    return () => { mounted = false; };
   }, [grade, subject, egeType]);
 
   const currentTask = tasks[currentTaskIndex];
-  const progress = ((currentTaskIndex + 1) / tasks.length) * 100;
+  const progress = tasks.length > 0 ? ((currentTaskIndex + 1) / tasks.length) * 100 : 0;
   const answeredCount = Object.keys(answers).filter(k => answers[parseInt(k)]?.trim()).length;
 
-  const getExamTitle = () => {
+  const examTitle = useMemo(() => {
     const subjectName = subject
       ? SUBJECT_LABELS[subject as keyof typeof SUBJECT_LABELS] || subject
       : 'Предмет';
@@ -120,9 +197,9 @@ export default function ExamTestPage() {
     if (grade === 11 && egeType === 'base') return `ЕГЭ ${subjectName} (Базовый)`;
     if (grade === 11) return `ЕГЭ ${subjectName}`;
     return subjectName;
-  };
+  }, [grade, subject, egeType]);
 
-  const getExamType = () => {
+  const examType = useMemo(() => {
     if (grade === 8 || grade === 10) return 'VPR' as const;
     if (grade === 9) return 'OGE' as const;
     if (grade === 11) {
@@ -132,7 +209,7 @@ export default function ExamTestPage() {
       return 'EGE' as const;
     }
     return 'REGULAR' as const;
-  };
+  }, [grade, subject, egeType]);
 
   useEffect(() => {
     if (!grade || !subject || !examVariant) return;
@@ -141,10 +218,10 @@ export default function ExamTestPage() {
 
     if (!isTestRegistered && examVariant.duration) {
       activeTestService.startTest({
-        examType: getExamType(),
+        examType,
         subject: subject || 'MATHEMATICS',
         grade: grade as 8 | 9 | 10 | 11,
-        title: getExamTitle(),
+        title: examTitle,
         startedAt: new Date().toISOString(),
         currentTaskIndex: 0,
         answeredCount: 0,
@@ -154,7 +231,7 @@ export default function ExamTestPage() {
       });
       setIsTestRegistered(true);
     }
-  }, [grade, subject, isTestRegistered, examVariant]);
+  }, [grade, subject, isTestRegistered, examVariant, tasks.length, examTitle, examType]);
 
   useEffect(() => {
     const activeTestService = getActiveTestService();
@@ -165,95 +242,41 @@ export default function ExamTestPage() {
     });
   }, [currentTaskIndex, answeredCount, timeLeft]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleFinish();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
+  const validateAnswer = useCallback((taskType: string, userAnswer: string, correctAnswer: string): boolean => {
+    const strategy = AnswerValidationStrategyFactory.getStrategy(taskType);
+    return strategy.validate(userAnswer, correctAnswer);
   }, []);
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleAnswer = (answer: string) => {
-    if (!currentTask) return;
-    setAnswers(prev => ({
-      ...prev,
-      [currentTask.number]: answer,
-    }));
-  };
-
-  const handleNext = () => {
-    if (currentTaskIndex < tasks.length - 1) {
-      setCurrentTaskIndex(prev => prev + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentTaskIndex > 0) {
-      setCurrentTaskIndex(prev => prev - 1);
-    }
-  };
-
-  const jumpToQuestion = (index: number) => {
-    setQuestionDirection(index > currentTaskIndex ? 'next' : 'prev');
-    setCurrentTaskIndex(index);
-    setShowQuestionNav(false);
-  };
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (showResults || showExitConfirm) return;
-
-      if (e.key === 'ArrowLeft' && currentTaskIndex > 0) {
-        handlePrevious();
-      } else if (e.key === 'ArrowRight' && currentTaskIndex < tasks.length - 1) {
-        handleNext();
-      } else if (e.key === 'Enter' && e.ctrlKey && currentTaskIndex === tasks.length - 1) {
-        handleFinish();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentTaskIndex, tasks.length, showResults, showExitConfirm]);
 
   const calculateScore = useCallback(() => {
     const totalPoints = Object.entries(answers).reduce((sum, [num, ans]) => {
       const task = tasks.find(t => t.number === parseInt(num));
-      if (task && task.correctAnswer === ans) {
+      if (task && validateAnswer(task.type, ans, task.correctAnswer)) {
         return sum + task.points;
       }
       return sum;
     }, 0);
     const maxPoints = tasks.reduce((sum, task) => sum + task.points, 0);
     return Math.round((totalPoints / maxPoints) * 100);
-  }, [answers, tasks]);
+  }, [answers, tasks, validateAnswer]);
 
   const handleFinish = useCallback(async () => {
     if (!examVariant) return;
 
     try {
       // Format answers for API
+      // Record time for the current task before submitting
+      const finalTimeSpent = { ...taskTimeSpent };
+      if (currentTask) {
+        const elapsed = Date.now() - taskEnteredAt;
+        finalTimeSpent[currentTask.id] = (finalTimeSpent[currentTask.id] || 0) + elapsed;
+      }
+
       const formattedAnswers = Object.entries(answers).map(([num, ans]) => {
         const task = tasks.find(t => t.number === parseInt(num));
         return {
           questionId: task?.id || '',
           answer: ans,
-          timeSpent: 5000, // TODO: track actual time per question
+          timeSpent: task ? (finalTimeSpent[task.id] || 0) : 0,
           timestamp: Date.now(),
         };
       });
@@ -270,22 +293,144 @@ export default function ExamTestPage() {
       if (result.success) {
         setTestResults(result.data);
       }
-    } catch (error) {
-      console.error('Error submitting test:', error);
-      toast.error('Ошибка отправки теста');
+
+      const activeTestService = getActiveTestService();
+      activeTestService.completeTest();
+      setShowResults(true);
+
+      const scorePercent = calculateScore();
+      setTimeout(() => {
+        ConfettiService.scoreBasedCelebration(scorePercent);
+      }, 300);
+
+      toast.success('Тест завершен!');
+    } catch {
+      toast.error('Ошибка отправки теста. Попробуйте ещё раз.');
     }
-
-    const activeTestService = getActiveTestService();
-    activeTestService.completeTest();
-    setShowResults(true);
-
-    const scorePercent = calculateScore();
-    setTimeout(() => {
-      ConfettiService.scoreBasedCelebration(scorePercent);
-    }, 300);
-
-    toast.success('Тест завершен!');
   }, [calculateScore, examVariant, answers, tasks]);
+
+  // Keep a stable ref so the timer always calls the latest handleFinish
+  const handleFinishRef = useRef(handleFinish);
+  useEffect(() => { handleFinishRef.current = handleFinish; }, [handleFinish]);
+
+  useEffect(() => {
+    // Don't start timer until test data is loaded and time is set
+    if (!examVariant || timeLeft <= 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          void handleFinishRef.current();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!examVariant, timeLeft > 0]);
+
+  // Exam mode: fullscreen, tab switch detection, back prevention
+  useEffect(() => {
+    if (!examMode || showResults) return;
+
+    // Request fullscreen
+    const requestFullscreen = () => {
+      document.documentElement.requestFullscreen?.().catch(() => {
+        // Fullscreen not supported or denied
+      });
+    };
+    requestFullscreen();
+
+    // Prevent tab switching
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setTabSwitchCount(prev => {
+          const newCount = prev + 1;
+          toast.error(`Вы переключили вкладку! (${newCount} раз)`, {
+            icon: '⚠️',
+            duration: 3000,
+          });
+          return newCount;
+        });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Prevent back navigation
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      window.history.pushState(null, '', window.location.href);
+      toast.error('В режиме экзамена нельзя вернуться назад', { icon: '🔒' });
+    };
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', handlePopState);
+
+    // Prevent page close
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (document.fullscreenElement) {
+        document.exitFullscreen?.().catch(() => {});
+      }
+    };
+  }, [examMode, showResults]);
+
+  // Exam mode: vibrate when less than 5 minutes
+  useEffect(() => {
+    if (!examMode || showResults) return;
+    if (timeLeft === 300) {
+      toast.error('Осталось 5 минут!', { icon: '⏰', duration: 5000 });
+      navigator.vibrate?.(1000);
+    }
+  }, [examMode, timeLeft, showResults]);
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleAnswer = (answer: string) => {
+    if (!currentTask) return;
+    setAnswers(prev => ({
+      ...prev,
+      [currentTask.number]: answer,
+    }));
+  };
+
+  const recordTimeForCurrentTask = useCallback(() => {
+    if (!currentTask) return;
+    const elapsed = Date.now() - taskEnteredAt;
+    setTaskTimeSpent(prev => ({
+      ...prev,
+      [currentTask.id]: (prev[currentTask.id] || 0) + elapsed,
+    }));
+    setTaskEnteredAt(Date.now());
+  }, [currentTask, taskEnteredAt]);
+
+  const handleNext = () => {
+    if (currentTaskIndex < tasks.length - 1) {
+      recordTimeForCurrentTask();
+      setCurrentTaskIndex(prev => prev + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentTaskIndex > 0) {
+      recordTimeForCurrentTask();
+      setCurrentTaskIndex(prev => prev - 1);
+    }
+  };
 
   const handleExit = () => {
     setShowExitConfirm(true);
@@ -295,11 +440,17 @@ export default function ExamTestPage() {
     const activeTestService = getActiveTestService();
     activeTestService.abandonTest();
     toast('Тест прерван', { icon: '⚠️' });
-    navigate('/dashboard');
+    void navigate('/dashboard');
   };
 
   const getTimeColor = () => {
     const totalTime = (examVariant?.duration || 180) * 60;
+    if (examMode) {
+      if (timeLeft <= totalTime * 0.1) return 'text-red-600 animate-pulse';
+      if (timeLeft <= totalTime * 0.25) return 'text-red-600';
+      if (timeLeft <= totalTime * 0.5) return 'text-amber-600';
+      return 'text-blue-600';
+    }
     if (timeLeft > totalTime * 0.5) return 'text-blue-600';
     if (timeLeft > totalTime * 0.25) return 'text-amber-600';
     return 'text-red-600';
@@ -307,7 +458,7 @@ export default function ExamTestPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg)' }}>
         <div className="relative">
           <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
           <div
@@ -319,16 +470,16 @@ export default function ExamTestPage() {
     );
   }
 
-  if (error || !examVariant) {
+  if (error || !examVariant || tasks.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg)' }}>
         <div className="text-center max-w-md mx-auto px-4">
           <div className="text-6xl mb-4">⚠️</div>
-          <p className="text-slate-600 font-sans mb-4">{error || 'Тест не найден'}</p>
-          <p className="text-sm text-slate-500 mb-6">
-            Войдите в систему, чтобы начать прохождение теста.
+          <p className="font-sans mb-4" style={{ color: 'var(--color-text-secondary)' }}>{error || (tasks.length === 0 ? 'В тесте нет заданий' : 'Тест не найден')}</p>
+          <p className="text-sm mb-6" style={{ color: 'var(--color-text-muted)' }}>
+            Попробуйте выбрать другой вариант или вернитесь к панели.
           </p>
-          <Button onClick={async () => navigate('/dashboard')}>Вернуться к панели</Button>
+          <Button onClick={() => void navigate('/dashboard')}>Вернуться к панели</Button>
         </div>
       </div>
     );
@@ -338,15 +489,16 @@ export default function ExamTestPage() {
     // Use results from server if available, otherwise calculate locally
     const correctCount =
       testResults?.correctCount ??
-      Object.entries(answers).filter(
-        ([num, ans]) => tasks.find(t => t.number === parseInt(num))?.correctAnswer === ans
-      ).length;
+      Object.entries(answers).filter(([num, ans]) => {
+        const task = tasks.find(t => t.number === parseInt(num));
+        return task ? validateAnswer(task.type, ans, task.correctAnswer) : false;
+      }).length;
 
     const totalPoints =
-      testResults?.questionResults?.reduce((sum: number, qr: any) => sum + qr.points, 0) ??
+      (testResults?.questionResults?.reduce((sum: number, qr: { points: number }) => sum + (qr.points || 0), 0)) ??
       Object.entries(answers).reduce((sum, [num, ans]) => {
         const task = tasks.find(t => t.number === parseInt(num));
-        if (task && task.correctAnswer === ans) {
+        if (task && validateAnswer(task.type, ans, task.correctAnswer)) {
           return sum + task.points;
         }
         return sum;
@@ -372,21 +524,49 @@ export default function ExamTestPage() {
       return 'Есть над чем поработать';
     };
 
+    // Build analyzed questions for error analysis
+    const questionResults = testResults?.questionResults || tasks.map(task => ({
+      number: task.number,
+      userAnswer: answers[task.number] || null,
+      correctAnswer: task.correctAnswer,
+      isCorrect: answers[task.number] ? validateAnswer(task.type, answers[task.number] ?? '', task.correctAnswer) : false,
+      points: task.points,
+      topic: task.topic,
+    }));
+
+    const analyzedQuestions: AnalyzedQuestion[] = questionResults.map(
+      (qr: { number: number; userAnswer: string | null; correctAnswer: string; isCorrect: boolean; points: number; topic: string }) => ({
+        number: qr.number,
+        topic: qr.topic || '',
+        isCorrect: qr.isCorrect,
+        userAnswer: qr.userAnswer,
+        correctAnswer: qr.correctAnswer,
+        points: qr.points,
+      })
+    );
+
+    const errorAnalysis = analyzeTestErrors(
+      (subject as string) || 'MATHEMATICS',
+      examType,
+      (grade as number) || 9,
+      analyzedQuestions
+    );
+
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white py-12 px-4">
-        <div className="relative z-10 max-w-3xl mx-auto">
-          <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-8 text-center shadow-2xl">
+      <div className="min-h-screen py-12 px-4" style={{ backgroundColor: 'var(--color-bg)' }}>
+        <div className="relative z-10 max-w-3xl mx-auto space-y-6">
+          <div className="backdrop-blur-xl border rounded-3xl p-8 text-center shadow-2xl" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
             <div className="text-6xl mb-4">{getScoreEmoji()}</div>
-            <h1 className="text-4xl font-display font-bold text-slate-900 mb-2">
+            <h1 className="text-4xl font-display font-bold mb-2" style={{ color: 'var(--color-text)' }}>
               {getScoreMessage()}
             </h1>
-            <p className="text-slate-600 mb-6">Тест завершен</p>
+            <p className="mb-6" style={{ color: 'var(--color-text-secondary)' }}>Тест завершен</p>
 
-            <div className="mb-8 p-6 bg-slate-50 rounded-2xl">
+            <div className="mb-8 p-6 rounded-2xl" style={{ backgroundColor: 'var(--color-bg-secondary, var(--color-surface))' }}>
               <div className="text-5xl font-bold text-blue-600 mb-2">
                 {scorePercent}%
               </div>
-              <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden mb-4">
+              <div className="w-full h-3 rounded-full overflow-hidden mb-4" style={{ backgroundColor: 'var(--color-border)' }}>
                 <div
                   className={`h-full rounded-full transition-all duration-1000 ${
                     scorePercent >= 80
@@ -403,20 +583,20 @@ export default function ExamTestPage() {
                   <div className="text-2xl font-bold text-blue-600">
                     {correctCount}/{tasks.length}
                   </div>
-                  <div className="text-sm text-slate-600">правильных ответов</div>
+                  <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>правильных ответов</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-violet-600">
                     {totalPoints}/{maxPoints}
                   </div>
-                  <div className="text-sm text-slate-600">первичных баллов</div>
+                  <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>первичных баллов</div>
                 </div>
               </div>
             </div>
 
             {/* Детальный разбор заданий */}
             <div className="mb-8">
-              <h2 className="text-xl font-bold text-slate-900 mb-4 text-left">Детальный разбор</h2>
+              <h2 className="text-xl font-bold mb-4 text-left" style={{ color: 'var(--color-text)' }}>Детальный разбор</h2>
               <div className="space-y-3">
                 {(
                   testResults?.questionResults ||
@@ -424,11 +604,11 @@ export default function ExamTestPage() {
                     number: task.number,
                     userAnswer: answers[task.number] || null,
                     correctAnswer: task.correctAnswer,
-                    isCorrect: task.correctAnswer === answers[task.number],
+                    isCorrect: answers[task.number] ? validateAnswer(task.type, answers[task.number] ?? '', task.correctAnswer) : false,
                     points: task.points,
                     topic: task.topic,
                   }))
-                ).map((result: any) => {
+                ).map((result: { number: number; userAnswer: string | null; correctAnswer: string; isCorrect: boolean; points: number; topic: string }) => {
                   const isAnswered = result.userAnswer !== null && result.userAnswer !== '';
 
                   return (
@@ -451,15 +631,15 @@ export default function ExamTestPage() {
                               {result.isCorrect ? '✓' : isAnswered ? '✗' : '○'}
                             </div>
                             <div>
-                              <div className="font-semibold text-slate-900">
+                              <div className="font-semibold" style={{ color: 'var(--color-text)' }}>
                                 Задание {result.number}
                                 {result.topic && !result.topic.match(/^(Д?\d+|[0-9]+)$/) && (
-                                  <span className="text-sm text-slate-500 ml-2">
+                                  <span className="text-sm ml-2" style={{ color: 'var(--color-text-muted)' }}>
                                     ({result.topic})
                                   </span>
                                 )}
                               </div>
-                              <div className="text-sm text-slate-600">
+                              <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                                 {result.points || 1}{' '}
                                 {result.points === 1
                                   ? 'балл'
@@ -473,7 +653,7 @@ export default function ExamTestPage() {
                           <div className="ml-11 space-y-2 text-sm">
                             {isAnswered && (
                               <div>
-                                <span className="text-slate-600">Ваш ответ:</span>{' '}
+                                <span style={{ color: 'var(--color-text-secondary)' }}>Ваш ответ:</span>{' '}
                                 <span
                                   className={
                                     result.isCorrect
@@ -487,7 +667,7 @@ export default function ExamTestPage() {
                             )}
                             {!result.isCorrect && (
                               <div>
-                                <span className="text-slate-600">Правильный ответ:</span>{' '}
+                                <span style={{ color: 'var(--color-text-secondary)' }}>Правильный ответ:</span>{' '}
                                 <span className="text-green-600 font-medium">
                                   {result.correctAnswer}
                                 </span>
@@ -497,16 +677,19 @@ export default function ExamTestPage() {
                           </div>
                         </div>
 
-                        <div
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            result.isCorrect
-                              ? 'bg-green-100 text-green-700'
-                              : isAnswered
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-slate-100 text-slate-600'
-                          }`}
-                        >
-                          {result.isCorrect ? `+${result.points || 1}` : '0'}
+                        <div className="flex items-center gap-1">
+                          <BookmarkButton questionId={tasks.find(t => t.number === result.number)?.id || ''} size={16} />
+                          <div
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              result.isCorrect
+                                ? 'bg-green-100 text-green-700'
+                                : isAnswered
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-slate-100 text-slate-600'
+                            }`}
+                          >
+                            {result.isCorrect ? `+${result.points || 1}` : '0'}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -515,12 +698,69 @@ export default function ExamTestPage() {
               </div>
             </div>
 
-            <div className="flex gap-4 justify-center">
-              <Button onClick={() => navigate('/dashboard')}>К панели управления</Button>
-              <Button variant="outline" onClick={() => navigate('/leaderboard')}>
-                🏆 Таблица лидеров
+            <div className="flex flex-wrap gap-3 justify-center">
+              <Button onClick={() => { void navigate('/dashboard'); }}>К панели управления</Button>
+              <Button variant="outline" onClick={() => { void navigate('/leaderboard'); }}>
+                Таблица лидеров
+              </Button>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  if (!examVariant) return;
+                  try {
+                    const res = await testService.getLatestAttemptId(examVariant.testId);
+                    if (res) {
+                      const importRes = await api.post(`/srs/import-mistakes/${res}`);
+                      if (importRes.data.success) {
+                        toast.success(`Добавлено ${importRes.data.data.added} карточек для повторения`);
+                      }
+                    }
+                  } catch {
+                    toast.error('Ошибка импорта ошибок');
+                  }
+                }}
+              >
+                Добавить ошибки в повторение
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  void exportTestResultPDF({
+                    examTitle: examTitle || 'Тест',
+                    date: new Date().toLocaleDateString('ru-RU'),
+                    scorePercent,
+                    correctCount,
+                    totalQuestions: tasks.length,
+                    totalPoints,
+                    maxPoints,
+                    questionResults: questionResults.map((qr: { number: number; userAnswer: string | null; correctAnswer: string; isCorrect: boolean; points: number; topic: string }) => ({
+                      number: qr.number,
+                      topic: qr.topic || '',
+                      userAnswer: qr.userAnswer,
+                      correctAnswer: qr.correctAnswer,
+                      isCorrect: qr.isCorrect,
+                      points: qr.points,
+                    })),
+                  });
+                }}
+              >
+                Скачать PDF
               </Button>
             </div>
+          </div>
+
+          {/* Error Analysis */}
+          <TestErrorAnalysis analysis={errorAnalysis} />
+
+          {/* Comments for each question */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-6">
+            <h2 className="text-xl font-bold  mb-4" style={{ color: 'var(--color-text)' }}>Обсуждение задач</h2>
+            {tasks.map(task => (
+              <div key={task.id} className="border-b border-slate-100 last:border-b-0 py-2">
+                <p className="text-sm font-medium text-slate-700">Задание {task.number}</p>
+                <CommentSection questionId={task.id} />
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -529,24 +769,29 @@ export default function ExamTestPage() {
 
   if (!currentTask) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg)' }}>
         <div className="text-center">
-          <p className="text-lg text-slate-600">Задания не найдены</p>
+          <p className="text-lg" style={{ color: 'var(--color-text-secondary)' }}>Задания не найдены</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200">
+    <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: 'var(--color-bg)' }}>
+      <div className="sticky top-0 z-50 backdrop-blur-xl border-b" style={{ backgroundColor: 'color-mix(in srgb, var(--color-surface) 80%, transparent)', borderColor: 'var(--color-border)' }}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="text-2xl font-display font-bold text-slate-900">
-                {getExamTitle()}
+                {examTitle}
               </div>
               <div className="text-sm text-slate-600 font-sans">{grade} класс</div>
+              {examMode && (
+                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-lg border border-red-200">
+                  РЕЖИМ ЭКЗАМЕНА
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-6">
@@ -565,16 +810,9 @@ export default function ExamTestPage() {
                     d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span className={`font-mono text-lg font-bold ${getTimeColor()}`}>
+                <span className={`font-mono text-lg font-semibold ${getTimeColor()}`}>
                   {formatTime(timeLeft)}
                 </span>
-              </motion.div>
-
-              {/* Progress Indicator */}
-              <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gray-800/80 rounded-xl border border-gray-700">
-                <span className="text-cyan-400 font-bold text-lg">{currentTaskIndex + 1}</span>
-                <span className="text-gray-500">/</span>
-                <span className="text-gray-400">{tasks.length}</span>
               </div>
 
               <div className="text-sm font-sans text-slate-600">
@@ -582,15 +820,12 @@ export default function ExamTestPage() {
                 {tasks.length} отвечено
               </div>
 
-              {/* Exit Button */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={handleExit}
                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors text-sm font-medium"
               >
                 Выйти
-              </motion.button>
+              </button>
             </div>
           </div>
 
@@ -600,366 +835,11 @@ export default function ExamTestPage() {
               style={{ width: `${progress}%` }}
             />
           </div>
-
-          {/* Progress Stats */}
-          <div className="mt-3 flex items-center justify-between text-sm">
-            <span className="text-gray-400">
-              <span className="text-cyan-400 font-semibold">{answeredCount}</span> отвечено
-            </span>
-            <span className="text-gray-400">{tasks.length - answeredCount} осталось</span>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Main Layout: Desktop Sidebar + Content */}
-      <div className="relative z-10 flex max-w-7xl mx-auto gap-6 px-4 sm:px-6 py-6">
-        {/* Desktop Sidebar - Question Navigator */}
-        <motion.aside
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          className="hidden lg:block w-72 flex-shrink-0"
-        >
-          <div className="sticky top-24">
-            <Card variant="glass" padding="lg" className="mb-6">
-              {/* Progress Circle */}
-              <div className="flex flex-col items-center mb-6">
-                <div className="relative w-32 h-32">
-                  <svg className="w-32 h-32 transform -rotate-90">
-                    <circle
-                      cx="64"
-                      cy="64"
-                      r="56"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      fill="none"
-                      className="text-gray-700"
-                    />
-                    <circle
-                      cx="64"
-                      cy="64"
-                      r="56"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      fill="none"
-                      strokeDasharray={`${2 * Math.PI * 56}`}
-                      strokeDashoffset={`${2 * Math.PI * 56 * (1 - progressPercentage / 100)}`}
-                      className="text-cyan-500 transition-all duration-500"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-white">
-                      {Math.round(progressPercentage)}%
-                    </span>
-                  </div>
-                </div>
-                <p className="mt-3 text-sm text-gray-400 text-center">Прогресс теста</p>
-              </div>
-
-              {/* Question Navigator Grid */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">
-                  Навигация
-                </h3>
-                <div className="grid grid-cols-5 gap-2">
-                  {tasks.map((task, index) => (
-                    <motion.button
-                      key={task.number}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => jumpToQuestion(index)}
-                      className={`aspect-square rounded-lg font-display font-bold text-sm transition-all ${
-                        currentTaskIndex === index
-                          ? 'bg-gradient-to-br from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50'
-                          : answers[task.number]
-                            ? 'bg-green-500/20 border-2 border-green-500/50 text-green-400 hover:bg-green-500/30'
-                            : 'bg-gray-800 border-2 border-gray-700 text-gray-400 hover:border-cyan-500/50 hover:bg-gray-700'
-                      }`}
-                    >
-                      {task.number}
-                    </motion.button>
-                  ))}
-                </div>
-
-                {/* Legend */}
-                <div className="pt-4 space-y-2 border-t border-gray-700">
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <div className="w-4 h-4 rounded bg-gradient-to-br from-cyan-500 to-blue-500"></div>
-                    <span>Текущий</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <div className="w-4 h-4 rounded bg-green-500/20 border-2 border-green-500/50"></div>
-                    <span>Отвечено</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <div className="w-4 h-4 rounded bg-gray-800 border-2 border-gray-700"></div>
-                    <span>Не отвечено</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </motion.aside>
-
-        {/* Main Content - Question Card */}
-        <div className="flex-1 min-w-0">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentTaskIndex}
-              initial={{
-                opacity: 0,
-                x: questionDirection === 'next' ? 100 : -100,
-                scale: 0.95,
-              }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{
-                opacity: 0,
-                x: questionDirection === 'next' ? -100 : 100,
-                scale: 0.95,
-              }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
-            >
-              <Card variant="glass" padding="none" className="overflow-hidden">
-                {/* Question Header */}
-                <div className="p-6 sm:p-8 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-b border-gray-700/50">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl text-white font-display font-bold text-lg shadow-lg"
-                      >
-                        Задание {currentTask.number}
-                      </motion.span>
-                      <span className="px-3 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-purple-400 text-sm font-semibold">
-                        {currentTask.points}{' '}
-                        {currentTask.points === 1
-                          ? 'балл'
-                          : currentTask.points < 5
-                            ? 'балла'
-                            : 'баллов'}
-                      </span>
-                    </div>
-                    {currentTask.topic && !currentTask.topic.match(/^(Д?\d+|[0-9]+)$/) && (
-                      <span className="px-3 py-1 bg-gray-800/80 rounded-lg text-gray-400 text-sm">
-                        {currentTask.topic}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Question Content */}
-                <div className="p-6 sm:p-8">
-                  <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                    className="mb-8 p-6 bg-gray-800/30 rounded-2xl border border-gray-700/50 backdrop-blur-sm"
-                  >
-                    <div
-                      className="question-content text-lg leading-relaxed font-sans text-gray-200"
-                      dangerouslySetInnerHTML={{ __html: currentTask.text }}
-                    />
-                  </motion.div>
-
-                  {/* Answer Input Section */}
-                  <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    {currentTask.type === 'choice' && currentTask.options && (
-                      <div className="space-y-3">
-                        {currentTask.options.map((option, index) => (
-                          <motion.button
-                            key={index}
-                            whileHover={{ scale: 1.02, x: 4 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => handleAnswer(option)}
-                            className={`w-full p-5 rounded-xl border-2 text-left transition-all duration-200 group ${
-                              answers[currentTask.number] === option
-                                ? 'border-cyan-500 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-white shadow-lg shadow-cyan-500/20'
-                                : 'border-gray-700 bg-gray-800/40 text-gray-300 hover:border-cyan-500/50 hover:bg-gray-800/60'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`w-5 h-5 rounded-full border-2 transition-all ${
-                                  answers[currentTask.number] === option
-                                    ? 'border-cyan-400 bg-cyan-400'
-                                    : 'border-gray-600 group-hover:border-cyan-500/50'
-                                }`}
-                              >
-                                {answers[currentTask.number] === option && (
-                                  <svg
-                                    className="w-full h-full text-white"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                      clipRule="evenodd"
-                                    />
-                                  </svg>
-                                )}
-                              </div>
-                              <span className="font-sans flex-1">{option}</span>
-                            </div>
-                          </motion.button>
-                        ))}
-                      </div>
-                    )}
-
-                    {currentTask.type === 'short' && (
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-400 mb-3">
-                          Введите ответ:
-                        </label>
-                        <input
-                          type="text"
-                          value={answers[currentTask.number] || ''}
-                          onChange={e => handleAnswer(e.target.value)}
-                          placeholder="Ваш ответ"
-                          autoFocus
-                          className="w-full px-5 py-4 bg-gray-800/50 border-2 border-gray-700 rounded-xl text-white text-lg placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all font-sans hover:border-gray-600"
-                        />
-                      </div>
-                    )}
-
-                    {(currentTask.type === 'detailed' || currentTask.type === 'proof') && (
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-400 mb-3">
-                          {currentTask.type === 'proof'
-                            ? 'Напишите доказательство:'
-                            : 'Подробное решение:'}
-                        </label>
-                        <textarea
-                          value={answers[currentTask.number] || ''}
-                          onChange={e => handleAnswer(e.target.value)}
-                          placeholder={
-                            currentTask.type === 'proof'
-                              ? 'Опишите доказательство...'
-                              : 'Опишите решение...'
-                          }
-                          rows={10}
-                          autoFocus
-                          className="w-full px-5 py-4 bg-gray-800/50 border-2 border-gray-700 rounded-xl text-white text-lg placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all resize-vertical font-sans hover:border-gray-600"
-                        />
-                      </div>
-                    )}
-                  </motion.div>
-                </div>
-
-                {/* Navigation Footer */}
-                <div className="p-6 sm:p-8 bg-gray-800/30 border-t border-gray-700/50">
-                  <div className="flex items-center justify-between gap-4">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button
-                        variant="outline"
-                        onClick={handlePrevious}
-                        disabled={currentTaskIndex === 0}
-                        className="flex items-center gap-2"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                          className="w-5 h-5"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15.75 19.5L8.25 12l7.5-7.5"
-                          />
-                        </svg>
-                        Назад
-                      </Button>
-                    </motion.div>
-
-                    {/* Mobile Question Nav Button */}
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setShowQuestionNav(true)}
-                      className="lg:hidden px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-medium text-gray-300 transition-colors"
-                    >
-                      {currentTaskIndex + 1} / {tasks.length}
-                    </motion.button>
-
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      {currentTaskIndex === tasks.length - 1 ? (
-                        <Button onClick={handleFinish} className="flex items-center gap-2">
-                          Завершить тест
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={2}
-                            stroke="currentColor"
-                            className="w-5 h-5"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M4.5 12.75l6 6 9-13.5"
-                            />
-                          </svg>
-                        </Button>
-                      ) : (
-                        <Button onClick={handleNext} className="flex items-center gap-2">
-                          Далее
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={2}
-                            stroke="currentColor"
-                            className="w-5 h-5"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                            />
-                          </svg>
-                        </Button>
-                      )}
-                    </motion.div>
-                  </div>
-
-                  {/* Keyboard Shortcuts Hint */}
-                  <div className="hidden sm:flex items-center justify-center gap-4 mt-4 pt-4 border-t border-gray-700/50">
-                    <span className="text-xs text-gray-500">Подсказка:</span>
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
-                      <kbd className="px-2 py-1 bg-gray-800 rounded border border-gray-700">←</kbd>
-                      <kbd className="px-2 py-1 bg-gray-800 rounded border border-gray-700">→</kbd>
-                      <span>для навигации</span>
-                    </div>
-                    {currentTaskIndex === tasks.length - 1 && (
-                      <div className="flex items-center gap-2 text-xs text-gray-400">
-                        <kbd className="px-2 py-1 bg-gray-800 rounded border border-gray-700">
-                          Ctrl
-                        </kbd>
-                        <span>+</span>
-                        <kbd className="px-2 py-1 bg-gray-800 rounded border border-gray-700">
-                          Enter
-                        </kbd>
-                        <span>завершить</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          </AnimatePresence>
         </div>
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-8 shadow-xl">
+        <div className=" backdrop-blur-xl border border-slate-200 rounded-3xl p-8 shadow-xl" style={{ backgroundColor: 'var(--color-surface)' }}>
           <div className="flex items-start justify-between mb-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -972,7 +852,17 @@ export default function ExamTestPage() {
                 </span>
               </div>
               {currentTask.topic && !currentTask.topic.match(/^(Д?\d+|[0-9]+)$/) && (
-                <div className="text-sm text-slate-500 font-sans">{currentTask.topic}</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-500 font-sans">{currentTask.topic}</span>
+                  {findTheoryForTask(subject, examType, currentTask.number, currentTask.topic) && (
+                    <button
+                      onClick={() => setTheoryTopic(findTheoryForTask(subject, examType, currentTask.number, currentTask.topic))}
+                      className="text-xs px-2 py-1 bg-blue-50 border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-sans"
+                    >
+                      Теория
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -980,7 +870,7 @@ export default function ExamTestPage() {
           <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
             <div
               className="question-content text-lg font-sans text-slate-900"
-              dangerouslySetInnerHTML={{ __html: currentTask.text }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentTask.text) }}
             />
           </div>
 
@@ -997,15 +887,38 @@ export default function ExamTestPage() {
                         : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-slate-50'
                     }`}
                   >
-                    {task.number}
-                  </motion.button>
+                    <span className="font-sans">{option}</span>
+                  </button>
                 ))}
               </div>
+            )}
 
-            {currentTask.type === 'short' && (
+            {currentTask.type === 'short' && isCoordinateLineTask(currentTask) && (
               <div>
-                <label className="block text-sm font-sans text-slate-700 mb-2">Введите ответ:</label>
+                <CoordinateLine
+                  value={answers[currentTask.number] ? parseFloat(answers[currentTask.number]!) : null}
+                  onChange={(val) => {
+                    if (isNaN(val)) {
+                      setAnswers(prev => {
+                        const next = { ...prev };
+                        delete next[currentTask.number];
+                        return next;
+                      });
+                    } else {
+                      handleAnswer(String(val));
+                    }
+                  }}
+                  range={getCoordRange(currentTask)}
+                  markedPoints={parseTaskReferencePoints(currentTask)}
+                />
+              </div>
+            )}
+
+            {currentTask.type === 'short' && !isCoordinateLineTask(currentTask) && (
+              <div>
+                <label htmlFor="answer-input" className="block text-sm font-sans text-slate-700 mb-2">Введите ответ:</label>
                 <input
+                  id="answer-input"
                   type="text"
                   value={answers[currentTask.number] || ''}
                   onChange={e => handleAnswer(e.target.value)}
@@ -1013,17 +926,53 @@ export default function ExamTestPage() {
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-sans"
                 />
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            )}
+
+            {currentTask.type === 'matching' && (
+              <div>
+                <label htmlFor="matching-input" className="block text-sm font-sans text-slate-700 mb-2">
+                  Установите соответствие:
+                </label>
+                <input
+                  id="matching-input"
+                  type="text"
+                  value={answers[currentTask.number] || ''}
+                  onChange={e => handleAnswer(e.target.value)}
+                  placeholder="Например: А-1, Б-3, В-2"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-sans"
+                />
+                <p className="mt-2 text-xs text-slate-500 font-sans">
+                  Введите пары через запятую, например: А-1, Б-3, В-2
+                </p>
+              </div>
+            )}
+
+            {currentTask.type === 'multiple_choice' && (
+              <div>
+                <label htmlFor="multiple-choice-input" className="block text-sm font-sans text-slate-700 mb-2">
+                  Выберите верные утверждения:
+                </label>
+                <input
+                  id="multiple-choice-input"
+                  type="text"
+                  value={answers[currentTask.number] || ''}
+                  onChange={e => handleAnswer(e.target.value)}
+                  placeholder="Например: 1, 2"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-sans"
+                />
+                <p className="mt-2 text-xs text-slate-500 font-sans">
+                  Введите номера верных утверждений через запятую
+                </p>
+              </div>
+            )}
 
             {(currentTask.type === 'detailed' || currentTask.type === 'proof') && (
               <div>
-                <label className="block text-sm font-sans text-slate-700 mb-2">
+                <label htmlFor="exam-detailed-input" className="block text-sm font-sans text-slate-700 mb-2">
                   {currentTask.type === 'proof' ? 'Напишите доказательство:' : 'Подробное решение:'}
                 </label>
                 <textarea
+                  id="exam-detailed-input"
                   value={answers[currentTask.number] || ''}
                   onChange={e => handleAnswer(e.target.value)}
                   placeholder={
@@ -1039,28 +988,38 @@ export default function ExamTestPage() {
           </div>
 
           <div className="flex items-center justify-between pt-6 border-t border-slate-200">
-            <Button variant="outline" onClick={handlePrevious} disabled={currentTaskIndex === 0}>
-              ← Предыдущее
-            </Button>
+            {!examMode && (
+              <Button variant="outline" onClick={handlePrevious} disabled={currentTaskIndex === 0}>
+                ← Предыдущее
+              </Button>
+            )}
+            {examMode && <div />}
 
             <div className="flex gap-3">
               {currentTaskIndex === tasks.length - 1 ? (
-                <Button onClick={handleFinish}>Завершить тест</Button>
+                <Button onClick={() => void handleFinish()}>Завершить тест</Button>
               ) : (
-                <Button onClick={handleNext}>Следующее →</Button>
+                <Button onClick={() => void handleNext()}>Следующее →</Button>
               )}
             </div>
           </div>
         </div>
 
-        <div className="mt-6 bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-6 shadow-xl">
+        <div className="mt-6  backdrop-blur-xl border border-slate-200 rounded-2xl p-6 shadow-xl" style={{ backgroundColor: 'var(--color-surface)' }}>
           <h3 className="text-sm font-sans text-slate-600 mb-3">Быстрая навигация:</h3>
           <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
             {tasks.map((task, index) => (
               <button
                 key={task.number}
-                onClick={() => setCurrentTaskIndex(index)}
+                onClick={() => {
+                  if (examMode && index < currentTaskIndex) return;
+                  recordTimeForCurrentTask();
+                  setCurrentTaskIndex(index);
+                }}
+                disabled={examMode && index < currentTaskIndex}
                 className={`aspect-square rounded-lg font-display font-semibold text-sm transition-all ${
+                  examMode && index < currentTaskIndex ? 'opacity-40 cursor-not-allowed ' : ''
+                }${
                   currentTaskIndex === index
                     ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white scale-110'
                     : answers[task.number]
@@ -1076,9 +1035,9 @@ export default function ExamTestPage() {
       </div>
 
       {showExitConfirm && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="exit-dialog-title">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full border border-slate-200 animate-scale-in">
-            <h4 className="text-xl font-semibold text-slate-900 mb-3">Выйти из теста?</h4>
+            <h4 id="exit-dialog-title" className="text-xl font-semibold text-slate-900 mb-3">Выйти из теста?</h4>
             <p className="text-slate-600 mb-2">
               Вы ответили на <span className="text-blue-600 font-semibold">{answeredCount}</span> из{' '}
               <span className="text-slate-900">{tasks.length}</span> вопросов.
@@ -1094,7 +1053,7 @@ export default function ExamTestPage() {
                 Продолжить тест
               </button>
               <button
-                onClick={handleFinish}
+                onClick={() => void handleFinish()}
                 className="w-full px-4 py-3 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-all"
               >
                 Завершить и сохранить результат
@@ -1109,6 +1068,8 @@ export default function ExamTestPage() {
           </div>
         </div>
       )}
+
+      <TheoryDrawer topic={theoryTopic} subject={subject} onClose={() => setTheoryTopic(null)} />
     </div>
   );
 }

@@ -159,8 +159,7 @@ class ValidationSchemas {
       .regex(this.constants.password.uppercasePattern, {
         message: this.messages.password.missingUppercase,
       })
-      .regex(this.constants.password.digitPattern, { message: this.messages.password.missingDigit })
-      .optional();
+      .regex(this.constants.password.digitPattern, { message: this.messages.password.missingDigit });
   }
 
   private createNameValidator() {

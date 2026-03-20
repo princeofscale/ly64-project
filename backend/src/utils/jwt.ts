@@ -32,8 +32,7 @@ class JwtService {
   private readonly config: JwtConfiguration;
   private readonly minSecretLength: number = 32;
   private readonly emergencySecretByteLength: number = 64;
-  private readonly defaultDevSecret: string = 'dev-only-secret-change-in-production';
-  private readonly defaultExpiresIn: string = '7d';
+  private readonly defaultExpiresIn: string = '15m';
   private readonly unauthorizedStatusCode: number = 401;
 
   private readonly errorMessages: TokenErrorMessages = {
@@ -74,8 +73,11 @@ class JwtService {
       return this.generateEmergencySecret();
     }
 
-    this.logSecurityWarning('Using default JWT_SECRET. Set JWT_SECRET in .env for production');
-    return this.defaultDevSecret;
+    const emergencySecret = this.generateEmergencySecret();
+    this.logSecurityWarning(
+      'JWT_SECRET is not set in .env. Using auto-generated secret (tokens will not persist across restarts). Set JWT_SECRET in .env file.'
+    );
+    return emergencySecret;
   }
 
   private isProductionEnvironment(): boolean {

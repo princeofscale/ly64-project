@@ -54,17 +54,14 @@ export function useTestSession(options: UseTestSessionOptions): UseTestSessionRe
   const storage = useMemo(() => new TestSessionStorage(), []);
   const isInitialized = useRef(false);
 
-  // Попытка восстановить сессию или создать новую
   const [session] = useState(() => {
     if (restoreSession) {
       const savedData = storage.loadSessionData();
       if (savedData) {
         try {
           const restored = TestSession.deserialize(savedData, exam);
-          console.log('[useTestSession] Сессия восстановлена из localStorage');
           return restored;
-        } catch (e) {
-          console.warn('[useTestSession] Не удалось восстановить сессию:', e);
+        } catch {
           storage.clearSession();
         }
       }
@@ -78,7 +75,6 @@ export function useTestSession(options: UseTestSessionOptions): UseTestSessionRe
     forceUpdate({});
   }, []);
 
-  // Функция сохранения сессии
   const saveSession = useCallback(() => {
     if (session.status === 'in_progress' || session.status === 'paused') {
       const serialized = session.serialize();
@@ -92,12 +88,10 @@ export function useTestSession(options: UseTestSessionOptions): UseTestSessionRe
     }
   }, [session, storage, exam, sessionMetadata]);
 
-  // Инициализация и автосохранение
   useEffect(() => {
     if (!isInitialized.current) {
       isInitialized.current = true;
 
-      // Проверяем была ли сессия восстановлена
       const savedSession = storage.loadSession();
       if (savedSession && onSessionRestored) {
         onSessionRestored();
@@ -105,19 +99,15 @@ export function useTestSession(options: UseTestSessionOptions): UseTestSessionRe
     }
 
     if (autoSave) {
-      // Сохраняем при первой загрузке
       saveSession();
 
-      // Запускаем автосохранение каждые 5 секунд
       storage.startAutoSave(saveSession);
 
-      // Сохраняем при закрытии страницы
       const handleBeforeUnload = () => {
         saveSession();
       };
       window.addEventListener('beforeunload', handleBeforeUnload);
 
-      // Сохраняем при потере фокуса (переключение вкладки)
       const handleVisibilityChange = () => {
         if (document.hidden) {
           saveSession();
@@ -160,9 +150,7 @@ export function useTestSession(options: UseTestSessionOptions): UseTestSessionRe
       if (task) {
         session.submitAnswer(task.number, answer);
         if (autoSave) {
-          // Сохраняем ответы сразу
           storage.backupAnswers(session.getAllAnswers() as Map<number, unknown>);
-          // Сохраняем всю сессию
           saveSession();
         }
         triggerUpdate();

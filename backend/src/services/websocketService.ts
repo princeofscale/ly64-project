@@ -1,6 +1,6 @@
-import jwt from 'jsonwebtoken';
 import { WebSocketServer, WebSocket } from 'ws';
 
+import { verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
 
 import type { Server } from 'http';
@@ -45,13 +45,22 @@ class WebSocketService {
       server,
       path: '/ws',
       verifyClient: (info, callback) => {
+        const ip = info.req.socket.remoteAddress || '';
+        const connectionsFromIp = Array.from(this.wss?.clients ?? []).filter(
+          c => (c as AuthenticatedWebSocket & { _ip?: string })._ip === ip
+        ).length;
+        if (connectionsFromIp >= 10) {
+          callback(false, 429, 'Too many connections');
+          return;
+        }
         callback(true);
       },
     });
 
-    this.wss.on('connection', (ws: AuthenticatedWebSocket, req) => {
+    this.wss.on('connection', (ws: AuthenticatedWebSocket & { _ip?: string }, req) => {
       ws.isAlive = true;
       ws.subscriptions = new Set();
+      ws._ip = req.socket.remoteAddress || '';
 
       logger.info('[WebSocket] New connection', { ip: req.socket.remoteAddress });
 
@@ -63,7 +72,7 @@ class WebSocketService {
         try {
           const message: WSMessage = JSON.parse(data.toString());
           this.handleMessage(ws, message);
-        } catch (error) {
+        } catch {
           ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
         }
       });
@@ -134,30 +143,35 @@ class WebSocketService {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
-      ws.userId = decoded.id;
+      const decoded = verifyToken(token);
+      ws.userId = decoded.userId;
 
-      if (!this.clients.has(decoded.id)) {
-        this.clients.set(decoded.id, new Set());
+      if (!this.clients.has(decoded.userId)) {
+        this.clients.set(decoded.userId, new Set());
       }
-      this.clients.get(decoded.id)!.add(ws);
+      this.clients.get(decoded.userId)!.add(ws);
 
       ws.send(
         JSON.stringify({
           type: 'auth_success',
-          userId: decoded.id,
+          userId: decoded.userId,
           timestamp: Date.now(),
         })
       );
 
-      logger.info('[WebSocket] User authenticated', { userId: decoded.id });
-    } catch (error) {
+      logger.info('[WebSocket] User authenticated', { userId: decoded.userId });
+    } catch {
       ws.send(JSON.stringify({ type: 'auth_error', message: 'Invalid token' }));
     }
   }
 
   private subscribe(ws: AuthenticatedWebSocket, channel: string): void {
-    const validChannels = ['leaderboard', 'achievements', 'notifications', 'tests'];
+    if (!ws.userId) {
+      ws.send(JSON.stringify({ type: 'error', message: 'Authentication required' }));
+      return;
+    }
+
+    const validChannels = ['leaderboard', 'achievements', 'notifications', 'tests', 'duels'];
     if (!validChannels.includes(channel)) {
       ws.send(JSON.stringify({ type: 'error', message: 'Invalid channel' }));
       return;

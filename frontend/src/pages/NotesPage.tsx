@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import { Header } from '../components/Header';
 
@@ -25,22 +25,17 @@ const SUBJECTS = [
 ];
 
 function NotesPage() {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<Note[]>(() => {
+    const saved = localStorage.getItem('user-notes');
+    if (!saved) return [];
+    try { return JSON.parse(saved); } catch { return []; }
+  });
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSubject, setFilterSubject] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ title: '', content: '', subject: 'other' });
 
-  // Загрузка из localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('user-notes');
-    if (saved) {
-      setNotes(JSON.parse(saved));
-    }
-  }, []);
-
-  // Сохранение в localStorage
   const saveNotes = (newNotes: Note[]) => {
     localStorage.setItem('user-notes', JSON.stringify(newNotes));
     setNotes(newNotes);
@@ -141,17 +136,17 @@ function NotesPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden">
-        <div className="absolute top-20 right-10 w-96 h-96 bg-blue-100/50 rounded-full blur-[120px]" />
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-violet-100/50 rounded-full blur-[120px]" />
+      <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: 'var(--color-bg)' }}>
+        <div className="absolute top-20 right-10 w-96 h-96 bg-blue-100/50 rounded-full blur-[120px] opacity-50" />
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-violet-100/50 rounded-full blur-[120px] opacity-50" />
 
         <main className="relative z-10 max-w-7xl mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900">
+              <h1 className="text-4xl font-bold" style={{ color: 'var(--color-text)' }}>
                 Заметки
               </h1>
-              <p className="text-slate-600 mt-1">Ваши личные шпаргалки и конспекты</p>
+              <p className="mt-1" style={{ color: 'var(--color-text-secondary)' }}>Ваши личные шпаргалки и конспекты</p>
             </div>
             <button
               onClick={createNote}
@@ -170,7 +165,8 @@ function NotesPage() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Поиск заметок..."
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-4 py-3 border rounded-xl placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', borderColor: 'var(--color-border)' }}
               />
 
               {/* Фильтр по предмету */}
@@ -180,8 +176,9 @@ function NotesPage() {
                   className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                     !filterSubject
                       ? 'bg-blue-500 text-white shadow-lg'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900'
+                      : 'border'
                   }`}
+                  style={!filterSubject ? {} : { backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}
                 >
                   Все
                 </button>
@@ -192,12 +189,9 @@ function NotesPage() {
                     className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                       filterSubject === subject.id
                         ? 'text-white shadow-lg'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900'
+                        : 'border'
                     }`}
-                    style={{
-                      backgroundColor:
-                        filterSubject === subject.id ? subject.color : undefined,
-                    }}
+                    style={filterSubject === subject.id ? { backgroundColor: subject.color } : { backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}
                   >
                     {subject.name}
                   </button>
@@ -207,31 +201,34 @@ function NotesPage() {
               {/* Список */}
               <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
                 {filteredNotes.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500">
+                  <div className="text-center py-12" style={{ color: 'var(--color-text-muted)' }}>
                     {notes.length === 0 ? 'Нет заметок' : 'Ничего не найдено'}
                   </div>
                 ) : (
                   filteredNotes.map(note => (
                     <div
                       key={note.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => selectNote(note)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectNote(note); } }}
                       className={`p-4 rounded-xl cursor-pointer transition-all border-l-4 ${
                         selectedNote?.id === note.id
-                          ? 'bg-white border-blue-500 shadow-lg'
-                          : 'bg-white/70 border-transparent hover:bg-white hover:shadow-md'
+                          ? 'shadow-lg'
+                          : 'hover:shadow-md'
                       }`}
-                      style={{ borderLeftColor: note.color }}
+                      style={{ backgroundColor: 'var(--color-surface)', borderLeftColor: note.color }}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             {note.pinned && <span className="text-amber-500">📌</span>}
-                            <h3 className="font-medium text-slate-900 truncate">{note.title}</h3>
+                            <h3 className="font-medium truncate" style={{ color: 'var(--color-text)' }}>{note.title}</h3>
                           </div>
-                          <p className="text-slate-600 text-sm truncate mt-1">
+                          <p className="text-sm truncate mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                             {note.content || 'Пустая заметка'}
                           </p>
-                          <p className="text-slate-400 text-xs mt-2">{formatDate(note.updatedAt)}</p>
+                          <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>{formatDate(note.updatedAt)}</p>
                         </div>
                       </div>
                     </div>
@@ -328,7 +325,7 @@ function NotesPage() {
                         </span>
                       </div>
 
-                      <h2 className="text-2xl font-bold text-slate-900 mb-4">{selectedNote.title}</h2>
+                      <h2 className="text-2xl font-bold  mb-4" style={{ color: 'var(--color-text)' }}>{selectedNote.title}</h2>
 
                       <div className="prose max-w-none">
                         <pre className="whitespace-pre-wrap font-sans text-slate-700 leading-relaxed">
@@ -342,7 +339,7 @@ function NotesPage() {
               ) : (
                 <div className="bg-white border border-slate-200 rounded-2xl p-12 h-full flex flex-col items-center justify-center text-center shadow-lg">
                   <div className="text-6xl mb-4">📝</div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">Выберите заметку</h3>
+                  <h3 className="text-xl font-bold  mb-2" style={{ color: 'var(--color-text)' }}>Выберите заметку</h3>
                   <p className="text-slate-600 mb-6">
                     Выберите заметку из списка слева или создайте новую
                   </p>

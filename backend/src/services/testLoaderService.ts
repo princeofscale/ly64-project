@@ -1,11 +1,12 @@
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import os from 'os';
 import path from 'path';
 import { promisify } from 'util';
 
 import prisma from '../config/database';
+import { logger } from '../utils/logger';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 function getPythonCommand(): string {
   const platform = os.platform();
@@ -28,7 +29,11 @@ class TestLoaderService {
 
   constructor() {
     this.pythonCommand = getPythonCommand();
-    console.log(`🐍 Using Python command: ${this.pythonCommand}`);
+    logger.info(`Using Python command: ${this.pythonCommand}`);
+  }
+
+  public getLastLoadTime(): Date | null {
+    return this.lastLoadTime;
   }
 
   async shouldLoadTests(): Promise<boolean> {
@@ -41,46 +46,47 @@ class TestLoaderService {
 
       return testCount === 0;
     } catch (error) {
-      console.error('Error checking test count:', error);
+      logger.error('Error checking test count:', error);
       return false;
     }
   }
 
   async loadTests(): Promise<void> {
     if (this.isLoading) {
-      console.log('⏳ Tests are already being loaded, skipping...');
+      logger.info('Tests are already being loaded, skipping...');
       return;
     }
 
     try {
       this.isLoading = true;
-      console.log('\n📚 Starting test data loading from sdamgia_api...');
+      logger.info('Starting test data loading from sdamgia_api...');
 
       const scriptPath = path.join(__dirname, '../../scripts/fetch_sdamgia_tests.py');
 
-      const { stdout, stderr } = await execAsync(`${this.pythonCommand} "${scriptPath}"`, {
+      const { stdout, stderr } = await execFileAsync(this.pythonCommand, [scriptPath], {
         cwd: path.join(__dirname, '../..'),
         timeout: 300000,
       });
 
       if (stdout) {
-        console.log(stdout);
+        logger.info(stdout);
       }
 
       if (stderr && !stderr.includes('InsecureRequestWarning')) {
-        console.error('⚠️  Script warnings:', stderr);
+        logger.error('Script warnings:', stderr);
       }
 
       this.lastLoadTime = new Date();
-      console.log('✅ Test data loading completed successfully!');
-    } catch (error: any) {
-      console.error('❌ Error loading tests:', error.message);
+      logger.info('Test data loading completed successfully!');
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      logger.error('Error loading tests:', msg);
 
-      if (error.message.includes('sdamgia_api') || error.message.includes('python')) {
-        console.warn('\n⚠️  Python or sdamgia_api not found.');
-        console.warn('   Tests will not be auto-loaded.');
-        console.warn('   To load tests manually, run:');
-        console.warn(`   ${this.pythonCommand} backend/scripts/fetch_sdamgia_tests.py\n`);
+      if (msg.includes('sdamgia_api') || msg.includes('python')) {
+        logger.warn('Python or sdamgia_api not found.');
+        logger.warn('Tests will not be auto-loaded.');
+        logger.warn('To load tests manually, run:');
+        logger.warn(`${this.pythonCommand} backend/scripts/fetch_sdamgia_tests.py`);
       }
     } finally {
       this.isLoading = false;
@@ -92,15 +98,15 @@ class TestLoaderService {
       const shouldLoad = await this.shouldLoadTests();
 
       if (shouldLoad) {
-        console.log('🔄 No tests found in database, loading from sdamgia_api...');
+        logger.info('No tests found in database, loading from sdamgia_api...');
         this.loadTests().catch(err => {
-          console.error('Background test loading failed:', err);
+          logger.error('Background test loading failed:', err);
         });
       } else {
-        console.log('✅ Tests already loaded in database');
+        logger.info('Tests already loaded in database');
       }
     } catch (error) {
-      console.error('Error initializing test loader:', error);
+      logger.error('Error initializing test loader:', error);
     }
   }
 }

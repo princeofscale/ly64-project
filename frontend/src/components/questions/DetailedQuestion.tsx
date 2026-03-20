@@ -1,9 +1,4 @@
-/**
- * Detailed Question Component
- * Компонент для вопросов с развернутым ответом
- */
-
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 
 import type { ITask } from '../../core/interfaces';
 
@@ -24,14 +19,10 @@ export const DetailedQuestion: React.FC<DetailedQuestionProps> = ({
 }) => {
   const [localValue, setLocalValue] = useState(currentAnswer);
 
-  // Подсчет слов
-  useEffect(() => {
-    const words = localValue
-      .trim()
-      .split(/\s+/)
-      .filter(w => w.length > 0);
-    setWordCount(words.length);
-  }, [localValue]);
+  const wordCount = localValue
+    .trim()
+    .split(/\s+/)
+    .filter(w => w.length > 0).length;
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -42,7 +33,6 @@ export const DetailedQuestion: React.FC<DetailedQuestionProps> = ({
     [onAnswer]
   );
 
-  // Автоматическая регулировка высоты
   const handleInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
     const target = e.currentTarget;
     target.style.height = 'auto';
@@ -52,12 +42,11 @@ export const DetailedQuestion: React.FC<DetailedQuestionProps> = ({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-sans text-gray-400">
+        <label className="block text-sm font-sans text-slate-500">
           {isProof ? 'Напишите доказательство:' : 'Подробное решение:'}
         </label>
 
-        {/* Индикатор баллов */}
-        <span className="text-sm text-purple-400 font-sans">До {task.points} баллов</span>
+        <span className="text-sm text-violet-600 font-sans">До {task.points} баллов</span>
       </div>
 
       <div className="relative">
@@ -74,39 +63,36 @@ export const DetailedQuestion: React.FC<DetailedQuestionProps> = ({
           rows={8}
           className={`
             w-full px-4 py-3
-            bg-gray-800/50
-            border border-gray-700
+            bg-slate-50
+            border border-slate-200
             rounded-xl
-            text-white
-            placeholder-gray-500
-            focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500
+            text-slate-900
+            placeholder-slate-400
+            focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
             transition-all duration-200
             resize-y min-h-[200px]
             font-sans leading-relaxed
-            ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-600'}
+            ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-slate-300'}
           `}
           spellCheck="false"
         />
 
-        {/* Счетчик слов */}
-        <div className="absolute bottom-3 right-3 text-xs text-gray-500 font-mono">
+        <div className="absolute bottom-3 right-3 text-xs text-slate-400 font-mono">
           {wordCount} {getWordForm(wordCount)}
         </div>
       </div>
 
-      {/* Подсказки */}
       <div className="flex flex-wrap gap-2 mt-2">
         <Hint icon="💡" text="Записывайте все этапы решения" />
         <Hint icon="📐" text="Обосновывайте каждый шаг" />
         {isProof && <Hint icon="✓" text="Укажите, что требовалось доказать" />}
       </div>
 
-      {/* Предупреждение о ручной проверке */}
-      <div className="mt-4 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+      <div className="mt-4 p-3 bg-violet-50 border border-violet-200 rounded-lg">
         <div className="flex items-start gap-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-purple-400 flex-shrink-0 mt-0.5"
+            className="h-5 w-5 text-violet-500 flex-shrink-0 mt-0.5"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -116,7 +102,7 @@ export const DetailedQuestion: React.FC<DetailedQuestionProps> = ({
               clipRule="evenodd"
             />
           </svg>
-          <p className="text-sm text-purple-300 font-sans">
+          <p className="text-sm text-violet-600 font-sans">
             Это задание требует развернутого ответа и будет проверено вручную. Постарайтесь
             максимально подробно объяснить ход решения.
           </p>
@@ -126,19 +112,13 @@ export const DetailedQuestion: React.FC<DetailedQuestionProps> = ({
   );
 };
 
-/**
- * Компонент подсказки
- */
 const Hint: React.FC<{ icon: string; text: string }> = ({ icon, text }) => (
-  <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-800/30 rounded-lg text-xs text-gray-400 font-sans">
+  <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 rounded-lg text-xs text-slate-500 font-sans">
     <span>{icon}</span>
     <span>{text}</span>
   </div>
 );
 
-/**
- * Склонение слова "слово"
- */
 function getWordForm(count: number): string {
   const lastDigit = count % 10;
   const lastTwoDigits = count % 100;

@@ -1,4 +1,40 @@
 import prisma from '../config/database';
+import { logger } from '../utils/logger';
+
+import type { Prisma } from '@prisma/client';
+
+type AttemptWithTest = Prisma.TestAttemptGetPayload<{
+  include: {
+    test: {
+      include: {
+        questions: {
+          include: { question: true };
+        };
+      };
+    };
+  };
+}>;
+
+type TestQuestionWithQuestion = AttemptWithTest['test']['questions'][number];
+
+interface CollectedStats {
+  totalQuestions: number;
+  totalCorrect: number;
+  totalTime: number;
+  questionsWithTime: number;
+  byType: Record<string, { total: number; correct: number; totalTime: number; count: number }>;
+  byDifficulty: Record<string, { total: number; correct: number }>;
+  byTopic: Record<string, { total: number; correct: number; subject: string; recentResults: boolean[] }>;
+  byQuestion: Record<string, {
+    questionText: string;
+    topic: string;
+    subject: string;
+    type: string;
+    attempts: number;
+    wrong: number;
+    wrongAnswers: string[];
+  }>;
+}
 
 const QUESTION_TYPE_LABELS: Record<string, string> = {
   SINGLE_CHOICE: 'Выбор одного ответа',
@@ -207,7 +243,14 @@ interface AnalysisResult {
 }
 
 class ErrorAnalysisService {
+  private analysisCache = new Map<string, { data: AnalysisResult; expiry: number }>();
+  private static readonly CACHE_TTL = 5 * 60 * 1000;
+
   async getDetailedAnalysis(userId: string): Promise<AnalysisResult> {
+    const cached = this.analysisCache.get(userId);
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
     const attempts = await prisma.testAttempt.findMany({
       where: {
         userId,
@@ -252,7 +295,7 @@ class ErrorAnalysisService {
 
     const progressOverTime = this.calculateProgressOverTime(attempts);
 
-    return {
+    const result: AnalysisResult = {
       summary: {
         totalAttempts: attempts.length,
         totalQuestions: stats.totalQuestions,
@@ -275,9 +318,12 @@ class ErrorAnalysisService {
       recommendations,
       progressOverTime,
     };
+
+    this.analysisCache.set(userId, { data: result, expiry: Date.now() + ErrorAnalysisService.CACHE_TTL });
+    return result;
   }
 
-  private collectStats(attempts: any[]) {
+  private collectStats(attempts: AttemptWithTest[]): CollectedStats {
     const stats = {
       totalQuestions: 0,
       totalCorrect: 0,
@@ -317,7 +363,7 @@ class ErrorAnalysisService {
         const answerTimes = attempt.answerTimes ? JSON.parse(attempt.answerTimes) : [];
         const questionsOrder = attempt.questionsOrder ? JSON.parse(attempt.questionsOrder) : null;
 
-        attempt.test.questions.forEach((tq: any, index: number) => {
+        attempt.test.questions.forEach((tq: TestQuestionWithQuestion, index: number) => {
           const question = tq.question;
           const questionId = question.id;
           const type = question.type || 'unknown';
@@ -341,7 +387,9 @@ class ErrorAnalysisService {
             let correctAnswer = question.correctAnswer;
             try {
               correctAnswer = JSON.parse(correctAnswer);
-            } catch {}
+            } catch {
+              // Keep as string if not valid JSON
+            }
 
             isCorrect = this.checkAnswer(userAnswer, correctAnswer);
 
@@ -401,17 +449,17 @@ class ErrorAnalysisService {
           }
         });
       } catch (e) {
-        console.error('Error processing attempt:', e);
+        logger.error('Error processing attempt:', e instanceof Error ? e.message : String(e));
       }
     });
 
     return stats;
   }
 
-  private checkAnswer(userAnswer: any, correctAnswer: any): boolean {
+  private checkAnswer(userAnswer: unknown, correctAnswer: unknown): boolean {
     if (userAnswer === null || userAnswer === undefined) return false;
 
-    const normalizeAnswer = (ans: any) => String(ans).toLowerCase().trim();
+    const normalizeAnswer = (ans: unknown) => String(ans).toLowerCase().trim();
 
     if (Array.isArray(correctAnswer)) {
       if (Array.isArray(userAnswer)) {
@@ -423,9 +471,9 @@ class ErrorAnalysisService {
     return normalizeAnswer(correctAnswer) === normalizeAnswer(userAnswer);
   }
 
-  private analyzeByQuestionType(stats: any) {
+  private analyzeByQuestionType(stats: CollectedStats) {
     return Object.entries(stats.byType)
-      .map(([type, data]: [string, any]) => ({
+      .map(([type, data]) => ({
         type,
         typeLabel: QUESTION_TYPE_LABELS[type] || type,
         total: data.total,
@@ -438,12 +486,12 @@ class ErrorAnalysisService {
       .sort((a, b) => a.accuracy - b.accuracy);
   }
 
-  private analyzeByDifficulty(stats: any) {
+  private analyzeByDifficulty(stats: CollectedStats) {
     const order = ['EASY', 'MEDIUM', 'HARD'];
     return order
       .filter(d => stats.byDifficulty[d])
       .map(difficulty => {
-        const data = stats.byDifficulty[difficulty];
+        const data = stats.byDifficulty[difficulty]!;
         return {
           difficulty,
           difficultyLabel: DIFFICULTY_LABELS[difficulty] || difficulty,
@@ -456,24 +504,26 @@ class ErrorAnalysisService {
       });
   }
 
-  private findWeakTopics(stats: any) {
+  private findWeakTopics(stats: CollectedStats) {
     return Object.entries(stats.byTopic)
-      .filter(([_, data]: [string, any]) => data.total >= 2)
-      .map(([key, data]: [string, any]) => {
-        const [subject, topic] = key.split(':');
+      .filter(([, data]) => data.total >= 2)
+      .map(([key, data]) => {
+        const parts = key.split(':');
+        const subject = parts[0] ?? '';
+        const topic = parts[1] ?? '';
         const accuracy = Math.round((data.correct / data.total) * 100);
         const trend = this.calculateTrend(data.recentResults);
 
         return {
           topic,
           subject,
-          subjectLabel: SUBJECT_LABELS[subject] || subject,
+          subjectLabel: (subject && SUBJECT_LABELS[subject]) || subject,
           total: data.total,
           correct: data.correct,
           wrong: data.total - data.correct,
           accuracy,
           trend,
-          advice: TOPIC_ADVICE[topic] || [
+          advice: (topic && TOPIC_ADVICE[topic]) || [
             `Повторите теорию по теме "${topic}"`,
             'Решите больше практических заданий',
             'Разберите типичные ошибки',
@@ -485,16 +535,18 @@ class ErrorAnalysisService {
       .slice(0, 10);
   }
 
-  private findStrongTopics(stats: any) {
+  private findStrongTopics(stats: CollectedStats) {
     return Object.entries(stats.byTopic)
-      .filter(([_, data]: [string, any]) => data.total >= 3)
-      .map(([key, data]: [string, any]) => {
-        const [subject, topic] = key.split(':');
+      .filter(([, data]) => data.total >= 3)
+      .map(([key, data]) => {
+        const parts = key.split(':');
+        const subject = parts[0] ?? '';
+        const topic = parts[1] ?? '';
         const accuracy = Math.round((data.correct / data.total) * 100);
         return {
           topic,
           subject,
-          subjectLabel: SUBJECT_LABELS[subject] || subject,
+          subjectLabel: (subject && SUBJECT_LABELS[subject]) || subject,
           accuracy,
           total: data.total,
         };
@@ -520,10 +572,10 @@ class ErrorAnalysisService {
     return 'stable';
   }
 
-  private findFrequentMistakes(stats: any) {
+  private findFrequentMistakes(stats: CollectedStats) {
     return Object.entries(stats.byQuestion)
-      .filter(([_, data]: [string, any]) => data.wrong >= 2 && data.attempts >= 2)
-      .map(([questionId, data]: [string, any]) => {
+      .filter(([, data]) => data.wrong >= 2 && data.attempts >= 2)
+      .map(([questionId, data]) => {
         const wrongCounts: Record<string, number> = {};
         data.wrongAnswers.forEach((ans: string) => {
           wrongCounts[ans] = (wrongCounts[ans] || 0) + 1;
@@ -554,15 +606,15 @@ class ErrorAnalysisService {
   }
 
   private generateRecommendations(
-    stats: any,
-    weakTopics: any[],
-    byType: any[],
-    byDifficulty: any[]
+    stats: CollectedStats,
+    weakTopics: ReturnType<ErrorAnalysisService['findWeakTopics']>,
+    byType: ReturnType<ErrorAnalysisService['analyzeByQuestionType']>,
+    byDifficulty: ReturnType<ErrorAnalysisService['analyzeByDifficulty']>
   ) {
-    const recommendations: any[] = [];
+    const recommendations: AnalysisResult['recommendations'] = [];
 
     if (weakTopics.length > 0) {
-      const worstTopic = weakTopics[0];
+      const worstTopic = weakTopics[0]!;
       recommendations.push({
         priority: 'high',
         category: 'Слабые темы',
@@ -663,26 +715,29 @@ class ErrorAnalysisService {
     return recommendations.slice(0, 5);
   }
 
-  private calculateProgressOverTime(attempts: any[]) {
+  private calculateProgressOverTime(attempts: AttemptWithTest[]) {
     const byDate: Record<string, { correct: number; total: number }> = {};
 
     attempts.forEach(attempt => {
       if (!attempt.completedAt) return;
 
-      const date = new Date(attempt.completedAt).toISOString().split('T')[0];
+      const date = new Date(attempt.completedAt).toISOString().split('T')[0] ?? '';
+      if (!date) return;
       if (!byDate[date]) {
         byDate[date] = { correct: 0, total: 0 };
       }
+
+      const dateStats = byDate[date]!;
 
       try {
         const answers = JSON.parse(attempt.answers || '[]');
         const questionsOrder = attempt.questionsOrder ? JSON.parse(attempt.questionsOrder) : null;
 
-        attempt.test.questions.forEach((tq: any, index: number) => {
+        attempt.test.questions.forEach((tq: TestQuestionWithQuestion, index: number) => {
           const question = tq.question;
           const questionIndex = questionsOrder ? questionsOrder.indexOf(question.id) : index;
 
-          byDate[date].total++;
+          dateStats.total++;
 
           if (questionIndex >= 0 && answers[questionIndex] !== undefined) {
             let userAnswer = answers[questionIndex];
@@ -693,14 +748,16 @@ class ErrorAnalysisService {
             let correctAnswer = question.correctAnswer;
             try {
               correctAnswer = JSON.parse(correctAnswer);
-            } catch {}
+            } catch {
+            }
 
             if (this.checkAnswer(userAnswer, correctAnswer)) {
-              byDate[date].correct++;
+              dateStats.correct++;
             }
           }
         });
-      } catch (e) {}
+      } catch (e) {
+      }
     });
 
     return Object.entries(byDate)

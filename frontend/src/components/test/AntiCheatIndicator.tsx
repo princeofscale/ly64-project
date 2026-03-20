@@ -7,10 +7,6 @@ interface AntiCheatIndicatorProps {
   isMonitoring: boolean;
 }
 
-/**
- * Индикатор античита
- * Показывает статус мониторинга и количество нарушений
- */
 export const AntiCheatIndicator: React.FC<AntiCheatIndicatorProps> = ({
   tabSwitches,
   suspiciousScore,
@@ -43,7 +39,6 @@ export const AntiCheatIndicator: React.FC<AntiCheatIndicatorProps> = ({
           {tabSwitches > 0 ? <>Переключений: {tabSwitches}/3</> : <>Мониторинг активен</>}
         </span>
 
-        {/* Индикатор записи */}
         <motion.div
           animate={{ opacity: [1, 0.3, 1] }}
           transition={{ duration: 2, repeat: Infinity }}
@@ -54,9 +49,6 @@ export const AntiCheatIndicator: React.FC<AntiCheatIndicatorProps> = ({
   );
 };
 
-/**
- * Модальное окно предупреждения о нарушениях
- */
 interface AntiCheatWarningModalProps {
   warnings: string[];
   onClose: () => void;

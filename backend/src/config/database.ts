@@ -7,6 +7,7 @@ import {
   DATABASE_LOG_LEVELS,
   LIFECYCLE_EVENTS,
 } from '../constants/databaseConstants';
+import { logger } from '../utils/logger';
 
 import type { Prisma } from '@prisma/client';
 
@@ -70,9 +71,9 @@ class DatabaseConnection {
   }
 
   private setupLifecycleHandlers(): void {
-    process.on(LIFECYCLE_EVENTS.BEFORE_EXIT, () => this.handleBeforeExit());
-    process.on(LIFECYCLE_EVENTS.SIGINT, () => this.handleSignal('SIGINT'));
-    process.on(LIFECYCLE_EVENTS.SIGTERM, () => this.handleSignal('SIGTERM'));
+    process.on(LIFECYCLE_EVENTS.BEFORE_EXIT, () => void this.handleBeforeExit());
+    process.on(LIFECYCLE_EVENTS.SIGINT, () => void this.handleSignal('SIGINT'));
+    process.on(LIFECYCLE_EVENTS.SIGTERM, () => void this.handleSignal('SIGTERM'));
   }
 
   private async handleBeforeExit(): Promise<void> {
@@ -93,7 +94,7 @@ class DatabaseConnection {
       await this.client.$disconnect();
       this.isConnected = false;
     } catch (error) {
-      console.error('Error disconnecting from database:', error);
+      logger.error('Error disconnecting from database:', error);
       throw error;
     }
   }
@@ -107,7 +108,7 @@ class DatabaseConnection {
       await this.client.$connect();
       this.isConnected = true;
     } catch (error) {
-      console.error('Error connecting to database:', error);
+      logger.error('Error connecting to database:', error);
       throw error;
     }
   }

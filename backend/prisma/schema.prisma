@@ -37,6 +37,8 @@ model User {
   userAchievements   UserAchievement[]
   diagnosticResults  DiagnosticResult[]
   learningPlan       LearningPlan?
+  supportTickets     SupportTicket[]    @relation("UserTickets")
+  ticketMessages     TicketMessage[]    @relation("UserTicketMessages")
 }
 
 // Модель прогресса пользователя
@@ -74,6 +76,9 @@ model Question {
   updatedAt     DateTime @updatedAt
 
   tests         TestQuestion[]
+
+  @@index([subject])
+  @@index([topic])
 }
 
 model Test {
@@ -94,6 +99,8 @@ model Test {
 
   questions      TestQuestion[]
   attempts       TestAttempt[]
+
+  @@index([subject])
 }
 
 // Связь между тестами и вопросами (many-to-many)
@@ -126,6 +133,9 @@ model TestAttempt {
 
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   test        Test      @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([userId, testId])
+  @@index([completedAt])
 }
 
 model DiagnosticResult {
@@ -218,7 +228,9 @@ model UserStreak {
 
 model DailyChallenge {
   id          String   @id @default(uuid())
-  date        DateTime @unique // Один челлендж на день
+  date        DateTime // Несколько челленджей на один день
+
+  @@index([date])
   title       String
   description String
   type        String   // 'complete_tests', 'score_percentage', 'time_spent', 'correct_answers'
@@ -280,4 +292,196 @@ model RefreshToken {
 
   @@index([userId])
   @@index([token])
+}
+
+// ==========================================
+// Marathon Mode (Бесконечная цепочка задач)
+// ==========================================
+
+model MarathonRun {
+  id                String    @id @default(uuid())
+  userId            String
+  subject           String
+  score             Int       @default(0)
+  questionsAnswered Int       @default(0)
+  mistakes          Int       @default(0)
+  maxStreak         Int       @default(0)
+  difficulty        String    @default("easy")
+  startedAt         DateTime  @default(now())
+  endedAt           DateTime?
+
+  @@index([userId, subject, score])
+}
+
+// ==========================================
+// Duels (Дуэли 1v1)
+// ==========================================
+
+model Duel {
+  id              String    @id @default(uuid())
+  code            String    @unique
+  subject         String
+  status          String    @default("waiting")  // waiting, active, finished, cancelled
+  creatorId       String
+  opponentId      String?
+  winnerId        String?
+  questions       String    // JSON array of question IDs
+  creatorAnswers  String?   // JSON: [{ questionId, answer, timeMs }]
+  opponentAnswers String?   // JSON
+  creatorScore    Int?
+  opponentScore   Int?
+  questionsCount  Int       @default(10)
+  timePerQuestion Int       @default(30)  // seconds
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([status, subject])
+  @@index([code])
+}
+
+// ==========================================
+// Comments (Комментарии к задачам)
+// ==========================================
+
+model Comment {
+  id          String    @id @default(uuid())
+  questionId  String
+  userId      String
+  parentId    String?
+  content     String
+  likes       Int       @default(0)
+  isDeleted   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([questionId, createdAt])
+}
+
+model CommentLike {
+  id        String @id @default(uuid())
+  commentId String
+  userId    String
+
+  @@unique([commentId, userId])
+}
+
+// ==========================================
+// Bookmarks (Закладки)
+// ==========================================
+
+model Bookmark {
+  id         String   @id @default(uuid())
+  userId     String
+  questionId String
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, questionId])
+  @@index([userId, createdAt])
+}
+
+// ==========================================
+// Notifications (Уведомления)
+// ==========================================
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // achievement, duel, streak, system
+  title     String
+  body      String
+  metadata  String?  // JSON
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead, createdAt])
+}
+
+// ==========================================
+// Spaced Repetition (SM-2)
+// ==========================================
+
+model SRSCard {
+  id           String    @id @default(uuid())
+  userId       String
+  questionId   String?
+  flashcardId  String?
+  front        String
+  back         String
+  subject      String
+  easeFactor   Float     @default(2.5)
+  interval     Int       @default(0)
+  repetitions  Int       @default(0)
+  nextReview   DateTime  @default(now())
+  lastReview   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([userId, questionId])
+  @@unique([userId, flashcardId])
+  @@index([userId, nextReview])
+  @@index([userId, subject])
+}
+
+// ==========================================
+// Classrooms (Классы)
+// ==========================================
+
+model Classroom {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique   // 6-char join code
+  teacherId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members   ClassroomMember[]
+
+  @@index([teacherId])
+}
+
+model ClassroomMember {
+  id          String    @id @default(uuid())
+  classroomId String
+  userId      String
+  joinedAt    DateTime  @default(now())
+  classroom   Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+
+  @@unique([classroomId, userId])
+  @@index([userId])
+}
+
+// ==========================================
+// Support Tickets (Тикеты поддержки)
+// ==========================================
+
+model SupportTicket {
+  id         String          @id @default(uuid())
+  userId     String
+  user       User            @relation("UserTickets", fields: [userId], references: [id])
+  title      String
+  category   String          // 'TECHNICAL' | 'ACCOUNT' | 'CONTENT' | 'OTHER'
+  status     String          @default("OPEN")   // 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED'
+  priority   String          @default("NORMAL") // 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
+  assignedTo String?
+  messages   TicketMessage[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  closedAt   DateTime?
+
+  @@index([userId])
+  @@index([status])
+}
+
+model TicketMessage {
+  id        String        @id @default(uuid())
+  ticketId  String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User          @relation("UserTicketMessages", fields: [userId], references: [id])
+  body      String
+  isStaff   Boolean       @default(false)
+  createdAt DateTime      @default(now())
+
+  @@index([ticketId])
 }

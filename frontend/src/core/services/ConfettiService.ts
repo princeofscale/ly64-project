@@ -35,7 +35,7 @@ class ConfettiServiceClass {
   };
 
   fire(options?: ConfettiOptions): void {
-    confetti({
+    void confetti({
       ...this.defaults,
       ...options,
       colors: options?.colors || this.colors.default,
@@ -66,14 +66,14 @@ class ConfettiServiceClass {
     const end = Date.now() + 500;
 
     const frame = () => {
-      confetti({
+      void confetti({
         particleCount: 3,
         angle: 60,
         spread: 55,
         origin: { x: 0 },
         colors: this.colors.success,
       });
-      confetti({
+      void confetti({
         particleCount: 3,
         angle: 120,
         spread: 55,
@@ -94,14 +94,14 @@ class ConfettiServiceClass {
     const end = Date.now() + duration;
 
     const frame = () => {
-      confetti({
+      void confetti({
         particleCount: 2,
         angle: 60,
         spread: 55,
         origin: { x: 0, y: 0.6 },
         colors: this.colors.gold,
       });
-      confetti({
+      void confetti({
         particleCount: 2,
         angle: 120,
         spread: 55,
@@ -117,7 +117,7 @@ class ConfettiServiceClass {
     frame();
 
     setTimeout(() => {
-      confetti({
+      void confetti({
         particleCount: 150,
         spread: 100,
         origin: { x: 0.5, y: 0.4 },
@@ -145,7 +145,7 @@ class ConfettiServiceClass {
 
       const particleCount = 50 * (timeLeft / duration);
 
-      confetti({
+      void confetti({
         particleCount,
         startVelocity: 30,
         spread: 360,
@@ -155,7 +155,7 @@ class ConfettiServiceClass {
         },
         colors: this.colors.rainbow,
       });
-      confetti({
+      void confetti({
         particleCount,
         startVelocity: 30,
         spread: 360,
@@ -182,7 +182,7 @@ class ConfettiServiceClass {
         return;
       }
 
-      confetti({
+      void confetti({
         particleCount: randomInRange(50, 100),
         startVelocity: randomInRange(25, 55),
         spread: randomInRange(50, 70),
@@ -207,14 +207,14 @@ class ConfettiServiceClass {
     };
 
     const shoot = () => {
-      confetti({
+      void confetti({
         ...defaults,
         particleCount: 40,
         scalar: 1.2,
         shapes: ['circle'],
       });
 
-      confetti({
+      void confetti({
         ...defaults,
         particleCount: 20,
         scalar: 0.75,

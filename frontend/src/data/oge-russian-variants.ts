@@ -749,5 +749,5 @@ export const getOgeRussianVariant = (variantId: number): OgeRussianVariant | und
 
 export const getRandomOgeRussianVariant = (): OgeRussianVariant => {
   const randomIndex = Math.floor(Math.random() * ogeRussianVariants.length);
-  return ogeRussianVariants[randomIndex];
+  return ogeRussianVariants[randomIndex]!;
 };

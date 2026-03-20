@@ -20,13 +20,24 @@ import {
 import adminRoutes from './routes/admin';
 import authRoutes from './routes/auth';
 import baseRouter from './routes/base';
+import bookmarkRoutes from './routes/bookmarks';
+import classroomRoutes from './routes/classrooms';
+import commentRoutes from './routes/comments';
+import duelRoutes from './routes/duel';
 import gamificationRoutes from './routes/gamification';
+import imageAnalysisRoutes from './routes/imageAnalysis';
+import marathonRoutes from './routes/marathon';
+import notificationRoutes from './routes/notifications';
 import recommendationsRoutes from './routes/recommendations';
 import sdamgiaRoutes from './routes/sdamgia';
+import supportRoutes from './routes/support';
+import srsRoutes from './routes/srs';
 import studentsRoutes from './routes/students';
 import testsRoutes from './routes/tests';
 import userRoutes from './routes/user';
+import { connectDatabase } from './config/database';
 import testLoaderService from './services/testLoaderService';
+import { tokenService } from './services/tokenService';
 import { wsService } from './services/websocketService';
 import { requestLogger, logger } from './utils/logger';
 
@@ -38,16 +49,6 @@ interface ServerConfiguration {
   readonly port: number;
   readonly frontendUrl: string | undefined;
   readonly nodeEnv: string | undefined;
-}
-
-interface HealthResponse {
-  readonly status: string;
-  readonly message: string;
-}
-
-interface RootResponse extends HealthResponse {
-  readonly dev: string;
-  readonly telegram: string;
 }
 
 class ApplicationServer {
@@ -89,6 +90,12 @@ class ApplicationServer {
 
     if (isNaN(port) || port < 1 || port > 65535) {
       throw new Error('Invalid PORT configuration');
+    }
+
+    const requiredVars = ['DATABASE_URL', 'JWT_SECRET'] as const;
+    const missing = requiredVars.filter(v => !process.env[v]);
+    if (missing.length > 0) {
+      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
     }
 
     return {
@@ -213,21 +220,21 @@ class ApplicationServer {
 
   private setupHealthCheckRoutes(): void {
     this.app.get('/', (_req: Request, res: Response): void => {
-      const response: RootResponse = {
-        status: 'ok',
+      res.json({
+        success: true,
         message: 'API is running',
-        dev: 'princeofscale',
-        telegram: '@tqwit',
-      };
-      res.json(response);
+        data: {
+          dev: 'princeofscale',
+          telegram: '@tqwit',
+        },
+      });
     });
 
     this.app.get('/api/health', (_req: Request, res: Response): void => {
-      const response: HealthResponse = {
-        status: 'ok',
+      res.json({
+        success: true,
         message: 'Lyceum 64 API is running',
-      };
-      res.json(response);
+      });
     });
   }
 
@@ -239,8 +246,17 @@ class ApplicationServer {
     this.app.use('/api/tests', testsRoutes);
     this.app.use('/api/admin', adminRoutes);
     this.app.use('/api/sdamgia', sdamgiaRoutes);
+    this.app.use('/api/image-analysis', imageAnalysisRoutes);
     this.app.use('/api/gamification', gamificationRoutes);
+    this.app.use('/api/marathon', marathonRoutes);
+    this.app.use('/api/duels', duelRoutes);
+    this.app.use('/api/comments', commentRoutes);
+    this.app.use('/api/bookmarks', bookmarkRoutes);
+    this.app.use('/api/classrooms', classroomRoutes);
+    this.app.use('/api/notifications', notificationRoutes);
+    this.app.use('/api/srs', srsRoutes);
     this.app.use('/api/recommendations', recommendationsRoutes);
+    this.app.use('/api/support', supportRoutes);
   }
 
   private setupErrorHandling(): void {
@@ -254,6 +270,9 @@ class ApplicationServer {
 
   private setupGracefulShutdown(): void {
     process.on('SIGTERM', (): void => {
+      this.shutdown();
+    });
+    process.on('SIGINT', (): void => {
       this.shutdown();
     });
   }
@@ -270,9 +289,9 @@ class ApplicationServer {
   }
 
   public async start(): Promise<void> {
-    this.httpServer.listen(this.config.port, async (): Promise<void> => {
+    this.httpServer.listen(this.config.port, (): void => {
       this.logServerStartup();
-      await this.initializeServices();
+      void this.initializeServices();
     });
   }
 
@@ -286,10 +305,34 @@ class ApplicationServer {
     logger.info(
       'Security features enabled: Helmet, Rate Limiting, XSS Protection, SQL Injection Protection'
     );
+
+    if (!this.config.frontendUrl) {
+      logger.warn('FRONTEND_URL is not set. CORS will only allow localhost origins in development mode.');
+    }
   }
 
   private async initializeServices(): Promise<void> {
+    // Connect to database early to fail fast if DB is unavailable
+    try {
+      await connectDatabase();
+      logger.info('Database connected successfully');
+    } catch (err) {
+      logger.error('Failed to connect to database:', err);
+      process.exit(1);
+    }
+
     await testLoaderService.initialize();
+
+    // Clean up expired refresh tokens every hour
+    setInterval(() => {
+      tokenService.cleanupExpiredTokens().catch(err => {
+        logger.error('Failed to cleanup expired tokens:', err);
+      });
+    }, 60 * 60 * 1000);
+    // Run initial cleanup on startup
+    tokenService.cleanupExpiredTokens().catch(err => {
+      logger.error('Failed initial token cleanup:', err);
+    });
   }
 
   public getExpressApp(): Application {
@@ -298,6 +341,6 @@ class ApplicationServer {
 }
 
 const server = new ApplicationServer();
-server.start();
+void server.start();
 
 export default server.getExpressApp();

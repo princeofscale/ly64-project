@@ -17,6 +17,8 @@ export const SUBJECT_LABELS: Record<Subject, string> = {
   [Subject.CHEMISTRY]: 'Химия',
   [Subject.HISTORY]: 'История',
   [Subject.ENGLISH]: 'Английский язык',
+  [Subject.SOCIAL]: 'Обществознание',
+  [Subject.LITERATURE]: 'Литература',
 };
 
 export const REQUIRED_SUBJECTS: Subject[] = [Subject.RUSSIAN, Subject.MATHEMATICS];

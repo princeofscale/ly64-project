@@ -1,18 +1,20 @@
-import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+
+import { logger } from '../utils/logger';
+
+import type { Request, Response, NextFunction } from 'express';
 
 export interface ApiError extends Error {
   statusCode?: number;
-  errors?: any[];
+  errors?: unknown[];
 }
 
 export const errorHandler = (err: ApiError | ZodError, _req: Request, res: Response, _next: NextFunction) => {
-  // Handle Zod validation errors
   if (err instanceof ZodError) {
     return res.status(400).json({
       success: false,
       message: 'Ошибка валидации данных',
-      errors: err.errors.map((e) => ({
+      errors: err.issues.map((e) => ({
         field: e.path.join('.'),
         message: e.message,
       })),
@@ -20,23 +22,28 @@ export const errorHandler = (err: ApiError | ZodError, _req: Request, res: Respo
   }
 
   const statusCode = (err as ApiError).statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+  const internalMessage = err.message || 'Internal Server Error';
 
-  console.error(`Error: ${message}`, err);
+  logger.error(`Error: ${internalMessage}`, err);
+
+  // Don't leak internal error details to client on 500
+  const clientMessage = statusCode === 500
+    ? 'Внутренняя ошибка сервера'
+    : internalMessage;
 
   res.status(statusCode).json({
     success: false,
-    message,
+    message: clientMessage,
     errors: (err as ApiError).errors,
-    ...(process.env.NODE_ENV === 'development' && { stack: 'ошибочка)' }),
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };
 
 export class AppError extends Error implements ApiError {
   statusCode: number;
-  errors?: any[];
+  errors?: unknown[];
 
-  constructor(message: string, statusCode: number = 500, errors?: any[]) {
+  constructor(message: string, statusCode: number = 500, errors?: unknown[]) {
     super(message);
     this.statusCode = statusCode;
     this.errors = errors;

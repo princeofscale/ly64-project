@@ -1,5 +1,21 @@
 import prisma from '../config/database';
 
+import type { Prisma } from '@prisma/client';
+
+type AttemptWithTest = Prisma.TestAttemptGetPayload<{
+  include: {
+    test: {
+      include: {
+        questions: {
+          include: { question: true };
+        };
+      };
+    };
+  };
+}>;
+
+type QuestionRecord = AttemptWithTest['test']['questions'][number]['question'];
+
 interface TopicAnalysis {
   topic: string;
   totalQuestions: number;
@@ -37,29 +53,25 @@ interface UserAnalysis {
   nextSteps: string[];
 }
 
-const topicDifficulty: Record<string, number> = {
-  arithmetic: 1,
-  fractions: 1,
-  percent: 2,
-  equations_linear: 2,
-  equations_quadratic: 3,
-  inequalities: 3,
-  functions: 3,
-  geometry_basic: 2,
-  geometry_advanced: 4,
-  trigonometry: 4,
-  probability: 3,
-  statistics: 2,
-  sequences: 3,
-  logarithms: 4,
-  derivatives: 5,
-  integrals: 5,
-};
-
 class RecommendationService {
   private static instance: RecommendationService;
+  private cache = new Map<string, { data: unknown; expiry: number }>();
+  private static readonly CACHE_TTL = 5 * 60 * 1000;
 
   private constructor() {}
+
+  private getCached<T>(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (entry && entry.expiry > Date.now()) {
+      return entry.data as T;
+    }
+    this.cache.delete(key);
+    return null;
+  }
+
+  private setCache(key: string, data: unknown): void {
+    this.cache.set(key, { data, expiry: Date.now() + RecommendationService.CACHE_TTL });
+  }
 
   public static getInstance(): RecommendationService {
     if (!RecommendationService.instance) {
@@ -128,6 +140,10 @@ class RecommendationService {
   async getRecommendedTests(userId: string): Promise<{
     tests: { id: string; title: string; reason: string; priority: number }[];
   }> {
+    const cacheKey = `recommended_tests_${userId}`;
+    const cached = this.getCached<{ tests: { id: string; title: string; reason: string; priority: number }[] }>(cacheKey);
+    if (cached) return cached;
+
     const weaknesses = await this.getWeaknesses(userId);
 
     const tests = await prisma.test.findMany({
@@ -165,7 +181,9 @@ class RecommendationService {
       .sort((a, b) => b.priority - a.priority)
       .slice(0, 5);
 
-    return { tests: recommendedTests };
+    const result = { tests: recommendedTests };
+    this.setCache(cacheKey, result);
+    return result;
   }
 
   async getTopicProgress(userId: string): Promise<TopicAnalysis[]> {
@@ -195,7 +213,7 @@ class RecommendationService {
     });
   }
 
-  private async analyzeTopics(attempts: any[]): Promise<TopicAnalysis[]> {
+  private async analyzeTopics(attempts: AttemptWithTest[]): Promise<TopicAnalysis[]> {
     const topicStats = new Map<
       string,
       {
@@ -208,26 +226,27 @@ class RecommendationService {
     for (const attempt of attempts) {
       if (!attempt.answers) continue;
 
-      let answers: any[];
+      let answers: Array<{ questionId: string; answer?: string }>;
       try {
         answers = JSON.parse(attempt.answers);
       } catch {
         continue;
       }
 
-      const questionsMap = new Map<string, any>(
-        attempt.test.questions.map((tq: any) => [tq.question.id, tq.question])
+      const questionsMap = new Map<string, QuestionRecord>(
+        attempt.test.questions.map(tq => [tq.question.id, tq.question])
       );
 
       for (const answer of answers) {
         const question = questionsMap.get(answer.questionId);
         if (!question) continue;
 
-        const topic = (question as any).topic || 'general';
+        const topic = question.topic || 'general';
         const stats = topicStats.get(topic) || { total: 0, correct: 0, dates: [] };
 
         stats.total++;
-        if (answer.isCorrect) stats.correct++;
+        const isCorrect = this.checkAnswer(answer.answer, question.correctAnswer);
+        if (isCorrect) stats.correct++;
         if (attempt.completedAt) stats.dates.push(attempt.completedAt);
 
         topicStats.set(topic, stats);
@@ -331,9 +350,11 @@ class RecommendationService {
 
     if (weakTopics.length > 0) {
       const topWeakTopic = weakTopics[0];
-      steps.push(
-        `Приоритет: улучшите "${this.formatTopicName(topWeakTopic.topic)}" (${topWeakTopic.accuracy}%)`
-      );
+      if (topWeakTopic) {
+        steps.push(
+          `Приоритет: улучшите "${this.formatTopicName(topWeakTopic.topic)}" (${topWeakTopic.accuracy}%)`
+        );
+      }
     }
 
     return steps;
@@ -350,6 +371,21 @@ class RecommendationService {
       return 'Практикуйтесь на задачах среднего уровня. Анализируйте ошибки.';
     }
     return 'Попробуйте сложные задачи для закрепления.';
+  }
+
+  private checkAnswer(userAnswer: unknown, correctAnswer: string | null): boolean {
+    if (userAnswer === null || userAnswer === undefined || correctAnswer === null) return false;
+    const normalize = (val: unknown) => String(val).toLowerCase().trim();
+    let parsed: unknown = correctAnswer;
+    try {
+      parsed = JSON.parse(correctAnswer);
+    } catch {
+      // keep as string
+    }
+    if (Array.isArray(parsed)) {
+      return parsed.map(normalize).includes(normalize(userAnswer));
+    }
+    return normalize(parsed) === normalize(userAnswer);
   }
 
   private formatTopicName(topic: string): string {

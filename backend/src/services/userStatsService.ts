@@ -1,4 +1,4 @@
-import { STATS_CONSTANTS, TIME_CONSTANTS, DEFAULT_VALUES } from '../constants/statsConstants';
+import { STATS_CONSTANTS, TIME_CONSTANTS } from '../constants/statsConstants';
 import { StatisticsCalculator, DateCalculator } from '../utils/statisticsUtils';
 
 import predictionService from './predictionService';
@@ -56,27 +56,26 @@ export class UserStatsService {
   constructor(private readonly prisma: PrismaClient) {}
 
   public async getUserStats(userId: string): Promise<UserStatsResponse> {
-    const testAttempts = await this.fetchTestAttempts(userId);
     const detailedAttempts = await this.fetchDetailedAttempts(userId);
 
-    const totalTests = testAttempts.length;
-    const scores = testAttempts.map(attempt => attempt.score);
+    const totalTests = detailedAttempts.length;
+    const scores = detailedAttempts.map(attempt => attempt.score);
     const averageScore = StatisticsCalculator.calculateAverageScore(scores);
     const bestScore = StatisticsCalculator.calculateBestScore(scores);
 
-    const statsBySubject = this.calculateStatsBySubject(testAttempts);
-    const recentAttempts = this.getRecentAttempts(testAttempts);
-    const dailyActivity = this.calculateDailyActivity(testAttempts);
-    const timeHeatmap = this.calculateTimeHeatmap(testAttempts);
+    const statsBySubject = this.calculateStatsBySubject(detailedAttempts);
+    const recentAttempts = this.getRecentAttempts(detailedAttempts);
+    const dailyActivity = this.calculateDailyActivity(detailedAttempts);
+    const timeHeatmap = this.calculateTimeHeatmap(detailedAttempts);
     const platformAverage = await this.calculatePlatformAverage();
 
     const { currentStreak, longestStreak } = this.calculateStreaks(dailyActivity);
-    const totalTimeSpent = this.calculateTotalTimeSpent(testAttempts);
-    const weeklyProgress = this.calculateWeeklyProgress(testAttempts);
+    const totalTimeSpent = this.calculateTotalTimeSpent(detailedAttempts);
+    const weeklyProgress = this.calculateWeeklyProgress(detailedAttempts);
     const favoriteSubject = this.findFavoriteSubject(statsBySubject);
 
     const prediction = predictionService.calculatePrediction(
-      testAttempts,
+      detailedAttempts,
       totalTests,
       averageScore,
       dailyActivity,
@@ -109,26 +108,6 @@ export class UserStatsService {
       totalUsers: comparison.totalUsers,
       userRank: comparison.userRank,
     };
-  }
-
-  private async fetchTestAttempts(userId: string) {
-    return this.prisma.testAttempt.findMany({
-      where: {
-        userId,
-        completedAt: { not: null },
-      },
-      include: {
-        test: {
-          select: {
-            subject: true,
-            questions: true,
-          },
-        },
-      },
-      orderBy: {
-        completedAt: 'desc',
-      },
-    });
   }
 
   private async fetchDetailedAttempts(
@@ -189,7 +168,7 @@ export class UserStatsService {
     return Array.from(statsMap.values()).map(stats => ({
       subject: stats.subject,
       totalAttempts: stats.totalAttempts,
-      averageScore: stats.totalScore / stats.totalAttempts,
+      averageScore: stats.totalAttempts > 0 ? stats.totalScore / stats.totalAttempts : 0,
       bestScore: stats.bestScore,
       lastAttemptDate: stats.lastAttemptDate,
     }));
@@ -274,13 +253,11 @@ export class UserStatsService {
   }
 
   private async calculatePlatformAverage(): Promise<number> {
-    const allAttempts = await this.prisma.testAttempt.findMany({
+    const result = await this.prisma.testAttempt.aggregate({
+      _avg: { score: true },
       where: { completedAt: { not: null } },
-      select: { score: true },
     });
-
-    const scores = allAttempts.map(attempt => attempt.score);
-    return StatisticsCalculator.roundToDecimal(StatisticsCalculator.calculateAverageScore(scores));
+    return StatisticsCalculator.roundToDecimal(result._avg.score ?? 0);
   }
 
   private calculateStreaks(dailyActivity: ReadonlyArray<DailyActivity>): {
@@ -300,7 +277,9 @@ export class UserStatsService {
     const today = DateCalculator.getTodayMidnight();
 
     for (let i = 0; i < sortedDates.length; i++) {
-      const currentDate = new Date(sortedDates[i]);
+      const currentDateStr = sortedDates[i];
+      if (!currentDateStr) continue;
+      const currentDate = new Date(currentDateStr);
 
       if (i === 0) {
         const diff = DateCalculator.getDaysDifference(today, currentDate);
@@ -311,7 +290,9 @@ export class UserStatsService {
           break;
         }
       } else {
-        const prevDate = new Date(sortedDates[i - 1]);
+        const prevDateStr = sortedDates[i - 1];
+        if (!prevDateStr) continue;
+        const prevDate = new Date(prevDateStr);
         const diff = DateCalculator.getDaysDifference(prevDate, currentDate);
 
         if (diff === 1) {
@@ -366,7 +347,7 @@ export class UserStatsService {
 
   private findFavoriteSubject(statsBySubject: ReadonlyArray<SubjectStats>): string {
     if (statsBySubject.length === 0) {
-      return DEFAULT_VALUES.FAVORITE_SUBJECT;
+      return '';
     }
 
     return statsBySubject.reduce((favorite, stats) =>
@@ -421,9 +402,11 @@ export class UserStatsService {
     topicStats.forEach((stats, key) => {
       if (stats.total >= STATS_CONSTANTS.MIN_TOPIC_ATTEMPTS) {
         const avgScore = Math.round(
-          (stats.correct / stats.total) * StatisticsCalculator.roundToDecimal(100)
+          (stats.correct / stats.total) * 100
         );
-        const [subject, topic] = key.split(':');
+        const parts = key.split(':');
+        const subject = parts[0] ?? '';
+        const topic = parts[1] ?? '';
 
         if (avgScore < STATS_CONSTANTS.WEAK_TOPIC_THRESHOLD) {
           weakTopics.push({
@@ -462,47 +445,42 @@ export class UserStatsService {
   }
 
   private async compareWithOthers(userId: string, userAverageScore: number) {
-    const allUsersStats = await this.prisma.user.findMany({
+    // Use groupBy to calculate per-user averages in the database
+    const userAvgs = await this.prisma.testAttempt.groupBy({
+      by: ['userId'],
+      _avg: { score: true },
+      _count: { score: true },
       where: {
-        isPublic: true,
-        testAttempts: {
-          some: {
-            completedAt: { not: null },
-          },
-        },
-      },
-      select: {
-        id: true,
-        testAttempts: {
-          where: { completedAt: { not: null } },
-          select: { score: true },
-        },
+        completedAt: { not: null },
+        user: { isPublic: true },
       },
     });
 
-    const userAverages = allUsersStats.map(u => {
-      const scores = u.testAttempts.map(t => t.score);
+    const averages = userAvgs.map(u => ({
+      id: u.userId,
+      avg: u._avg.score ?? 0,
+    }));
+
+    if (averages.length <= 1) {
       return {
-        id: u.id,
-        avg: StatisticsCalculator.calculateAverageScore(scores),
-        tests: scores.length,
+        percentile: 100,
+        usersBeaten: 0,
+        totalUsers: averages.length,
+        userRank: 1,
       };
-    });
+    }
 
-    const usersBelow = userAverages.filter(u => u.avg < userAverageScore).length;
-    const percentile = StatisticsCalculator.calculatePercentile(
-      userAverageScore,
-      userAverages.map(u => u.avg)
-    );
+    const usersBelow = averages.filter(u => u.avg < userAverageScore).length;
+    const percentile = StatisticsCalculator.calculatePercentile(userAverageScore, averages.map(u => u.avg));
 
-    const sortedByAvg = [...userAverages].sort((a, b) => b.avg - a.avg);
+    const sortedByAvg = [...averages].sort((a, b) => b.avg - a.avg);
     const userRank = sortedByAvg.findIndex(u => u.id === userId) + 1;
 
     return {
       percentile,
       usersBeaten: usersBelow,
-      totalUsers: userAverages.length,
-      userRank,
+      totalUsers: averages.length,
+      userRank: userRank || averages.length,
     };
   }
 }

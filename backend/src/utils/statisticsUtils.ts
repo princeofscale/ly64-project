@@ -33,19 +33,19 @@ export class StatisticsCalculator {
     totalTests: number,
     averageScore: number,
     bestScore: number,
-    achievementsCount: number
+    achievementPoints: number
   ): number {
     return Math.round(
       totalTests * SCORING_CONSTANTS.TESTS_MULTIPLIER +
         averageScore * SCORING_CONSTANTS.AVERAGE_MULTIPLIER +
         bestScore * SCORING_CONSTANTS.BEST_SCORE_MULTIPLIER +
-        achievementsCount * SCORING_CONSTANTS.ACHIEVEMENT_MULTIPLIER
+        achievementPoints
     );
   }
 
   public static calculatePercentile(userScore: number, allScores: ReadonlyArray<number>): number {
     if (allScores.length <= 1) {
-      return 50;
+      return 100;
     }
 
     const scoresBelow = allScores.filter(score => score < userScore).length;
@@ -94,7 +94,7 @@ export class StatisticsCalculator {
 
 export class DateCalculator {
   public static getDateKey(date: Date): string {
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split('T')[0] ?? '';
   }
 
   public static getDaysDifference(date1: Date, date2: Date): number {

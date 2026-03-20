@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
-const prisma = new PrismaClient();
+import prisma from '../config/database';
 
 async function createAdmin() {
   const email = process.argv[2] || 'admin@lyceum64.ru';
@@ -16,11 +15,12 @@ async function createAdmin() {
     });
 
     if (existing) {
+      const hashedPw = await bcrypt.hash(password, 10);
       await prisma.user.update({
         where: { email },
-        data: { role: 'ADMIN' },
+        data: { role: 'ADMIN', password: hashedPw, isPublic: true },
       });
-      console.log(`✅ User ${email} updated to ADMIN role`);
+      console.log(`✅ User ${email} updated to ADMIN role with new password`);
       return;
     }
 
@@ -37,6 +37,7 @@ async function createAdmin() {
         currentGrade: 10,
         role: 'ADMIN',
         agreedToTerms: true,
+        isPublic: true,
       },
     });
 
@@ -60,4 +61,4 @@ async function createAdmin() {
   }
 }
 
-createAdmin();
+void createAdmin();

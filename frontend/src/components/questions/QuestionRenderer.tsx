@@ -1,8 +1,3 @@
-/**
- * Question Renderer
- * Паттерн Strategy для рендеринга различных типов вопросов
- */
-
 import React from 'react';
 
 import { ChoiceQuestion } from './ChoiceQuestion';
@@ -18,9 +13,6 @@ interface QuestionRendererProps {
   disabled?: boolean;
 }
 
-/**
- * Компонент для рендеринга вопросов в зависимости от типа
- */
 export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   task,
   currentAnswer,
@@ -69,32 +61,25 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Текст задания */}
-      <div className="p-6 bg-gray-800/50 rounded-2xl border border-gray-700/50">
-        <p className="text-lg text-gray-200 font-sans whitespace-pre-line leading-relaxed">
+      <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
+        <p className="text-lg text-slate-800 font-sans whitespace-pre-line leading-relaxed">
           {task.getDisplayText()}
         </p>
       </div>
 
-      {/* Поле для ответа */}
       <div className="mt-6">{renderQuestion()}</div>
     </div>
   );
 };
 
-/**
- * HOC для добавления общих стилей к вопросам
- */
 export function withQuestionStyles<P extends object>(
   WrappedComponent: React.ComponentType<P>
 ): React.FC<P> {
-  const WithStyles: React.FC<P> = (props: P) => (
+  const WithStyles = (props: P) => (
     <div className="transition-all duration-200">
       <WrappedComponent {...props} />
     </div>
   );
-
   WithStyles.displayName = `withQuestionStyles(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
-
   return WithStyles;
 }

@@ -1,8 +1,3 @@
-/**
- * Exam Results Component
- * Компонент отображения результатов экзамена
- */
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -42,10 +37,8 @@ export const ExamResults: React.FC<ExamResultsProps> = ({ results, examTitle, on
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden py-12 px-4">
       <div className="relative z-10 max-w-2xl mx-auto">
         <div className={`bg-gradient-to-br ${gradeInfo.color} border border-slate-200 rounded-3xl p-8 text-center shadow-2xl animate-scale-in`}>
-          {/* Эмодзи */}
           <div className="text-7xl mb-6 animate-bounce">{gradeInfo.emoji}</div>
 
-          {/* Заголовок */}
           <h1
             className={`text-4xl font-bold ${gradeInfo.textColor} mb-2`}
           >
@@ -54,7 +47,6 @@ export const ExamResults: React.FC<ExamResultsProps> = ({ results, examTitle, on
 
           <p className="text-slate-700 mb-8">{examTitle} завершен</p>
 
-          {/* Основная статистика */}
           <div className="grid grid-cols-2 gap-4 mb-8">
             <StatCard
               label="Правильных ответов"
@@ -70,7 +62,6 @@ export const ExamResults: React.FC<ExamResultsProps> = ({ results, examTitle, on
             />
           </div>
 
-          {/* Процентная шкала */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-slate-600">Результат</span>
@@ -88,7 +79,6 @@ export const ExamResults: React.FC<ExamResultsProps> = ({ results, examTitle, on
             </div>
           </div>
 
-          {/* Дополнительная информация */}
           <div className="grid grid-cols-2 gap-4 mb-8 text-sm">
             <InfoItem
               icon="📝"
@@ -102,10 +92,9 @@ export const ExamResults: React.FC<ExamResultsProps> = ({ results, examTitle, on
             />
           </div>
 
-          {/* Кнопки */}
           <div className="flex gap-4 justify-center">
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => void navigate('/dashboard')}
               className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-blue-500/25"
             >
               К панели управления
@@ -126,9 +115,6 @@ export const ExamResults: React.FC<ExamResultsProps> = ({ results, examTitle, on
   );
 };
 
-/**
- * Карточка статистики
- */
 const StatCard: React.FC<{
   label: string;
   value: number;
@@ -149,9 +135,6 @@ const StatCard: React.FC<{
   );
 };
 
-/**
- * Элемент информации
- */
 const InfoItem: React.FC<{
   icon: string;
   label: string;

@@ -4,7 +4,9 @@ import authController from '../controllers/authController';
 import { authenticateToken } from '../middlewares/auth';
 import { authLimiter, registrationLimiter, requestSizeLimiter } from '../middlewares/security';
 import { tokenService } from '../services/tokenService';
+import { logger } from '../utils/logger';
 
+import type { AuthRequest } from '../middlewares/auth';
 import type { Request, Response } from 'express';
 
 const router = Router();
@@ -23,7 +25,7 @@ router.post(
   authController.login.bind(authController)
 );
 
-router.post('/refresh', async (req: Request, res: Response) => {
+router.post('/refresh', authLimiter, async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
 
@@ -55,6 +57,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    logger.error('Error refreshing token:', error);
     res.status(500).json({
       success: false,
       message: 'Ошибка обновления токена',
@@ -90,12 +93,13 @@ router.post('/refresh', async (req: Request, res: Response) => {
 // Get current user (authenticated)
 router.get('/me', authenticateToken, authController.getCurrentUser.bind(authController));
 
-router.post('/logout', authenticateToken, async (req: Request, res: Response) => {
+router.post('/logout', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { refreshToken } = req.body;
+    const userId = req.user?.id;
 
-    if (refreshToken) {
-      await tokenService.revokeRefreshToken(refreshToken);
+    if (refreshToken && userId) {
+      await tokenService.revokeRefreshToken(refreshToken, userId);
     }
 
     res.json({
@@ -103,6 +107,7 @@ router.post('/logout', authenticateToken, async (req: Request, res: Response) =>
       message: 'Выход выполнен успешно',
     });
   } catch (error) {
+    logger.error('Error during logout:', error);
     res.status(500).json({
       success: false,
       message: 'Ошибка выхода',
@@ -110,9 +115,9 @@ router.post('/logout', authenticateToken, async (req: Request, res: Response) =>
   }
 });
 
-router.post('/logout-all', authenticateToken, async (req: Request, res: Response) => {
+router.post('/logout-all', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({
@@ -128,6 +133,7 @@ router.post('/logout-all', authenticateToken, async (req: Request, res: Response
       message: `Выход выполнен со всех устройств (${revokedCount})`,
     });
   } catch (error) {
+    logger.error('Error during logout-all:', error);
     res.status(500).json({
       success: false,
       message: 'Ошибка выхода',
@@ -135,9 +141,9 @@ router.post('/logout-all', authenticateToken, async (req: Request, res: Response
   }
 });
 
-router.get('/sessions', authenticateToken, async (req: Request, res: Response) => {
+router.get('/sessions', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({
@@ -153,6 +159,7 @@ router.get('/sessions', authenticateToken, async (req: Request, res: Response) =
       data: sessions,
     });
   } catch (error) {
+    logger.error('Error fetching sessions:', error);
     res.status(500).json({
       success: false,
       message: 'Ошибка получения сессий',

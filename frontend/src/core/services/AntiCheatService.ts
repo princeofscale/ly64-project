@@ -1,8 +1,3 @@
-/**
- * AntiCheat Service
- * Отслеживание подозрительных действий во время теста
- */
-
 export interface SuspiciousEvent {
   type:
     | 'tab_switch'
@@ -38,11 +33,10 @@ class AntiCheatService {
   private totalBlurTime: number = 0;
   private callbacks: Set<EventCallback> = new Set();
 
-  // Лимиты для предупреждений
   private readonly LIMITS = {
-    tabSwitches: 3, // После 3 переключений - предупреждение
-    copyAttempts: 2, // После 2 попыток копирования
-    maxBlurTime: 60000, // 60 секунд вне фокуса
+    tabSwitches: 3,
+    copyAttempts: 2,
+    maxBlurTime: 60000,
   };
 
   private constructor() {}
@@ -54,9 +48,6 @@ class AntiCheatService {
     return AntiCheatService.instance;
   }
 
-  /**
-   * Начать мониторинг
-   */
   public startMonitoring(sessionId: string): void {
     if (this.isActive) return;
 
@@ -68,12 +59,8 @@ class AntiCheatService {
     this.isActive = true;
 
     this.attachListeners();
-    console.log('[AntiCheat] Мониторинг запущен для сессии:', sessionId);
   }
 
-  /**
-   * Остановить мониторинг
-   */
   public stopMonitoring(): AntiCheatReport {
     if (!this.isActive) {
       return this.generateReport();
@@ -83,22 +70,15 @@ class AntiCheatService {
     this.isActive = false;
 
     const report = this.generateReport();
-    console.log('[AntiCheat] Мониторинг остановлен. Отчёт:', report);
 
     return report;
   }
 
-  /**
-   * Подписаться на события
-   */
   public onEvent(callback: EventCallback): () => void {
     this.callbacks.add(callback);
     return () => this.callbacks.delete(callback);
   }
 
-  /**
-   * Получить текущую статистику
-   */
   public getStats(): { tabSwitches: number; copyAttempts: number; blurTime: number } {
     return {
       tabSwitches: this.events.filter(e => e.type === 'tab_switch').length,
@@ -107,9 +87,6 @@ class AntiCheatService {
     };
   }
 
-  /**
-   * Проверить превышение лимитов
-   */
   public checkLimits(): { exceeded: boolean; warnings: string[] } {
     const stats = this.getStats();
     const warnings: string[] = [];
@@ -134,29 +111,19 @@ class AntiCheatService {
     };
   }
 
-  // ==========================================
-  // Private Methods
-  // ==========================================
-
   private attachListeners(): void {
-    // Переключение вкладок
     document.addEventListener('visibilitychange', this.handleVisibilityChange);
 
-    // Потеря фокуса окна
     window.addEventListener('blur', this.handleWindowBlur);
     window.addEventListener('focus', this.handleWindowFocus);
 
-    // Копирование
     document.addEventListener('copy', this.handleCopy);
     document.addEventListener('cut', this.handleCut);
 
-    // Вставка
     document.addEventListener('paste', this.handlePaste);
 
-    // Правый клик
     document.addEventListener('contextmenu', this.handleContextMenu);
 
-    // Клавиши DevTools
     document.addEventListener('keydown', this.handleKeyDown);
   }
 
@@ -221,7 +188,6 @@ class AntiCheatService {
   };
 
   private handlePaste = (e: ClipboardEvent): void => {
-    // Разрешаем вставку только в поля ввода ответов
     const target = e.target as HTMLElement;
     const isAnswerInput = target.closest('[data-answer-input]');
 
@@ -245,7 +211,6 @@ class AntiCheatService {
   };
 
   private handleKeyDown = (e: KeyboardEvent): void => {
-    // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
     if (
       e.key === 'F12' ||
       (e.ctrlKey &&
@@ -261,7 +226,6 @@ class AntiCheatService {
       });
     }
 
-    // Ctrl+C, Ctrl+X
     if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'x' || e.key === 'X')) {
       const selection = window.getSelection()?.toString();
       if (selection && selection.length > 0) {
@@ -281,11 +245,10 @@ class AntiCheatService {
       e => e.type === 'copy_attempt' || e.type === 'paste_attempt'
     ).length;
 
-    // Расчёт подозрительности (0-100)
     let suspiciousScore = 0;
-    suspiciousScore += Math.min(tabSwitchCount * 15, 45); // Макс 45 за переключения
-    suspiciousScore += Math.min(copyAttempts * 10, 30); // Макс 30 за копирование
-    suspiciousScore += Math.min(Math.floor(this.totalBlurTime / 10000) * 5, 25); // Макс 25 за время вне фокуса
+    suspiciousScore += Math.min(tabSwitchCount * 15, 45);
+    suspiciousScore += Math.min(copyAttempts * 10, 30);
+    suspiciousScore += Math.min(Math.floor(this.totalBlurTime / 10000) * 5, 25);
 
     return {
       sessionId: this.sessionId,

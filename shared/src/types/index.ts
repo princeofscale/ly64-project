@@ -53,6 +53,8 @@ export enum Subject {
   CHEMISTRY = 'CHEMISTRY',
   HISTORY = 'HISTORY',
   ENGLISH = 'ENGLISH',
+  SOCIAL = 'SOCIAL',
+  LITERATURE = 'LITERATURE',
 }
 
 export enum TargetGrade {
@@ -64,6 +66,7 @@ export enum ExamType {
   LYCEUM_ENTRANCE = 'LYCEUM_ENTRANCE',
   OGE = 'OGE',
   EGE = 'EGE',
+  VPR = 'VPR',
 }
 
 export enum QuestionType {

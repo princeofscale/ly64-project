@@ -1,3 +1,5 @@
+import bcrypt from 'bcrypt';
+
 import prisma from '../config/database';
 import { HTTP_STATUS, ERROR_MESSAGES } from '../constants/statsConstants';
 import { AppError } from '../middlewares/errorHandler';
@@ -105,9 +107,11 @@ class UserController {
         throw new AppError(ERROR_MESSAGES.AVATAR_REQUIRED, HTTP_STATUS.BAD_REQUEST);
       }
 
+      const validatedAvatar = this.validateAvatar(avatar);
+
       const user = await prisma.user.update({
         where: { id: userId },
-        data: { avatar },
+        data: { avatar: validatedAvatar },
         select: {
           id: true,
           avatar: true,
@@ -231,6 +235,41 @@ class UserController {
     }
   }
 
+  public async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { currentPassword, newPassword } = req.body as Record<string, unknown>;
+
+      if (typeof currentPassword !== 'string' || !currentPassword) {
+        throw new AppError('Укажите текущий пароль', HTTP_STATUS.BAD_REQUEST);
+      }
+      if (typeof newPassword !== 'string' || newPassword.length < 8) {
+        throw new AppError('Новый пароль должен быть не менее 8 символов', HTTP_STATUS.BAD_REQUEST);
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { password: true },
+      });
+
+      if (!user?.password) {
+        throw new AppError('Смена пароля недоступна для этого аккаунта', HTTP_STATUS.BAD_REQUEST);
+      }
+
+      const isValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isValid) {
+        throw new AppError('Неверный текущий пароль', HTTP_STATUS.UNAUTHORIZED);
+      }
+
+      const hashed = await bcrypt.hash(newPassword, 10);
+      await prisma.user.update({ where: { id: userId }, data: { password: hashed } });
+
+      res.json({ message: 'Пароль успешно изменён' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   private extractUserId(req: Request): string {
     const userId = req.userId;
 
@@ -241,31 +280,72 @@ class UserController {
     return userId;
   }
 
+  private validateString(value: unknown, maxLength: number, fieldName: string): string {
+    if (typeof value !== 'string') {
+      throw new AppError(`${fieldName} должно быть строкой`, HTTP_STATUS.BAD_REQUEST);
+    }
+    if (value.length > maxLength) {
+      throw new AppError(`${fieldName} не должно превышать ${maxLength} символов`, HTTP_STATUS.BAD_REQUEST);
+    }
+    return value.trim();
+  }
+
+  private validateAvatar(value: unknown): string {
+    if (typeof value !== 'string') {
+      throw new AppError('Некорректный формат аватара', HTTP_STATUS.BAD_REQUEST);
+    }
+    // Only allow emoji avatars (short strings) or safe URL patterns
+    if (value.length > 500) {
+      throw new AppError('Аватар слишком длинный', HTTP_STATUS.BAD_REQUEST);
+    }
+    // Block javascript: and dangerous data: URIs to prevent XSS
+    const lower = value.toLowerCase().trim();
+    if (lower.startsWith('javascript:') || lower.startsWith('data:text/html') || lower.startsWith('data:image/svg')) {
+      throw new AppError('Недопустимый формат аватара', HTTP_STATUS.BAD_REQUEST);
+    }
+    return value.trim();
+  }
+
   private extractUpdateData(body: Record<string, unknown>): UpdateProfileData {
     const updateData: Record<string, unknown> = {};
 
     if (body.name !== undefined) {
-      updateData.name = body.name;
+      updateData.name = this.validateString(body.name, 100, 'Имя');
     }
     if (body.status !== undefined) {
+      const validStatuses = ['STUDENT', 'APPLICANT'];
+      if (typeof body.status !== 'string' || !validStatuses.includes(body.status)) {
+        throw new AppError('Статус должен быть STUDENT или APPLICANT', HTTP_STATUS.BAD_REQUEST);
+      }
       updateData.status = body.status;
     }
     if (body.currentGrade !== undefined) {
-      updateData.currentGrade = body.currentGrade;
+      const grade = Number(body.currentGrade);
+      if (!Number.isInteger(grade) || grade < 1 || grade > 11) {
+        throw new AppError('Класс должен быть от 1 до 11', HTTP_STATUS.BAD_REQUEST);
+      }
+      updateData.currentGrade = grade;
     }
     if (body.desiredDirection !== undefined) {
+      const validDirections = ['PROGRAMMING', 'ROBOTICS', 'MEDICINE', 'BIOTECHNOLOGY', 'CULTURE'];
+      if (body.desiredDirection !== null && (typeof body.desiredDirection !== 'string' || !validDirections.includes(body.desiredDirection))) {
+        throw new AppError('Некорректное направление', HTTP_STATUS.BAD_REQUEST);
+      }
       updateData.desiredDirection = body.desiredDirection;
     }
     if (body.motivation !== undefined) {
-      updateData.motivation = body.motivation;
+      updateData.motivation = this.validateString(body.motivation, 500, 'Мотивация');
     }
     if (body.avatar !== undefined) {
-      updateData.avatar = body.avatar;
+      updateData.avatar = this.validateAvatar(body.avatar);
     }
     if (body.bio !== undefined) {
-      updateData.bio = body.bio;
+      updateData.bio = this.validateString(body.bio, 1000, 'Биография');
     }
     if (body.isPublic !== undefined) {
+      if (typeof body.isPublic !== 'boolean') {
+        throw new AppError('isPublic должно быть булевым значением', HTTP_STATUS.BAD_REQUEST);
+      }
       updateData.isPublic = body.isPublic;
     }
 
@@ -304,3 +384,4 @@ export const checkAchievements = controller.checkAchievements.bind(controller);
 export const getLeaderboard = controller.getLeaderboard.bind(controller);
 export const getUserRank = controller.getUserRank.bind(controller);
 export const getErrorAnalysis = controller.getErrorAnalysis.bind(controller);
+export const changePassword = controller.changePassword.bind(controller);

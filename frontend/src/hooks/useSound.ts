@@ -1,8 +1,3 @@
-/**
- * useSound Hook
- * React hook для управления звуковыми эффектами
- */
-
 import { useCallback, useSyncExternalStore } from 'react';
 
 import soundService from '../core/services/SoundService';
@@ -18,7 +13,6 @@ type SoundType =
   | 'timer'
   | 'levelUp';
 
-// External store for sound settings
 let listeners: (() => void)[] = [];
 
 const subscribe = (listener: () => void) => {
@@ -37,9 +31,6 @@ const getSnapshot = () => ({
   volume: soundService.getVolume(),
 });
 
-/**
- * Hook for playing sounds
- */
 export function useSound() {
   const settings = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
@@ -73,9 +64,6 @@ export function useSound() {
   };
 }
 
-/**
- * Shorthand hooks for specific sounds
- */
 export function useClickSound() {
   const { play } = useSound();
   return useCallback(() => play('click'), [play]);

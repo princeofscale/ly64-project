@@ -4,7 +4,7 @@ import path from 'path';
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
-import type { Request } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 const logDir = process.env.LOG_DIR || 'logs';
 
@@ -67,11 +67,11 @@ const accessRotateTransport = new DailyRotateFile({
 });
 
 errorRotateTransport.on('rotate', (oldFilename, newFilename) => {
-  console.log(`[Logger] Error log rotated: ${oldFilename} -> ${newFilename}`);
+  logger.info(`Error log rotated: ${oldFilename} -> ${newFilename}`);
 });
 
 combinedRotateTransport.on('rotate', (oldFilename, newFilename) => {
-  console.log(`[Logger] Combined log rotated: ${oldFilename} -> ${newFilename}`);
+  logger.info(`Combined log rotated: ${oldFilename} -> ${newFilename}`);
 });
 
 export const logger = winston.createLogger({
@@ -292,7 +292,7 @@ export const logRateLimitExceeded = (req: Request, endpoint: string): void => {
   });
 };
 
-export const requestLogger = (req: Request, _res: any, next: any): void => {
+export const requestLogger = (req: Request, _res: Response, next: NextFunction): void => {
   const start = Date.now();
 
   _res.on('finish', () => {

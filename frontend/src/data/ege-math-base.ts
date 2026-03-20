@@ -2,7 +2,7 @@ export const egeMathBase = {
   subject: 'MATHEMATICS',
   grade: 11,
   examType: 'EGE_BASE',
-  duration: 180, // 3 часа в минутах
+  duration: 180,
   tasks: [
     {
       number: 1,

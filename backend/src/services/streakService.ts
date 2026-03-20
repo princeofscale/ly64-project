@@ -1,6 +1,8 @@
 import prisma from '../config/database';
 import { logger } from '../utils/logger';
 
+import type { DailyChallenge } from '@prisma/client';
+
 import { wsService } from './websocketService';
 
 interface StreakInfo {
@@ -138,7 +140,13 @@ class StreakService {
     });
 
     if (challenges.length === 0) {
-      challenges = await this.generateDailyChallenges(today);
+      try {
+        challenges = await this.generateDailyChallenges(today);
+      } catch (error) {
+        challenges = await prisma.dailyChallenge.findMany({
+          where: { date: today },
+        });
+      }
     }
 
     const completions = await prisma.dailyChallengeCompletion.findMany({
@@ -166,7 +174,7 @@ class StreakService {
     });
   }
 
-  private async generateDailyChallenges(date: Date): Promise<any[]> {
+  private async generateDailyChallenges(date: Date): Promise<DailyChallenge[]> {
     const challengeTemplates = [
       {
         title: 'Решите 3 теста',
@@ -331,24 +339,29 @@ class StreakService {
     let challengesUpdated: DailyChallengeInfo[] = [];
 
     switch (type) {
-      case 'test_completed':
+      case 'test_completed': {
         challengesUpdated = await this.updateChallengeProgress(userId, 'complete_tests', 1);
         break;
-      case 'high_score':
-        const score = (metadata as any)?.score || 0;
-        challengesUpdated = await this.updateChallengeProgress(userId, 'score_percentage', score);
+      }
+      case 'high_score': {
+        const score = (metadata as Record<string, unknown> | undefined)?.score;
+        challengesUpdated = await this.updateChallengeProgress(userId, 'score_percentage', typeof score === 'number' ? score : 0);
         break;
-      case 'correct_streak':
-        const streak = (metadata as any)?.streak || 0;
-        challengesUpdated = await this.updateChallengeProgress(userId, 'correct_streak', streak);
+      }
+      case 'correct_streak': {
+        const streak = (metadata as Record<string, unknown> | undefined)?.streak;
+        challengesUpdated = await this.updateChallengeProgress(userId, 'correct_streak', typeof streak === 'number' ? streak : 0);
         break;
-      case 'time_spent':
-        const minutes = (metadata as any)?.minutes || 0;
-        challengesUpdated = await this.updateChallengeProgress(userId, 'time_spent', minutes);
+      }
+      case 'time_spent': {
+        const minutes = (metadata as Record<string, unknown> | undefined)?.minutes;
+        challengesUpdated = await this.updateChallengeProgress(userId, 'time_spent', typeof minutes === 'number' ? minutes : 0);
         break;
-      case 'theory_viewed':
+      }
+      case 'theory_viewed': {
         challengesUpdated = await this.updateChallengeProgress(userId, 'theory_viewed', 1);
         break;
+      }
     }
 
     return {
@@ -386,8 +399,8 @@ class StreakService {
 
     const dailyMap = new Map<string, number>();
     activities.forEach(a => {
-      const date = a.createdAt.toISOString().split('T')[0];
-      dailyMap.set(date, (dailyMap.get(date) || 0) + a.points);
+      const date = a.createdAt.toISOString().split('T')[0] ?? '';
+      dailyMap.set(date, (dailyMap.get(date) ?? 0) + a.points);
     });
 
     const dailyActivity = Array.from(dailyMap.entries())

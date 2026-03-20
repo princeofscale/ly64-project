@@ -207,12 +207,14 @@ export class UserProfileService {
       return [];
     }
 
+    const sanitizedQuery = query.toLowerCase().slice(0, 50);
+
     return this.prisma.user.findMany({
       where: {
         isPublic: true,
         OR: [
-          { username: { contains: query.toLowerCase() } },
-          { name: { contains: query.toLowerCase() } },
+          { username: { contains: sanitizedQuery } },
+          { name: { contains: sanitizedQuery } },
         ],
       },
       select: {

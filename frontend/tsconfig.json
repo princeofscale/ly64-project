@@ -28,6 +28,6 @@
       "@lyceum64/shared": ["../shared/src"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "tests", "vitest.config.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

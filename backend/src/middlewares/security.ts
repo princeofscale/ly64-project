@@ -3,6 +3,8 @@ import helmet from 'helmet';
 import hpp from 'hpp';
 import { escape } from 'validator';
 
+import { logger } from '../utils/logger';
+
 import type { Request, Response, NextFunction } from 'express';
 
 export const securityHeaders = helmet({
@@ -39,9 +41,10 @@ export const securityHeaders = helmet({
 
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 300,
   message: {
-    error: 'Слишком много запросов. Попробуйте позже.',
+    success: false,
+    message: 'Слишком много запросов. Попробуйте позже.',
     retryAfter: 15,
   },
   standardHeaders: true,
@@ -49,11 +52,12 @@ export const generalLimiter = rateLimit({
 });
 
 export const authLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute for development
-  max: 50, // Increased for development
+  windowMs: 5 * 60 * 1000,
+  max: 10,
   message: {
-    error: 'Слишком много попыток входа. Попробуйте через минуту.',
-    retryAfter: 1,
+    success: false,
+    message: 'Слишком много попыток входа. Попробуйте через 5 минут.',
+    retryAfter: 5,
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -61,11 +65,12 @@ export const authLimiter = rateLimit({
 });
 
 export const registrationLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute for development
-  max: 100, // Increased for development
+  windowMs: 60 * 60 * 1000,
+  max: 5,
   message: {
-    error: 'Слишком много попыток регистрации. Попробуйте через минуту.',
-    retryAfter: 1,
+    success: false,
+    message: 'Слишком много попыток регистрации. Попробуйте через час.',
+    retryAfter: 60,
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -75,7 +80,8 @@ export const passwordResetLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 3,
   message: {
-    error: 'Слишком много запросов на сброс пароля. Попробуйте через час.',
+    success: false,
+    message: 'Слишком много запросов на сброс пароля. Попробуйте через час.',
     retryAfter: 60,
   },
   standardHeaders: true,
@@ -86,7 +92,8 @@ export const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
   message: {
-    error: 'Слишком много административных запросов.',
+    success: false,
+    message: 'Слишком много административных запросов.',
     retryAfter: 15,
   },
   standardHeaders: true,
@@ -146,10 +153,12 @@ export const xssSanitizer = (req: Request, _res: Response, next: NextFunction) =
 };
 
 const sqlInjectionPatterns = [
-  /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|TRUNCATE)\b)/gi,
-  /(--)|(;)/g,
-  /(\/\*[\s\S]*?\*\/)/g,
-  /(\bOR\b|\bAND\b).*?[=<>]/gi,
+  /(\bUNION\b\s+\bSELECT\b)/i,
+  /(\bDROP\b\s+\b(?:TABLE|DATABASE)\b)/i,
+  /(\bINSERT\b\s+\bINTO\b)/i,
+  /(\bDELETE\b\s+\bFROM\b)/i,
+  /(--\s|\/\*)/,
+  /('\s*\bOR\b\s+.*?[=<>])/i,
 ];
 
 export const sqlInjectionProtection = (req: Request, res: Response, next: NextFunction) => {
@@ -178,11 +187,12 @@ export const sqlInjectionProtection = (req: Request, res: Response, next: NextFu
 
   const queryInjection = checkValue(req.query);
   if (queryInjection) {
-    console.warn(
+    logger.warn(
       `[SECURITY] SQL Injection attempt in query: ${queryInjection.substring(0, 100)} from IP: ${req.ip}`
     );
     return res.status(400).json({
-      error: 'Обнаружены недопустимые символы в запросе',
+      success: false,
+      message: 'Обнаружены недопустимые символы в запросе',
     });
   }
 
@@ -193,11 +203,12 @@ export const sqlInjectionProtection = (req: Request, res: Response, next: NextFu
 
     const bodyInjection = checkValue(bodyToCheck);
     if (bodyInjection) {
-      console.warn(
+      logger.warn(
         `[SECURITY] SQL Injection attempt in body: ${bodyInjection.substring(0, 100)} from IP: ${req.ip}`
       );
       return res.status(400).json({
-        error: 'Обнаружены недопустимые символы в запросе',
+        success: false,
+        message: 'Обнаружены недопустимые символы в запросе',
       });
     }
   }
@@ -212,7 +223,8 @@ export const requestSizeLimiter = (maxSizeKB: number = 100) => {
 
     if (contentLength > maxBytes) {
       return res.status(413).json({
-        error: `Размер запроса превышает лимит в ${maxSizeKB}KB`,
+        success: false,
+        message: `Размер запроса превышает лимит в ${maxSizeKB}KB`,
       });
     }
     next();
@@ -227,6 +239,16 @@ interface LockoutEntry {
 const lockoutStore = new Map<string, LockoutEntry>();
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 15 * 60 * 1000;
+
+// Periodic cleanup of expired lockout entries
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of lockoutStore) {
+    if (entry.lockedUntil && now >= entry.lockedUntil) {
+      lockoutStore.delete(key);
+    }
+  }
+}, 5 * 60 * 1000);
 
 export const checkAccountLockout = (email: string): { locked: boolean; remainingTime?: number } => {
   const entry = lockoutStore.get(email.toLowerCase());
@@ -277,14 +299,14 @@ export const securityLogger = (req: Request, _res: Response, next: NextFunction)
 
   for (const header of suspiciousHeaders) {
     if (req.headers[header]) {
-      console.warn(
+      logger.warn(
         `[SECURITY] Suspicious header detected: ${header}=${req.headers[header]} from IP: ${req.ip}`
       );
     }
   }
 
   if (req.path.includes('..') || req.path.includes('%2e%2e')) {
-    console.warn(`[SECURITY] Path traversal attempt: ${req.path} from IP: ${req.ip}`);
+    logger.warn(`[SECURITY] Path traversal attempt: ${req.path} from IP: ${req.ip}`);
   }
 
   next();
@@ -301,7 +323,7 @@ const ipBlacklist = new Set<string>();
 
 export const addToBlacklist = (ip: string): void => {
   ipBlacklist.add(ip);
-  console.warn(`[SECURITY] IP added to blacklist: ${ip}`);
+  logger.warn(`[SECURITY] IP added to blacklist: ${ip}`);
 };
 
 export const removeFromBlacklist = (ip: string): void => {
@@ -312,9 +334,10 @@ export const checkBlacklist = (req: Request, res: Response, next: NextFunction) 
   const clientIp = req.ip || req.headers['x-forwarded-for']?.toString() || '';
 
   if (ipBlacklist.has(clientIp)) {
-    console.warn(`[SECURITY] Blocked request from blacklisted IP: ${clientIp}`);
+    logger.warn(`[SECURITY] Blocked request from blacklisted IP: ${clientIp}`);
     return res.status(403).json({
-      error: 'Доступ запрещён',
+      success: false,
+      message: 'Доступ запрещён',
     });
   }
 
@@ -455,12 +478,12 @@ export const advancedRateLimitMiddleware = (
 ) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const ip = req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
-    const userId = (req as any).user?.id;
+    const userId = (req as Request & { user?: { id: string } }).user?.id;
 
     const result = limiter.check(ip, userId);
 
     if (!result.allowed) {
-      console.warn(
+      logger.warn(
         `[RATE_LIMIT] Blocked: IP=${ip}, User=${userId || 'anonymous'}, Reason=${result.reason}`
       );
 

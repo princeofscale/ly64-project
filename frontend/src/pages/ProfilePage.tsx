@@ -1,1416 +1,1252 @@
-import { useEffect, useState } from 'react';
+import {
+ CURRENT_GRADE_LABELS,
+ USER_STATUS_LABELS,
+ DIRECTION_LABELS,
+ SUBJECT_LABELS,
+} from '@lyceum64/shared';
+import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
+ AreaChart,
+ Area,
+ XAxis,
+ YAxis,
+ Tooltip,
+ ResponsiveContainer,
+ CartesianGrid,
 } from 'recharts';
 
 import { AchievementCard } from '../components/AchievementCard';
-import { useAuthStore } from '../store/authStore';
+import { ActivityHeatmap } from '../components/ActivityHeatmap';
+import api from '../services/api';
+
+import type { AchievementWithStatus } from '../types/achievement';
 
-import type {
-  Achievement,
-  CURRENT_GRADE_LABELS,
-  USER_STATUS_LABELS,
-  DIRECTION_LABELS,
-} from '@lyceum64/shared';
+interface HeatmapDay {
+ date: string;
+ count: number;
+ points: number;
+}
 
 interface UserProfile {
-  id: string;
-  email: string;
-  username: string;
-  name: string;
-  status: 'STUDENT' | 'APPLICANT';
-  currentGrade: number;
-  desiredDirection?: string;
-  motivation?: string;
-  authProvider: 'EMAIL';
-  avatar?: string;
-  bio?: string;
-  isPublic: boolean;
-  createdAt: string;
-}
-
-interface AchievementWithStatus extends Achievement {
-  isUnlocked: boolean;
-  unlockedAt?: Date;
-}
-
+ id: string;
+ email: string;
+ username: string;
+ name: string;
+ status: 'STUDENT' | 'APPLICANT';
+ currentGrade: number;
+ desiredDirection?: string;
+ motivation?: string;
+ authProvider: 'EMAIL';
+ avatar?: string;
+ bio?: string;
+ isPublic: boolean;
+ createdAt: string;
+}
+
 interface RecentAttempt {
-  id: string;
-  testId: string;
-  subject: string;
-  score: number;
-  completedAt: string;
+ id: string;
+ testId: string;
+ subject: string;
+ score: number;
+ completedAt: string;
 }
 
 interface DailyActivity {
-  date: string;
-  count: number;
-  avgScore: number;
+ date: string;
+ count: number;
+ avgScore: number;
 }
 
 interface TimeHeatmap {
-  hour: number;
-  avgScore: number;
-  testCount: number;
+ hour: number;
+ avgScore: number;
+ testCount: number;
 }
 
 interface WeakTopic {
-  topic: string;
-  subject: string;
-  avgScore: number;
-  totalAttempts: number;
+ topic: string;
+ subject: string;
+ avgScore: number;
+ totalAttempts: number;
 }
 
 interface UserStats {
-  totalTests: number;
-  averageScore: number;
-  bestScore: number;
-  recentAttempts?: RecentAttempt[];
-  dailyActivity?: DailyActivity[];
-  totalTimeSpent?: number;
-  currentStreak?: number;
-  longestStreak?: number;
-  favoriteSubject?: string;
-  weeklyProgress?: number;
-  timeHeatmap?: TimeHeatmap[];
-  platformAverage?: number;
-  predictedScore?: number;
-  predictionConfidence?: number;
-  predictionFactors?: string[];
-  weakTopics?: WeakTopic[];
-  percentile?: number;
-  usersBeaten?: number;
-  totalUsers?: number;
-  userRank?: number;
+ totalTests: number;
+ averageScore: number;
+ bestScore: number;
+ recentAttempts?: RecentAttempt[];
+ dailyActivity?: DailyActivity[];
+ totalTimeSpent?: number;
+ currentStreak?: number;
+ longestStreak?: number;
+ favoriteSubject?: string;
+ weeklyProgress?: number;
+ timeHeatmap?: TimeHeatmap[];
+ platformAverage?: number;
+ predictedScore?: number;
+ predictionConfidence?: number;
+ predictionFactors?: string[];
+ weakTopics?: WeakTopic[];
+ percentile?: number;
+ usersBeaten?: number;
+ totalUsers?: number;
+ userRank?: number;
 }
 
 const AVATAR_OPTIONS = [
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=1',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=2',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=3',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=4',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=5',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=6',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=1',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=2',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=3',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=4',
-  'https://api.dicebear.com/7.x/fun-emoji/svg?seed=1',
-  'https://api.dicebear.com/7.x/fun-emoji/svg?seed=2',
+ 'https://api.dicebear.com/7.x/avataaars/svg?seed=1',
+ 'https://api.dicebear.com/7.x/avataaars/svg?seed=2',
+ 'https://api.dicebear.com/7.x/avataaars/svg?seed=3',
+ 'https://api.dicebear.com/7.x/avataaars/svg?seed=4',
+ 'https://api.dicebear.com/7.x/avataaars/svg?seed=5',
+ 'https://api.dicebear.com/7.x/avataaars/svg?seed=6',
+ 'https://api.dicebear.com/7.x/bottts/svg?seed=1',
+ 'https://api.dicebear.com/7.x/bottts/svg?seed=2',
+ 'https://api.dicebear.com/7.x/bottts/svg?seed=3',
+ 'https://api.dicebear.com/7.x/bottts/svg?seed=4',
+ 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=1',
+ 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=2',
 ];
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [achievements, setAchievements] = useState<AchievementWithStatus[]>([]);
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
-  const [showCustomUpload, setShowCustomUpload] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [achievementFilter, setAchievementFilter] = useState<'all' | 'unlocked' | 'locked'>('all');
-  const [editForm, setEditForm] = useState({
-    name: '',
-    bio: '',
-    isPublic: true,
-  });
-
-  useEffect(() => {
-    loadProfile();
-    loadAchievements();
-    loadStats();
-  }, []);
-
-  const loadProfile = async () => {
-    try {
-      const token = useAuthStore.getState().token;
-
-      if (!token) {
-        window.location.href = '/login';
-        return;
-      }
-
-      const response = await fetch('/api/users/profile', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data);
-        setEditForm({
-          name: data.name || '',
-          bio: data.bio || '',
-          isPublic: data.isPublic ?? true,
-        });
-      }
-    } catch (error) {
-      console.error('Error loading profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadAchievements = async () => {
-    try {
-      const token = useAuthStore.getState().token;
-      if (!token) return;
-
-      const response = await fetch('/api/users/achievements', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAchievements(data.achievements || []);
-      }
-    } catch (error) {
-      console.error('Error loading achievements:', error);
-    }
-  };
-
-  const loadStats = async () => {
-    try {
-      const token = useAuthStore.getState().token;
-      if (!token) return;
-
-      const response = await fetch('/api/users/stats', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
-      }
-    } catch (error) {
-      console.error('Error loading stats:', error);
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      const token = useAuthStore.getState().token;
-      if (!token) return;
-
-      const response = await fetch('/api/users/profile', {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editForm),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data);
-        setIsEditing(false);
-        toast.success('Профиль обновлён');
-      }
-    } catch (error) {
-      toast.error('Ошибка сохранения');
-    }
-  };
-
-  const handleAvatarChange = async (avatarUrl: string) => {
-    try {
-      const token = useAuthStore.getState().token;
-      if (!token) return;
-
-      const response = await fetch('/api/users/avatar', {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ avatar: avatarUrl }),
-      });
-
-      if (response.ok) {
-        setUser(prev => (prev ? { ...prev, avatar: avatarUrl } : null));
-        setShowAvatarPicker(false);
-        toast.success('Аватар обновлён');
-      }
-    } catch (error) {
-      toast.error('Ошибка обновления аватара');
-    }
-  };
-
-  const handleCustomAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Проверка размера (максимум 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Файл слишком большой. Максимум 5MB');
-      return;
-    }
-
-    // Проверка типа
-    if (!file.type.startsWith('image/')) {
-      toast.error('Выберите изображение');
-      return;
-    }
-
-    setUploadingAvatar(true);
-
-    try {
-      // Конвертация в base64
-      const reader = new FileReader();
-      reader.onload = async event => {
-        const base64String = event.target?.result as string;
-
-        const token = useAuthStore.getState().token;
-        if (!token) return;
-
-        const response = await fetch('/api/users/avatar', {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ avatar: base64String }),
-        });
-
-        if (response.ok) {
-          setUser(prev => (prev ? { ...prev, avatar: base64String } : null));
-          setShowAvatarPicker(false);
-          setShowCustomUpload(false);
-          toast.success('Аватар загружен');
-        } else {
-          toast.error('Ошибка загрузки');
-        }
-        setUploadingAvatar(false);
-      };
-
-      reader.onerror = () => {
-        toast.error('Ошибка чтения файла');
-        setUploadingAvatar(false);
-      };
-
-      reader.readAsDataURL(file);
-    } catch (error) {
-      toast.error('Ошибка загрузки аватара');
-      setUploadingAvatar(false);
-    }
-  };
-
-  const copyProfileLink = () => {
-    const link = `${window.location.origin}/profiles/${user?.username}`;
-    navigator.clipboard.writeText(link);
-    toast.success('Ссылка скопирована');
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-        </div>
-      </PageLayout>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white flex items-center justify-center">
-        <div className="text-slate-600">Профиль не найден</div>
-      </div>
-    );
-  }
-
-  const unlockedAchievements = achievements.filter(a => a.isUnlocked);
-
-  const getSubjectLabel = (subject: string) => {
-    const labels: Record<string, string> = {
-      MATHEMATICS: 'Математика',
-      PHYSICS: 'Физика',
-      INFORMATICS: 'Информатика',
-      RUSSIAN: 'Русский язык',
-      HISTORY: 'История',
-      BIOLOGY: 'Биология',
-    };
-    return labels[subject] || subject;
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white relative overflow-hidden py-8">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/50 rounded-full blur-[100px] -z-10" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-violet-100/50 rounded-full blur-[80px] -z-10" />
-
-      <div className="relative z-10 max-w-5xl mx-auto px-4">
-        <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl shadow-xl overflow-hidden mb-8">
-          <div className="h-32 bg-gradient-to-r from-blue-50 via-violet-50 to-pink-50" />
-
-          <div className="px-8 pb-8">
-            <div className="flex flex-col gap-6 -mt-16">
-              <div className="flex flex-col md:flex-row md:items-end gap-6">
-                <div className="relative group flex-shrink-0">
-                  <div className="w-32 h-32 rounded-2xl bg-slate-100 border-4 border-white shadow-lg overflow-hidden">
-                    {user.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-4xl font-bold text-white">
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
-                    </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-3 mb-1">
-                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 break-words">
-                      {user.name}
-                    </h1>
-                    {user.isPublic ? (
-                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-xs rounded-full whitespace-nowrap border border-emerald-200">
-                        Публичный
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full whitespace-nowrap border border-slate-200">
-                        Приватный
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-blue-600 font-mono break-all">@{user.username}</p>
-                  {user.bio && <p className="text-slate-600 mt-2 break-words">{user.bio}</p>}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={copyProfileLink}
-                  className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl transition-colors flex items-center gap-2 shadow-sm"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-4 h-4"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.193-9.193a4.5 4.5 0 00-6.364 0l-4.5 4.5a4.5 4.5 0 001.242 7.244"
-                    />
-                  </svg>
-                  Поделиться
-                </button>
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-lg shadow-blue-600/25"
-                >
-                  Редактировать
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center group hover:shadow-lg transition-all">
-                <p className="text-3xl font-bold text-blue-600 group-hover:scale-110 transition-transform">
-                  {stats?.totalTests || 0}
-                </p>
-                <p className="text-sm text-slate-600">Тестов пройдено</p>
-              </div>
-              <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 text-center group hover:shadow-lg transition-all">
-                <p className="text-3xl font-bold text-violet-600 group-hover:scale-110 transition-transform">
-                  {stats?.averageScore || 0}%
-                </p>
-                <p className="text-sm text-slate-600">Средний балл</p>
-              </div>
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center group hover:shadow-lg transition-all">
-                <p className="text-3xl font-bold text-emerald-600 group-hover:scale-110 transition-transform">
-                  {stats?.bestScore || 0}%
-                </p>
-                <p className="text-sm text-slate-600">Лучший результат</p>
-              </div>
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center group hover:shadow-lg transition-all">
-                <p className="text-3xl font-bold text-amber-600 group-hover:scale-110 transition-transform">
-                  {unlockedAchievements.length}
-                </p>
-                <p className="text-sm text-slate-600">Достижений</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-              <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-xl p-4 text-center">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <span className="text-2xl">🔥</span>
-                  <p className="text-2xl font-bold text-orange-400">{stats?.currentStreak || 0}</p>
-                </div>
-                <p className="text-xs text-gray-400">Дней подряд</p>
-              </div>
-              <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-xl p-4 text-center">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <span className="text-2xl">⏱️</span>
-                  <p className="text-2xl font-bold text-blue-400">
-                    {Math.round((stats?.totalTimeSpent || 0) / 60) || 0}
-                  </p>
-                </div>
-                <p className="text-xs text-gray-400">Минут занятий</p>
-              </div>
-              <div className="bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-500/20 rounded-xl p-4 text-center">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <span className="text-2xl">📈</span>
-                  <p className="text-2xl font-bold text-pink-400">+{stats?.weeklyProgress || 0}%</p>
-                </div>
-                <p className="text-xs text-gray-400">Прогресс</p>
-              </div>
-              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4 text-center">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <span className="text-2xl">⭐</span>
-                  <p className="text-xl font-bold text-green-400">
-                    {getSubjectLabel(stats?.favoriteSubject || 'MATHEMATICS')}
-                  </p>
-                </div>
-                <p className="text-xs text-gray-400">Любимый предмет</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {stats?.dailyActivity && stats.dailyActivity.length > 0 && (
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-white flex items-center">
-                <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full mr-2 animate-pulse" />
-                Активность за 4 недели
-              </h2>
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <span>Меньше</span>
-                {[0, 1, 2, 3, 4].map(i => (
-                  <div
-                    key={i}
-                    className={`w-2 h-2 rounded ${['bg-gray-800', 'bg-cyan-900/50', 'bg-cyan-700/70', 'bg-cyan-500', 'bg-cyan-400'][i]}`}
-                  />
-                ))}
-                <span>Больше</span>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {stats.dailyActivity.slice(-28).map((day, index) => {
-                const intensity = day.count === 0 ? 0 : Math.min(Math.ceil(day.count / 2), 4);
-                const colors = [
-                  'bg-gray-800',
-                  'bg-cyan-900/50',
-                  'bg-cyan-700/70',
-                  'bg-cyan-500',
-                  'bg-cyan-400',
-                ];
-                return (
-                  <div
-                    key={index}
-                    className={`w-8 h-8 rounded-lg ${colors[intensity]} hover:scale-110 transition-all cursor-pointer group relative`}
-                  >
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 border border-gray-700 shadow-xl">
-                      <div className="font-bold">
-                        {new Date(day.date).toLocaleDateString('ru-RU', {
-                          day: 'numeric',
-                          month: 'short',
-                        })}
-                      </div>
-                      <div className="text-gray-400">{day.count} тестов</div>
-                      {day.avgScore > 0 && (
-                        <div
-                          className={`${day.avgScore >= 70 ? 'text-green-400' : 'text-yellow-400'}`}
-                        >
-                          {day.avgScore.toFixed(0)}% средний балл
-                        </div>
-                      )}
-                    </div>
-
-                    <p className="text-cyan-500 dark:text-cyan-400 font-mono text-lg mb-1">
-                      @{user.username}
-                    </p>
-
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-                      Участник с{' '}
-                      {new Date(user.createdAt).toLocaleDateString('ru-RU', {
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                    </p>
-
-                    {user.bio && (
-                      <p className="text-slate-700 dark:text-slate-300 mt-3 break-words max-w-2xl">
-                        {user.bio}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-        {stats?.recentAttempts && stats.recentAttempts.length > 0 && (
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6 mb-8">
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-              <span className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse" />
-              Прогресс по тестам
-            </h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={stats.recentAttempts
-                    .slice()
-                    .reverse()
-                    .map((a, i) => ({
-                      name: new Date(a.completedAt).toLocaleDateString('ru-RU', {
-                        day: 'numeric',
-                        month: 'short',
-                      }),
-                      score: a.score,
-                      subject: getSubjectLabel(a.subject),
-                    }))}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="name" stroke="#9ca3af" tick={{ fill: '#9ca3af', fontSize: 12 }} />
-                  <YAxis
-                    stroke="#9ca3af"
-                    tick={{ fill: '#9ca3af', fontSize: 12 }}
-                    domain={[0, 100]}
-                    tickFormatter={value => `${value}%`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1f2937',
-                      border: '1px solid #374151',
-                      borderRadius: '12px',
-                      padding: '12px',
-                    }}
-                    labelStyle={{ color: '#9ca3af', marginBottom: '4px' }}
-                    formatter={(value: number, name: string, props: any) => [
-                      `${value}%`,
-                      props.payload.subject,
-                    ]}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#06b6d4"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorScore)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-
-        {/* Аналитика */}
-        <div className="mb-8 space-y-8">
-          {/* Тепловая карта времени дня */}
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-              <span
-                className="w-2 h-2 bg-amber-400 rounded-full mr-3 animate-pulse"
-                style={{ animationDelay: '0.7s' }}
-              />
-              🕒 Тепловая карта активности
-            </h2>
-            <p className="text-gray-400 text-sm mb-6">Ваши лучшие результаты по времени суток</p>
-
-            <div className="grid grid-cols-12 gap-2">
-              {Array.from({ length: 24 }, (_, hour) => {
-                const hourData = stats?.timeHeatmap?.find(h => h.hour === hour) || {
-                  hour,
-                  avgScore: 0,
-                  testCount: 0,
-                };
-
-                const intensity =
-                  hourData.testCount === 0
-                    ? 0
-                    : hourData.avgScore < 60
-                      ? 1
-                      : hourData.avgScore < 70
-                        ? 2
-                        : hourData.avgScore < 80
-                          ? 3
-                          : 4;
-
-                const colors = [
-                  'bg-gray-800',
-                  'bg-red-900/40',
-                  'bg-yellow-700/60',
-                  'bg-green-600/70',
-                  'bg-green-400',
-                ];
-
-                return (
-                  <div key={hour} className="text-center">
-                    <div
-                      className={`aspect-square rounded-lg ${colors[intensity]} hover:scale-110 transition-all cursor-pointer group relative flex items-center justify-center`}
-                      title={`${hour}:00 - ${hourData.testCount} тестов, ${hourData.avgScore.toFixed(0)}%`}
-                    >
-                      <span className="text-xs text-gray-400 font-mono">{hour}</span>
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 border border-gray-700 shadow-xl">
-                        <div className="font-bold">
-                          {hour}:00 - {hour + 1}:00
-                        </div>
-                        <div className="text-gray-400">{hourData.testCount} тестов</div>
-                        <div
-                          className={`${hourData.avgScore >= 70 ? 'text-green-400' : 'text-yellow-400'}`}
-                        >
-                          {hourData.avgScore.toFixed(0)}% средний балл
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex items-center justify-between mt-6 text-xs text-gray-400">
-              <span>Низкие результаты</span>
-              <div className="flex gap-1">
-                {[0, 1, 2, 3, 4].map(i => (
-                  <div
-                    key={i}
-                    className={`w-5 h-5 rounded ${['bg-gray-800', 'bg-red-900/40', 'bg-yellow-700/60', 'bg-green-600/70', 'bg-green-400'][i]}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {stats?.timeHeatmap &&
-              stats.timeHeatmap.length > 0 &&
-              (() => {
-                const bestHour = stats.timeHeatmap.reduce(
-                  (best, curr) => (curr.avgScore > best.avgScore ? curr : best),
-                  stats.timeHeatmap[0]
-                );
-
-                return bestHour.testCount > 0 ? (
-                  <div className="mt-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">💡</span>
-                      <div>
-                        <p className="text-cyan-400 font-semibold mb-1">Совет:</p>
-                        <p className="text-gray-300 text-sm">
-                          Ваши лучшие результаты показаны в {bestHour.hour}:00-{bestHour.hour + 1}
-                          :00 ({bestHour.avgScore.toFixed(0)}%). Старайтесь заниматься в это время
-                          для максимальной эффективности!
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ) : null;
-              })()}
-          </div>
-
-          {/* Сравнение со средним */}
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-              <span
-                className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse"
-                style={{ animationDelay: '0.9s' }}
-              />
-              📊 Сравнение с другими пользователями
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold text-cyan-400 mb-1">
-                  #{stats?.userRank || '—'}
-                </div>
-                <div className="text-gray-400 text-xs">Ваше место</div>
-              </div>
-              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold text-purple-400 mb-1">
-                  {stats?.percentile || 0}%
-                </div>
-                <div className="text-gray-400 text-xs">Перцентиль</div>
-              </div>
-              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold text-green-400 mb-1">
-                  {stats?.usersBeaten || 0}
-                </div>
-                <div className="text-gray-400 text-xs">Обогнали из {stats?.totalUsers || 0}</div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-sm">Ваш средний балл</span>
-                    <span className="text-2xl font-bold text-cyan-400">
-                      {stats?.averageScore || 0}%
-                    </span>
-                  </div>
-                  <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-1000"
-                      style={{ width: `${stats?.averageScore || 0}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-sm">Средний балл платформы</span>
-                    <span className="text-2xl font-bold text-gray-400">
-                      {stats?.platformAverage || 0}%
-                    </span>
-                  </div>
-                  <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-gray-600 to-gray-500 rounded-full"
-                      style={{ width: `${stats?.platformAverage || 0}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-center">
-                <div className="relative w-40 h-40">
-                  <svg className="w-full h-full transform -rotate-90">
-                    <circle cx="80" cy="80" r="70" stroke="#1f2937" strokeWidth="12" fill="none" />
-                    <circle
-                      cx="80"
-                      cy="80"
-                      r="70"
-                      stroke="url(#percentileGradient)"
-                      strokeWidth="12"
-                      fill="none"
-                      strokeDasharray={`${((stats?.percentile || 0) / 100) * 439.8} 439.8`}
-                      strokeLinecap="round"
-                      className="transition-all duration-1000"
-                    />
-                    <defs>
-                      <linearGradient id="percentileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#a855f7" />
-                        <stop offset="100%" stopColor="#ec4899" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-bold text-white">
-                      топ {100 - (stats?.percentile || 0)}%
-                    </span>
-                    <span className="text-gray-400 text-xs">пользователей</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {(stats?.percentile || 0) >= 70 ? (
-              <div className="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">🏆</span>
-                  <div>
-                    <p className="text-green-400 font-semibold mb-1">Вы в топе!</p>
-                    <p className="text-gray-300 text-sm">
-                      Вы входите в топ {100 - (stats?.percentile || 0)}% пользователей платформы.
-                      Обогнали {stats?.usersBeaten || 0} из {stats?.totalUsers || 0} учеников!
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (stats?.percentile || 0) >= 40 ? (
-              <div className="mt-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">📈</span>
-                  <div>
-                    <p className="text-cyan-400 font-semibold mb-1">Хороший результат!</p>
-                    <p className="text-gray-300 text-sm">
-                      Вы показываете результаты выше среднего. Ещё немного усилий, и вы войдёте в
-                      топ!
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">💪</span>
-                  <div>
-                    <p className="text-amber-400 font-semibold mb-1">Время для рывка!</p>
-                    <p className="text-gray-300 text-sm">
-                      Регулярные занятия помогут вам подняться выше. Сфокусируйтесь на слабых темах!
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Предсказание баллов */}
-            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
-              <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-                <span
-                  className="w-2 h-2 bg-pink-400 rounded-full mr-3 animate-pulse"
-                  style={{ animationDelay: '1.1s' }}
-                />
-                🤖 ИИ прогноз результата
-              </h2>
-
-              <div className="text-center mb-6">
-                <div className="inline-block p-6 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-2xl border border-pink-500/30">
-                  <div className="text-5xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-2">
-                    {stats?.predictedScore || 78}%
-                  </div>
-                  <p className="text-gray-400 text-sm">Прогноз на экзамен</p>
-                </div>
-              </div>
-
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl">
-                  <span className="text-gray-400 text-sm">Текущий средний балл</span>
-                  <span className="text-white font-semibold">{stats?.averageScore || 0}%</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl">
-                  <span className="text-gray-400 text-sm">Динамика за неделю</span>
-                  <span
-                    className={`font-semibold ${(stats?.weeklyProgress || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}
-                  >
-                    {(stats?.weeklyProgress || 0) >= 0 ? '+' : ''}
-                    {stats?.weeklyProgress || 0}%
-                  </span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl">
-                  <span className="text-gray-400 text-sm">Уверенность прогноза</span>
-                  <span className="text-cyan-400 font-semibold">
-                    {stats?.predictionConfidence || 0}%
-                  </span>
-                </div>
-              </div>
-
-              {stats?.predictionFactors && stats.predictionFactors.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {stats.predictionFactors.map((factor, i) => (
-                    <span
-                      key={i}
-                      className="px-3 py-1 bg-pink-500/20 border border-pink-500/30 rounded-full text-pink-400 text-xs"
-                    >
-                      {factor}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">✨</span>
-                  <div>
-                    <p className="text-purple-400 font-semibold mb-1">Анализ ИИ</p>
-                    <p className="text-gray-300 text-sm">
-                      {(stats?.totalTests || 0) < 3
-                        ? 'Пройдите ещё несколько тестов для точного прогноза. Минимум 3 теста для анализа.'
-                        : `Прогноз основан на ${stats?.totalTests} тестов. При текущей динамике вы можете улучшить результат до ${Math.min(100, (stats?.predictedScore || 0) + 5).toFixed(0)}%!`}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Слабые места */}
-            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
-              <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-                <span
-                  className="w-2 h-2 bg-red-400 rounded-full mr-3 animate-pulse"
-                  style={{ animationDelay: '1.3s' }}
-                />
-                🎯 Темы для улучшения
-              </h2>
-
-              <div className="space-y-3 mb-6">
-                {stats?.weakTopics && stats.weakTopics.length > 0 ? (
-                  stats.weakTopics.slice(0, 5).map((topic, index) => (
-                    <div
-                      key={index}
-                      className="p-4 bg-gray-800/50 rounded-xl hover:bg-gray-800/70 transition-all"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <h3 className="text-white font-semibold">{topic.topic}</h3>
-                          <p className="text-gray-400 text-xs">
-                            {getSubjectLabel(topic.subject)} • {topic.totalAttempts} попыток
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <div
-                            className={`text-2xl font-bold ${
-                              topic.avgScore < 50
-                                ? 'text-red-400'
-                                : topic.avgScore < 60
-                                  ? 'text-orange-400'
-                                  : topic.avgScore < 70
-                                    ? 'text-yellow-400'
-                                    : 'text-green-400'
-                            }`}
-                          >
-                            {topic.avgScore}%
-                          </div>
-                        </div>
-                        <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${topic.avgScore}%` }}
-                            transition={{ duration: 1, delay: 1 + index * 0.1, ease: 'easeOut' }}
-                            className={`h-full rounded-full ${
-                              topic.avgScore < 50
-                                ? 'bg-gradient-to-r from-red-500 to-red-600'
-                                : topic.avgScore < 60
-                                  ? 'bg-gradient-to-r from-orange-500 to-orange-600'
-                                  : topic.avgScore < 70
-                                    ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
-                                    : 'bg-gradient-to-r from-green-500 to-green-600'
-                            }`}
-                          />
-                        </div>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                      <div className="text-4xl mb-3">🎯</div>
-                      <p>
-                        Пройдите несколько тестов, чтобы мы смогли определить темы для улучшения
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {stats?.weakTopics && stats.weakTopics.length > 0 && (
-                  <div className="p-4 bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/30 rounded-xl">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">📚</span>
-                      <div>
-                        <p className="text-orange-600 dark:text-orange-400 font-semibold mb-1">
-                          Рекомендация
-                        </p>
-                        <p className="text-slate-700 dark:text-slate-300 text-sm">
-                          Уделите больше внимания этим темам. Решение дополнительных 5-10 задач
-                          может повысить ваш балл на 10-15%!
-                        </p>
-                      </div>
-                      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            topic.avgScore < 50
-                              ? 'bg-gradient-to-r from-red-600 to-red-500'
-                              : topic.avgScore < 60
-                                ? 'bg-gradient-to-r from-orange-600 to-orange-500'
-                                : topic.avgScore < 70
-                                  ? 'bg-gradient-to-r from-yellow-600 to-yellow-500'
-                                  : 'bg-gradient-to-r from-green-600 to-green-500'
-                          }`}
-                          style={{ width: `${topic.avgScore}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <div className="text-4xl mb-2">🎯</div>
-                    <p>Пройдите несколько тестов, чтобы мы смогли определить темы для улучшения</p>
-                  </div>
-                )}
-              </div>
-
-              {stats?.weakTopics && stats.weakTopics.length > 0 && (
-                <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl">
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl">📚</span>
-                    <div>
-                      <p className="text-orange-400 font-semibold mb-1">Рекомендация</p>
-                      <p className="text-gray-300 text-sm">
-                        Уделите больше внимания этим темам. Решение дополнительных 5-10 задач может
-                        повысить ваш балл на 10-15%!
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </ContentSection>
-
-        {/* Settings & Information Section */}
-        <ContentSection>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* User Information Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 }}
-              className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-700/50 rounded-2xl p-6 shadow-xl"
-            >
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Информация</h3>
-
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">
-                    Статус
-                  </p>
-                  <p className="text-slate-900 dark:text-white font-semibold">
-                    {USER_STATUS_LABELS[user.status]}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">
-                    Класс
-                  </p>
-                  <p className="text-slate-900 dark:text-white font-semibold">
-                    {CURRENT_GRADE_LABELS[user.currentGrade]}
-                  </p>
-                </div>
-                {user.desiredDirection && (
-                  <div>
-                    <p className="text-sm text-gray-500">Направление</p>
-                    <p className="text-cyan-400">
-                      {DIRECTION_LABELS[user.desiredDirection as keyof typeof DIRECTION_LABELS]}
-                    </p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm text-gray-500">На платформе с</p>
-                  <p className="text-white">
-                    {new Date(user.createdAt).toLocaleDateString('ru-RU', {
-                      year: 'numeric',
-                      month: 'long',
-                    })}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
-                <Link
-                  to={`/profiles/${user.username}`}
-                  className="text-cyan-500 hover:text-cyan-600 dark:text-cyan-400 dark:hover:text-cyan-300 text-sm flex items-center gap-2 font-medium transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-4 h-4"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  Посмотреть публичный профиль
-                </Link>
-              </div>
-            </motion.div>
-
-          <div className="lg:col-span-2">
-            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-white">Достижения</h2>
-                <span className="text-sm text-gray-400">
-                  {unlockedAchievements.length} из {achievements.length}
-                </span>
-              </div>
-
-              {unlockedAchievements.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {unlockedAchievements.slice(0, 6).map(achievement => (
-                    <AchievementCard
-                      key={achievement.id}
-                      achievement={achievement}
-                      isUnlocked={true}
-                      unlockedAt={achievement.unlockedAt}
-                    />
-                  ))}
-                </div>
-
-                <div className="p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 border border-purple-500/30 rounded-xl">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">🔥</span>
-                    <div className="text-2xl font-bold text-purple-500">
-                      {stats?.longestStreak || 0}
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                    Рекорд дней подряд
-                  </p>
-                </div>
-
-                <div className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20 border border-green-500/30 rounded-xl">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">📈</span>
-                    <div className="text-2xl font-bold text-green-500">
-                      +{stats?.weeklyProgress || 0}%
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                    Прогресс за неделю
-                  </p>
-                </div>
-
-                <div className="p-4 bg-gradient-to-br from-amber-500/10 to-orange-500/10 dark:from-amber-500/20 dark:to-orange-500/20 border border-amber-500/30 rounded-xl">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">⭐</span>
-                    <div className="text-lg font-bold text-amber-500">
-                      {getSubjectLabel(stats?.favoriteSubject || 'MATHEMATICS')}
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                    Любимый предмет
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </ContentSection>
-      </div>
-
-      {showAvatarPicker && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700">
-            <h3 className="text-xl font-semibold text-white mb-4">Выберите аватар</h3>
-
-            <div className="mb-6">
-              <label className="block w-full">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleCustomAvatarUpload}
-                  disabled={uploadingAvatar}
-                  className="hidden"
-                  id="avatar-upload"
-                />
-                <div
-                  onClick={() => document.getElementById('avatar-upload')?.click()}
-                  className="w-full py-4 border-2 border-dashed border-cyan-500/50 rounded-xl hover:border-cyan-500 transition-all cursor-pointer bg-cyan-500/5 hover:bg-cyan-500/10"
-                >
-                  <div className="text-center">
-                    {uploadingAvatar ? (
-                      <div className="flex items-center justify-center gap-2 text-cyan-400">
-                        <div className="w-5 h-5 border-2 border-cyan-400/20 border-t-cyan-400 rounded-full animate-spin" />
-                        <span>Загрузка...</span>
-                      </div>
-                    ) : (
-                      <>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                          className="w-8 h-8 mx-auto mb-2 text-cyan-400"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-                          />
-                        </svg>
-                        <p className="text-cyan-400 font-medium">Загрузить свое фото</p>
-                        <p className="text-gray-500 text-sm mt-1">PNG, JPG до 5MB</p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </label>
-            </div>
-
-            <div className="border-t border-gray-700 pt-4 mb-4">
-              <p className="text-gray-400 text-sm mb-3">Или выберите готовый аватар:</p>
-            </div>
-
-            <div className="grid grid-cols-4 gap-3 mb-6">
-              {AVATAR_OPTIONS.map((avatar, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleAvatarChange(avatar)}
-                  className={`aspect-square rounded-xl overflow-hidden border-2 transition-all hover:scale-105 ${
-                    user.avatar === avatar ? 'border-cyan-500' : 'border-transparent'
-                  }`}
-                >
-                  <img src={avatar} alt={`Avatar ${i + 1}`} className="w-full h-full" />
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setShowAvatarPicker(false)}
-              className="w-full py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors"
-            >
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">
-                Выберите аватар
-              </h3>
-
-      {isEditing && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700">
-            <h3 className="text-xl font-semibold text-white mb-6">Редактировать профиль</h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Имя</label>
-                <input
-                  type="text"
-                  value={editForm.name}
-                  onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white focus:border-cyan-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">О себе</label>
-                <textarea
-                  value={editForm.bio}
-                  onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
-                  rows={3}
-                  placeholder="Расскажите о себе..."
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white focus:border-cyan-500 focus:outline-none resize-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-gray-700/50 rounded-xl">
-                <div>
-                  <p className="text-white font-medium">Публичный профиль</p>
-                  <p className="text-sm text-gray-400">Другие смогут видеть ваш профиль</p>
-                </div>
-                <button
-                  onClick={() => setEditForm({ ...editForm, isPublic: !editForm.isPublic })}
-                  className={`w-12 h-6 rounded-full transition-colors ${
-                    editForm.isPublic ? 'bg-cyan-500' : 'bg-gray-600'
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                      editForm.isPublic ? 'translate-x-6' : 'translate-x-0.5'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setShowAvatarPicker(false)}
-                className="w-full py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors font-medium"
-              >
-                Отмена
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {isEditing && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            onClick={() => setIsEditing(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={e => e.stopPropagation()}
-              className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full border border-slate-200 dark:border-slate-700 shadow-2xl"
-            >
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">
-                Редактировать профиль
-              </h3>
-
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-sm text-slate-700 dark:text-slate-300 font-medium mb-2">
-                    Имя
-                  </label>
-                  <input
-                    type="text"
-                    value={editForm.name}
-                    onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:border-cyan-500 dark:focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-slate-700 dark:text-slate-300 font-medium mb-2">
-                    О себе
-                  </label>
-                  <textarea
-                    value={editForm.bio}
-                    onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
-                    rows={3}
-                    placeholder="Расскажите о себе..."
-                    className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:border-cyan-500 dark:focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all resize-none"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-800 rounded-xl">
-                  <div>
-                    <p className="text-slate-900 dark:text-white font-semibold">
-                      Публичный профиль
-                    </p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      Другие смогут видеть ваш профиль
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setEditForm({ ...editForm, isPublic: !editForm.isPublic })}
-                    className={`relative w-14 h-7 rounded-full transition-colors ${
-                      editForm.isPublic ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'
-                    }`}
-                  >
-                    <motion.div
-                      animate={{ x: editForm.isPublic ? 28 : 2 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                      className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-lg"
-                    />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex gap-3 mt-6">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setIsEditing(false)}
-                  className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors font-medium"
-                >
-                  Отмена
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleSave}
-                  className="flex-1 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg shadow-cyan-500/30 font-medium"
-                >
-                  Сохранить
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </PageLayout>
-  );
+ const [user, setUser] = useState<UserProfile | null>(null);
+ const [achievements, setAchievements] = useState<AchievementWithStatus[]>([]);
+ const [stats, setStats] = useState<UserStats | null>(null);
+ const [activityHeatmap, setActivityHeatmap] = useState<HeatmapDay[]>([]);
+ const [loading, setLoading] = useState(true);
+ const [isEditing, setIsEditing] = useState(false);
+ const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+ const [uploadingAvatar, setUploadingAvatar] = useState(false);
+ const [editForm, setEditForm] = useState({
+ name: '',
+ bio: '',
+ isPublic: true,
+ });
+
+ useEffect(() => {
+ void loadProfile();
+ void loadAchievements();
+ void loadStats();
+ void loadActivityHeatmap();
+ }, []);
+
+ const handleEscapeKey = useCallback((e: KeyboardEvent) => {
+ if (e.key === 'Escape') {
+ if (showAvatarPicker) setShowAvatarPicker(false);
+ if (isEditing) setIsEditing(false);
+ }
+ }, [showAvatarPicker, isEditing]);
+
+ useEffect(() => {
+ if (showAvatarPicker || isEditing) {
+ document.addEventListener('keydown', handleEscapeKey);
+ return () => document.removeEventListener('keydown', handleEscapeKey);
+ }
+ }, [showAvatarPicker, isEditing, handleEscapeKey]);
+
+ const loadProfile = async () => {
+ try {
+ const response = await api.get('/users/profile');
+ const data = response.data;
+ setUser(data);
+ setEditForm({
+ name: data.name || '',
+ bio: data.bio || '',
+ isPublic: data.isPublic ?? true,
+ });
+ } catch {
+ } finally {
+ setLoading(false);
+ }
+ };
+
+ const loadAchievements = async () => {
+ try {
+ const response = await api.get('/users/achievements');
+ setAchievements(response.data.achievements || []);
+ } catch {
+ }
+ };
+
+ const loadStats = async () => {
+ try {
+ const response = await api.get('/users/stats');
+ setStats(response.data);
+ } catch {
+ }
+ };
+
+ const loadActivityHeatmap = async () => {
+ try {
+ const response = await api.get('/users/activity-heatmap');
+ if (response.data.success) {
+ setActivityHeatmap(response.data.data as HeatmapDay[]);
+ }
+ } catch {
+ }
+ };
+
+ const handleSave = async () => {
+ try {
+ const response = await api.put('/users/profile', editForm);
+ setUser(response.data);
+ setIsEditing(false);
+ toast.success('Профиль обновлён');
+ } catch (error) {
+ toast.error('Ошибка сохранения');
+ }
+ };
+
+ const handleAvatarChange = async (avatarUrl: string) => {
+ try {
+ await api.put('/users/avatar', { avatar: avatarUrl });
+ setUser(prev => (prev ? { ...prev, avatar: avatarUrl } : null));
+ setShowAvatarPicker(false);
+ toast.success('Аватар обновлён');
+ } catch (error) {
+ toast.error('Ошибка обновления аватара');
+ }
+ };
+
+ const handleCustomAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+ const file = e.target.files?.[0];
+ if (!file) return;
+
+ if (file.size > 5 * 1024 * 1024) {
+ toast.error('Файл слишком большой. Максимум 5MB');
+ return;
+ }
+
+ if (!file.type.startsWith('image/')) {
+ toast.error('Выберите изображение');
+ return;
+ }
+
+ setUploadingAvatar(true);
+
+ try {
+ const reader = new FileReader();
+ reader.onload = async event => {
+ const base64String = event.target?.result as string;
+
+ try {
+ await api.put('/users/avatar', { avatar: base64String });
+ setUser(prev => (prev ? { ...prev, avatar: base64String } : null));
+ setShowAvatarPicker(false);
+ toast.success('Аватар загружен');
+ } catch {
+ toast.error('Ошибка загрузки');
+ }
+ setUploadingAvatar(false);
+ };
+
+ reader.onerror = () => {
+ toast.error('Ошибка чтения файла');
+ setUploadingAvatar(false);
+ };
+
+ reader.readAsDataURL(file);
+ } catch (error) {
+ toast.error('Ошибка загрузки аватара');
+ setUploadingAvatar(false);
+ }
+ };
+
+ const copyProfileLink = () => {
+ const link = `${window.location.origin}/profiles/${user?.username}`;
+ void navigator.clipboard.writeText(link);
+ toast.success('Ссылка скопирована');
+ };
+
+ if (loading) {
+ return (
+ <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg)' }}>
+ <div className="relative">
+ <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+ </div>
+ </div>
+ );
+ }
+
+ if (!user) {
+ return (
+ <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg)' }}>
+ <div className="text-slate-600">Профиль не найден</div>
+ </div>
+ );
+ }
+
+ const unlockedAchievements = achievements.filter(a => a.isUnlocked);
+
+ const getSubjectLabel = (subject: string) =>
+ (SUBJECT_LABELS as Record<string, string>)[subject] || subject;
+
+ return (
+ <div className="min-h-screen relative overflow-hidden py-8" style={{ backgroundColor: 'var(--color-bg)' }}>
+ <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/50 rounded-full blur-[100px] -z-10" />
+ <div className="absolute bottom-0 left-0 w-80 h-80 bg-violet-100/50 rounded-full blur-[80px] -z-10" />
+
+ <div className="relative z-10 max-w-5xl mx-auto px-4">
+ <div className=" backdrop-blur-xl border border-slate-200 rounded-3xl shadow-xl overflow-hidden mb-8" style={{ backgroundColor: 'var(--color-surface)' }}>
+ <div className="h-32 bg-gradient-to-r from-blue-50 via-violet-50 to-pink-50" />
+
+ <div className="px-8 pb-8">
+ <div className="flex flex-col gap-6 -mt-16">
+ <div className="flex flex-col md:flex-row md:items-end gap-6">
+ <div className="relative group flex-shrink-0">
+ <div className="w-32 h-32 rounded-2xl bg-slate-100 border-4 border-white shadow-lg overflow-hidden">
+ {user.avatar ? (
+ <img
+ src={user.avatar}
+ alt={user.name}
+ className="w-full h-full object-cover"
+ />
+ ) : (
+ <div className="w-full h-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-4xl font-bold text-white">
+ {user.name.charAt(0).toUpperCase()}
+ </div>
+ )}
+ </div>
+ <button
+ onClick={() => setShowAvatarPicker(true)}
+ className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center"
+ aria-label="Изменить аватар"
+ >
+ <span className="text-white text-sm">Изменить</span>
+ </button>
+ </div>
+
+ <div className="flex-1 min-w-0">
+ <div className="flex flex-wrap items-center gap-3 mb-1">
+ <h1 className="text-2xl md:text-3xl font-bold  break-words" style={{ color: 'var(--color-text)' }}>
+ {user.name}
+ </h1>
+ {user.isPublic ? (
+ <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-xs rounded-full whitespace-nowrap border border-emerald-200">
+ Публичный
+ </span>
+ ) : (
+ <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full whitespace-nowrap border border-slate-200">
+ Приватный
+ </span>
+ )}
+ </div>
+ <p className="text-blue-600 font-mono break-all">@{user.username}</p>
+ {user.bio && <p className="text-slate-600 mt-2 break-words">{user.bio}</p>}
+ </div>
+ </div>
+
+ <div className="flex flex-wrap gap-3">
+ <button
+ onClick={copyProfileLink}
+ className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl transition-colors flex items-center gap-2 shadow-sm"
+ >
+ <svg
+ xmlns="http://www.w3.org/2000/svg"
+ fill="none"
+ viewBox="0 0 24 24"
+ strokeWidth={2}
+ stroke="currentColor"
+ className="w-4 h-4"
+ >
+ <path
+ strokeLinecap="round"
+ strokeLinejoin="round"
+ d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.193-9.193a4.5 4.5 0 00-6.364 0l-4.5 4.5a4.5 4.5 0 001.242 7.244"
+ />
+ </svg>
+ Поделиться
+ </button>
+ <button
+ onClick={() => setIsEditing(true)}
+ className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-lg shadow-blue-600/25"
+ >
+ Редактировать
+ </button>
+ </div>
+ </div>
+
+ <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+ <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center group hover:shadow-lg transition-all">
+ <p className="text-3xl font-bold text-blue-600 group-hover:scale-110 transition-transform">
+ {stats?.totalTests || 0}
+ </p>
+ <p className="text-sm text-slate-600">Тестов пройдено</p>
+ </div>
+ <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 text-center group hover:shadow-lg transition-all">
+ <p className="text-3xl font-bold text-violet-600 group-hover:scale-110 transition-transform">
+ {stats?.averageScore || 0}%
+ </p>
+ <p className="text-sm text-slate-600">Средний балл</p>
+ </div>
+ <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center group hover:shadow-lg transition-all">
+ <p className="text-3xl font-bold text-emerald-600 group-hover:scale-110 transition-transform">
+ {stats?.bestScore || 0}%
+ </p>
+ <p className="text-sm text-slate-600">Лучший результат</p>
+ </div>
+ <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center group hover:shadow-lg transition-all">
+ <p className="text-3xl font-bold text-amber-600 group-hover:scale-110 transition-transform">
+ {unlockedAchievements.length}
+ </p>
+ <p className="text-sm text-slate-600">Достижений</p>
+ </div>
+ </div>
+
+ <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+ <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-center">
+ <div className="flex items-center justify-center gap-2 mb-1">
+ <span className="text-2xl">🔥</span>
+ <p className="text-2xl font-bold text-orange-600">{stats?.currentStreak || 0}</p>
+ </div>
+ <p className="text-xs text-slate-600">Дней подряд</p>
+ </div>
+ <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+ <div className="flex items-center justify-center gap-2 mb-1">
+ <span className="text-2xl">⏱️</span>
+ <p className="text-2xl font-bold text-blue-600">
+ {Math.round((stats?.totalTimeSpent || 0) / 60) || 0}
+ </p>
+ </div>
+ <p className="text-xs text-slate-600">Минут занятий</p>
+ </div>
+ <div className="bg-pink-50 border border-pink-200 rounded-xl p-4 text-center">
+ <div className="flex items-center justify-center gap-2 mb-1">
+ <span className="text-2xl">📈</span>
+ <p className="text-2xl font-bold text-pink-600">+{stats?.weeklyProgress || 0}%</p>
+ </div>
+ <p className="text-xs text-slate-600">Прогресс</p>
+ </div>
+ <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+ <div className="flex items-center justify-center gap-2 mb-1">
+ <span className="text-2xl">⭐</span>
+ <p className="text-xl font-bold text-emerald-600">
+ {stats?.favoriteSubject ? getSubjectLabel(stats.favoriteSubject) : 'Нет данных'}
+ </p>
+ </div>
+ <p className="text-xs text-slate-600">Любимый предмет</p>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ {stats?.dailyActivity && stats.dailyActivity.length > 0 && (
+ <div className=" border border-slate-200 shadow-lg rounded-2xl p-4 mb-8" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+ <div className="flex items-center justify-between mb-4">
+ <h2 className="text-base font-semibold  flex items-center" style={{ color: 'var(--color-text)' }}>
+ <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mr-2 animate-pulse" />
+ Активность за 4 недели
+ </h2>
+ <div className="flex items-center gap-1 text-xs text-slate-500">
+ <span>Меньше</span>
+ {[0, 1, 2, 3, 4].map(i => (
+ <div
+ key={i}
+ className={`w-2 h-2 rounded ${['bg-slate-100', 'bg-cyan-200', 'bg-cyan-400', 'bg-cyan-500', 'bg-cyan-600'][i]}`}
+ />
+ ))}
+ <span>Больше</span>
+ </div>
+ </div>
+ <div className="flex flex-wrap gap-1.5">
+ {stats.dailyActivity.slice(-28).map((day, index) => {
+ const intensity = day.count === 0 ? 0 : Math.min(Math.ceil(day.count / 2), 4);
+ const colors = [
+ 'bg-slate-100',
+ 'bg-cyan-200',
+ 'bg-cyan-400',
+ 'bg-cyan-500',
+ 'bg-cyan-600',
+ ];
+ return (
+ <div
+ key={index}
+ className={`w-8 h-8 rounded-lg ${colors[intensity]} hover:scale-110 transition-all cursor-pointer group relative`}
+ >
+ <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block  shadow-lg text-slate-900 text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 border border-slate-200" style={{ backgroundColor: 'var(--color-surface)' }}>
+ <div className="font-bold">
+ {new Date(day.date).toLocaleDateString('ru-RU', {
+ day: 'numeric',
+ month: 'short',
+ })}
+ </div>
+ <div className="text-slate-600">{day.count} тестов</div>
+ {day.avgScore > 0 && (
+ <div
+ className={`${day.avgScore >= 70 ? 'text-green-600' : 'text-yellow-600'}`}
+ >
+ {day.avgScore.toFixed(0)}% средний балл
+ </div>
+ )}
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ </div>
+ )}
+
+ {stats?.recentAttempts && stats.recentAttempts.length > 0 && (
+ <div className=" border border-slate-200 shadow-lg rounded-2xl p-6 mb-8" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+ <h2 className="text-xl font-semibold  mb-6 flex items-center" style={{ color: 'var(--color-text)' }}>
+ <span className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse" />
+ Прогресс по тестам
+ </h2>
+ <div className="h-64">
+ <ResponsiveContainer width="100%" height="100%">
+ <AreaChart
+ data={stats.recentAttempts
+ .slice()
+ .reverse()
+ .map((a) => ({
+ name: new Date(a.completedAt).toLocaleDateString('ru-RU', {
+ day: 'numeric',
+ month: 'short',
+ }),
+ score: a.score,
+ subject: getSubjectLabel(a.subject),
+ }))}
+ margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+ >
+ <defs>
+ <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+ <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4} />
+ <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+ </linearGradient>
+ </defs>
+ <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+ <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#64748b', fontSize: 12 }} />
+ <YAxis
+ stroke="#94a3b8"
+ tick={{ fill: '#64748b', fontSize: 12 }}
+ domain={[0, 100]}
+ tickFormatter={value => `${value}%`}
+ />
+ <Tooltip
+ contentStyle={{
+ backgroundColor: '#ffffff',
+ border: '1px solid #e2e8f0',
+ borderRadius: '12px',
+ padding: '12px',
+ }}
+ labelStyle={{ color: '#64748b', marginBottom: '4px' }}
+ formatter={(value, _name, props) => [
+ `${value ?? 0}%`,
+ props.payload?.subject ?? '',
+ ]}
+ />
+ <Area
+ type="monotone"
+ dataKey="score"
+ stroke="#06b6d4"
+ strokeWidth={2}
+ fillOpacity={1}
+ fill="url(#colorScore)"
+ />
+ </AreaChart>
+ </ResponsiveContainer>
+ </div>
+ </div>
+ )}
+
+ {/* Аналитика */}
+ <div className="mb-8 space-y-8">
+ {/* Тепловая карта времени дня */}
+ <div className=" border border-slate-200 shadow-lg rounded-2xl p-6" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+ <h2 className="text-xl font-semibold  mb-6 flex items-center" style={{ color: 'var(--color-text)' }}>
+ <span
+ className="w-2 h-2 bg-amber-400 rounded-full mr-3 animate-pulse"
+ style={{ animationDelay: '0.7s' }}
+ />
+ 🕒 Тепловая карта активности
+ </h2>
+ <p className="text-slate-600 text-sm mb-6">Ваши лучшие результаты по времени суток</p>
+
+ <div className="grid grid-cols-12 gap-2">
+ {Array.from({ length: 24 }, (_, hour) => {
+ const hourData = stats?.timeHeatmap?.find(h => h.hour === hour) || {
+ hour,
+ avgScore: 0,
+ testCount: 0,
+ };
+
+ const intensity =
+ hourData.testCount === 0
+ ? 0
+ : hourData.avgScore < 60
+ ? 1
+ : hourData.avgScore < 70
+ ? 2
+ : hourData.avgScore < 80
+ ? 3
+ : 4;
+
+ const colors = [
+ 'bg-slate-100',
+ 'bg-red-200',
+ 'bg-yellow-300',
+ 'bg-green-300',
+ 'bg-green-400',
+ ];
+
+ return (
+ <div key={hour} className="text-center">
+ <div
+ className={`aspect-square rounded-lg ${colors[intensity]} hover:scale-110 transition-all cursor-pointer group relative flex items-center justify-center`}
+ title={`${hour}:00 - ${hourData.testCount} тестов, ${hourData.avgScore.toFixed(0)}%`}
+ >
+ <span className="text-xs text-slate-600 font-mono">{hour}</span>
+ <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block  shadow-lg text-slate-900 text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 border border-slate-200" style={{ backgroundColor: 'var(--color-surface)' }}>
+ <div className="font-bold">
+ {hour}:00 - {hour + 1}:00
+ </div>
+ <div className="text-slate-600">{hourData.testCount} тестов</div>
+ <div
+ className={`${hourData.avgScore >= 70 ? 'text-green-600' : 'text-yellow-600'}`}
+ >
+ {hourData.avgScore.toFixed(0)}% средний балл
+ </div>
+ </div>
+ </div>
+ </div>
+ );
+ })}
+ </div>
+
+ <div className="flex items-center justify-between mt-6 text-xs text-slate-600">
+ <span>Низкие результаты</span>
+ <div className="flex gap-1" role="img" aria-label="Шкала результатов от низких до высоких">
+ {(['Нет данных', 'Низкий (< 60%)', 'Средний (60–70%)', 'Хороший (70–80%)', 'Отличный (> 80%)'] as const).map((label, i) => (
+ <div
+ key={i}
+ aria-label={label}
+ title={label}
+ className={`w-5 h-5 rounded ${['bg-slate-100', 'bg-red-200', 'bg-yellow-300', 'bg-green-300', 'bg-green-400'][i]}`}
+ />
+ ))}
+ </div>
+ <span>Высокие результаты</span>
+ </div>
+
+ {stats?.timeHeatmap &&
+ stats.timeHeatmap.length > 0 &&
+ (() => {
+ const firstHour = stats.timeHeatmap[0];
+ if (!firstHour) return null;
+
+ const bestHour = stats.timeHeatmap.reduce(
+ (best, curr) => (curr.avgScore > best.avgScore ? curr : best),
+ firstHour
+ );
+
+ return bestHour && bestHour.testCount > 0 ? (
+ <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+ <div className="flex items-start gap-3">
+ <span className="text-2xl">💡</span>
+ <div>
+ <p className="text-blue-600 font-semibold mb-1">Совет:</p>
+ <p className="text-slate-700 text-sm">
+ Ваши лучшие результаты показаны в {bestHour.hour}:00-{bestHour.hour + 1}
+ :00 ({bestHour.avgScore.toFixed(0)}%). Старайтесь заниматься в это время
+ для максимальной эффективности!
+ </p>
+ </div>
+ </div>
+ </div>
+ ) : null;
+ })()}
+ </div>
+
+ {/* Сравнение со средним */}
+ <div className=" border border-slate-200 shadow-lg rounded-2xl p-6" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+ <h2 className="text-xl font-semibold  mb-6 flex items-center" style={{ color: 'var(--color-text)' }}>
+ <span
+ className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse"
+ style={{ animationDelay: '0.9s' }}
+ />
+ 📊 Сравнение с другими пользователями
+ </h2>
+
+ <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+ <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+ <div className="text-3xl font-bold text-blue-600 mb-1">
+ #{stats?.userRank || '—'}
+ </div>
+ <div className="text-slate-600 text-xs">Ваше место</div>
+ </div>
+ <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 text-center">
+ <div className="text-3xl font-bold text-violet-600 mb-1">
+ {stats?.percentile || 0}%
+ </div>
+ <div className="text-slate-600 text-xs">Перцентиль</div>
+ </div>
+ <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+ <div className="text-3xl font-bold text-emerald-600 mb-1">
+ {stats?.usersBeaten || 0}
+ </div>
+ <div className="text-slate-600 text-xs">Обогнали из {stats?.totalUsers || 0}</div>
+ </div>
+ </div>
+
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+ <div className="space-y-4">
+ <div>
+ <div className="flex items-center justify-between mb-2">
+ <span className="text-slate-600 text-sm">Ваш средний балл</span>
+ <span className="text-2xl font-bold text-blue-600">
+ {stats?.averageScore || 0}%
+ </span>
+ </div>
+ <div
+ role="progressbar"
+ aria-valuenow={stats?.averageScore || 0}
+ aria-valuemin={0}
+ aria-valuemax={100}
+ aria-label={`Ваш средний балл: ${stats?.averageScore || 0}%`}
+ className="h-3 bg-slate-200 rounded-full overflow-hidden"
+ >
+ <div
+ className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-1000"
+ style={{ width: `${stats?.averageScore || 0}%` }}
+ />
+ </div>
+ </div>
+
+ <div>
+ <div className="flex items-center justify-between mb-2">
+ <span className="text-slate-600 text-sm">Средний балл платформы</span>
+ <span className="text-2xl font-bold text-slate-500">
+ {stats?.platformAverage || 0}%
+ </span>
+ </div>
+ <div
+ role="progressbar"
+ aria-valuenow={stats?.platformAverage || 0}
+ aria-valuemin={0}
+ aria-valuemax={100}
+ aria-label={`Средний балл платформы: ${stats?.platformAverage || 0}%`}
+ className="h-3 bg-slate-200 rounded-full overflow-hidden"
+ >
+ <div
+ className="h-full bg-gradient-to-r from-slate-400 to-slate-300 rounded-full"
+ style={{ width: `${stats?.platformAverage || 0}%` }}
+ />
+ </div>
+ </div>
+ </div>
+
+ <div className="flex items-center justify-center">
+ <div className="relative w-40 h-40">
+ <svg className="w-full h-full transform -rotate-90">
+ <circle cx="80" cy="80" r="70" stroke="#e2e8f0" strokeWidth="12" fill="none" />
+ <circle
+ cx="80"
+ cy="80"
+ r="70"
+ stroke="url(#percentileGradient)"
+ strokeWidth="12"
+ fill="none"
+ strokeDasharray={`${((stats?.percentile || 0) / 100) * 439.8} 439.8`}
+ strokeLinecap="round"
+ className="transition-all duration-1000"
+ />
+ <defs>
+ <linearGradient id="percentileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+ <stop offset="0%" stopColor="#a855f7" />
+ <stop offset="100%" stopColor="#ec4899" />
+ </linearGradient>
+ </defs>
+ </svg>
+ <div className="absolute inset-0 flex flex-col items-center justify-center">
+ <span className="text-3xl font-bold text-slate-900">
+ топ {100 - (stats?.percentile || 0)}%
+ </span>
+ <span className="text-slate-600 text-xs">пользователей</span>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ {(stats?.totalUsers ?? 0) <= 1 ? (
+ <div className="mt-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
+ <div className="flex items-start gap-3">
+ <span className="text-2xl">🚀</span>
+ <div>
+ <p className="text-indigo-600 font-semibold mb-1">Вы пока первый!</p>
+ <p className="text-slate-700 text-sm">
+ Пригласите друзей на платформу, чтобы сравнить свои результаты и
+ соревноваться!
+ </p>
+ </div>
+ </div>
+ </div>
+ ) : (stats?.percentile || 0) >= 70 ? (
+ <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+ <div className="flex items-start gap-3">
+ <span className="text-2xl">🏆</span>
+ <div>
+ <p className="text-emerald-600 font-semibold mb-1">Вы в топе!</p>
+ <p className="text-slate-700 text-sm">
+ Вы входите в топ {100 - (stats?.percentile || 0)}% пользователей платформы.
+ Обогнали {stats?.usersBeaten || 0} из {stats?.totalUsers || 0} учеников!
+ </p>
+ </div>
+ </div>
+ </div>
+ ) : (stats?.percentile || 0) >= 40 ? (
+ <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+ <div className="flex items-start gap-3">
+ <span className="text-2xl">📈</span>
+ <div>
+ <p className="text-blue-600 font-semibold mb-1">Хороший результат!</p>
+ <p className="text-slate-700 text-sm">
+ Вы показываете результаты выше среднего. Ещё немного усилий, и вы войдёте в
+ топ!
+ </p>
+ </div>
+ </div>
+ </div>
+ ) : (
+ <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+ <div className="flex items-start gap-3">
+ <span className="text-2xl">💪</span>
+ <div>
+ <p className="text-amber-600 font-semibold mb-1">Время для рывка!</p>
+ <p className="text-slate-700 text-sm">
+ Регулярные занятия помогут вам подняться выше. Сфокусируйтесь на слабых темах!
+ </p>
+ </div>
+ </div>
+ </div>
+ )}
+ </div>
+
+ <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+ {/* Предсказание баллов */}
+ <div className=" border border-slate-200 shadow-lg rounded-2xl p-6" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+ <h2 className="text-xl font-semibold  mb-6 flex items-center" style={{ color: 'var(--color-text)' }}>
+ <span
+ className="w-2 h-2 bg-pink-400 rounded-full mr-3 animate-pulse"
+ style={{ animationDelay: '1.1s' }}
+ />
+ 🤖 ИИ прогноз результата
+ </h2>
+
+ <div className="text-center mb-6">
+ <div className="inline-block p-6 bg-pink-50 rounded-2xl border border-pink-200">
+ <div className="text-5xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-2">
+ {stats?.predictedScore || 78}%
+ </div>
+ <p className="text-slate-600 text-sm">Прогноз на экзамен</p>
+ </div>
+ </div>
+
+ <div className="space-y-3 mb-6">
+ <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+ <span className="text-slate-600 text-sm">Текущий средний балл</span>
+ <span className="text-slate-900 font-semibold">{stats?.averageScore || 0}%</span>
+ </div>
+ <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+ <span className="text-slate-600 text-sm">Динамика за неделю</span>
+ <span
+ className={`font-semibold ${(stats?.weeklyProgress || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}
+ >
+ {(stats?.weeklyProgress || 0) >= 0 ? '+' : ''}
+ {stats?.weeklyProgress || 0}%
+ </span>
+ </div>
+ <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+ <span className="text-slate-600 text-sm">Уверенность прогноза</span>
+ <span className="text-blue-600 font-semibold">
+ {stats?.predictionConfidence || 0}%
+ </span>
+ </div>
+ </div>
+
+ {stats?.predictionFactors && stats.predictionFactors.length > 0 && (
+ <div className="flex flex-wrap gap-2 mb-4">
+ {stats.predictionFactors.map((factor, i) => (
+ <span
+ key={i}
+ className="px-3 py-1 bg-pink-50 border border-pink-200 rounded-full text-pink-600 text-xs"
+ >
+ {factor}
+ </span>
+ ))}
+ </div>
+ )}
+
+ <div className="p-4 bg-violet-50 border border-violet-200 rounded-xl">
+ <div className="flex items-start gap-3">
+ <span className="text-2xl">✨</span>
+ <div>
+ <p className="text-violet-600 font-semibold mb-1">Анализ ИИ</p>
+ <p className="text-slate-700 text-sm">
+ {(stats?.totalTests || 0) < 3
+ ? 'Пройдите ещё несколько тестов для точного прогноза. Минимум 3 теста для анализа.'
+ : `Прогноз основан на ${stats?.totalTests} тестов. При текущей динамике вы можете улучшить результат до ${Math.min(100, (stats?.predictedScore || 0) + 5).toFixed(0)}%!`}
+ </p>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ {/* Слабые места */}
+ <div className=" border border-slate-200 shadow-lg rounded-2xl p-6" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+ <h2 className="text-xl font-semibold  mb-6 flex items-center" style={{ color: 'var(--color-text)' }}>
+ <span
+ className="w-2 h-2 bg-red-400 rounded-full mr-3 animate-pulse"
+ style={{ animationDelay: '1.3s' }}
+ />
+ 🎯 Темы для улучшения
+ </h2>
+
+ <div className="space-y-3 mb-6">
+ {stats?.weakTopics && stats.weakTopics.length > 0 ? (
+ stats.weakTopics.slice(0, 5).map((topic, index) => (
+ <div
+ key={index}
+ className="p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all"
+ >
+ <div className="flex items-start justify-between mb-2">
+ <div className="flex-1">
+ <h3 className=" font-semibold" style={{ color: 'var(--color-text)' }}>{topic.topic}</h3>
+ <p className="text-slate-600 text-xs">
+ {getSubjectLabel(topic.subject)} • {topic.totalAttempts} попыток
+ </p>
+ </div>
+ <div className="text-right">
+ <div
+ className={`text-2xl font-bold ${
+ topic.avgScore < 50
+ ? 'text-red-600'
+ : topic.avgScore < 60
+ ? 'text-orange-600'
+ : topic.avgScore < 70
+ ? 'text-yellow-600'
+ : 'text-green-600'
+ }`}
+ >
+ {topic.avgScore}%
+ </div>
+ <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+ topic.avgScore < 50
+ ? 'bg-red-100 text-red-600'
+ : topic.avgScore < 60
+ ? 'bg-orange-100 text-orange-600'
+ : topic.avgScore < 70
+ ? 'bg-yellow-100 text-yellow-700'
+ : 'bg-green-100 text-green-700'
+ }`}>
+ {topic.avgScore < 50 ? 'Слабо' : topic.avgScore < 60 ? 'Ниже среднего' : topic.avgScore < 70 ? 'Средне' : 'Хорошо'}
+ </span>
+ </div>
+ </div>
+ <div
+ role="progressbar"
+ aria-valuenow={topic.avgScore}
+ aria-valuemin={0}
+ aria-valuemax={100}
+ aria-label={`Точность по теме «${topic.topic}»: ${topic.avgScore}%`}
+ className="h-2 bg-slate-200 rounded-full overflow-hidden"
+ >
+ <div
+ className={`h-full rounded-full transition-all duration-500 ${
+ topic.avgScore < 50
+ ? 'bg-gradient-to-r from-red-600 to-red-500'
+ : topic.avgScore < 60
+ ? 'bg-gradient-to-r from-orange-600 to-orange-500'
+ : topic.avgScore < 70
+ ? 'bg-gradient-to-r from-yellow-600 to-yellow-500'
+ : 'bg-gradient-to-r from-green-600 to-green-500'
+ }`}
+ style={{ width: `${topic.avgScore}%` }}
+ />
+ </div>
+ </div>
+ ))
+ ) : (
+ <div className="text-center py-8 text-slate-500">
+ <div className="text-4xl mb-2">🎯</div>
+ <p>Пройдите несколько тестов, чтобы мы смогли определить темы для улучшения</p>
+ </div>
+ )}
+ </div>
+
+ {stats?.weakTopics && stats.weakTopics.length > 0 && (
+ <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl">
+ <div className="flex items-start gap-3">
+ <span className="text-2xl">📚</span>
+ <div>
+ <p className="text-orange-600 font-semibold mb-1">Рекомендация</p>
+ <p className="text-slate-700 text-sm">
+ Уделите больше внимания этим темам. Решение дополнительных 5-10 задач может
+ повысить ваш балл на 10-15%!
+ </p>
+ </div>
+ </div>
+ </div>
+ )}
+ </div>
+ </div>
+ </div>
+
+ {/* Activity heatmap */}
+ <div className="border border-slate-200 shadow-lg rounded-2xl p-6" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+ <h2 className="text-xl font-semibold mb-6 flex items-center" style={{ color: 'var(--color-text)' }}>
+ <span className="w-2 h-2 bg-violet-400 rounded-full mr-3 animate-pulse" style={{ animationDelay: '1.2s' }} />
+ Активность за год
+ </h2>
+ <ActivityHeatmap data={activityHeatmap} />
+ </div>
+
+ <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+ <div className="lg:col-span-1">
+ <div className=" border border-slate-200 shadow-lg rounded-2xl p-6" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+ <h2 className="text-xl font-semibold  mb-4" style={{ color: 'var(--color-text)' }}>Информация</h2>
+
+ <div className="space-y-4">
+ <div>
+ <p className="text-sm text-slate-500">Статус</p>
+ <p className="text-slate-900">{USER_STATUS_LABELS[user.status]}</p>
+ </div>
+ <div>
+ <p className="text-sm text-slate-500">Класс</p>
+ <p className="text-slate-900">{CURRENT_GRADE_LABELS[user.currentGrade]}</p>
+ </div>
+ {user.desiredDirection && (
+ <div>
+ <p className="text-sm text-slate-500">Направление</p>
+ <p className="text-blue-600">
+ {DIRECTION_LABELS[user.desiredDirection as keyof typeof DIRECTION_LABELS]}
+ </p>
+ </div>
+ )}
+ <div>
+ <p className="text-sm text-slate-500">На платформе с</p>
+ <p className="text-slate-900">
+ {new Date(user.createdAt).toLocaleDateString('ru-RU', {
+ year: 'numeric',
+ month: 'long',
+ })}
+ </p>
+ </div>
+ </div>
+
+ <div className="mt-6 pt-6 border-t border-slate-200">
+ <Link
+ to={`/profiles/${user.username}`}
+ className="text-blue-600 hover:text-blue-500 text-sm flex items-center gap-2"
+ >
+ <svg
+ xmlns="http://www.w3.org/2000/svg"
+ fill="none"
+ viewBox="0 0 24 24"
+ strokeWidth={2}
+ stroke="currentColor"
+ className="w-4 h-4"
+ >
+ <path
+ strokeLinecap="round"
+ strokeLinejoin="round"
+ d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+ />
+ <path
+ strokeLinecap="round"
+ strokeLinejoin="round"
+ d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+ />
+ </svg>
+ Посмотреть публичный профиль
+ </Link>
+ </div>
+ </div>
+ </div>
+
+ <div className="lg:col-span-2">
+ <div className=" border border-slate-200 shadow-lg rounded-2xl p-6" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+ <div className="flex items-center justify-between mb-6">
+ <h2 className="text-xl font-semibold " style={{ color: 'var(--color-text)' }}>Достижения</h2>
+ <span className="text-sm text-slate-600">
+ {unlockedAchievements.length} из {achievements.length}
+ </span>
+ </div>
+
+ {unlockedAchievements.length > 0 ? (
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ {unlockedAchievements.slice(0, 6).map(achievement => (
+ <AchievementCard
+ key={achievement.id}
+ achievement={achievement}
+ isUnlocked={true}
+ unlockedAt={achievement.unlockedAt}
+ />
+ ))}
+ </div>
+ ) : (
+ <p className="text-center text-slate-500 py-8">
+ Пока нет разблокированных достижений
+ </p>
+ )}
+
+ {achievements.length > 6 && (
+ <button className="w-full mt-4 py-3 text-blue-600 hover:text-blue-500 transition-colors">
+ Показать все достижения
+ </button>
+ )}
+ </div>
+ </div>
+ </div>
+ </div>
+
+ {showAvatarPicker && (
+ <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="avatar-picker-title">
+ <div className=" rounded-2xl p-6 max-w-lg w-full border border-slate-200 shadow-xl" style={{ backgroundColor: 'var(--color-surface)' }}>
+ <h3 id="avatar-picker-title" className="text-xl font-semibold text-slate-900 mb-4">Выберите аватар</h3>
+
+ <div className="mb-6">
+ <label className="block w-full" htmlFor="avatar-upload">
+ <input
+ type="file"
+ accept="image/*"
+ onChange={(e) => { void handleCustomAvatarUpload(e); }}
+ disabled={uploadingAvatar}
+ className="hidden"
+ id="avatar-upload"
+ />
+ <div
+ role="button"
+ tabIndex={0}
+ onClick={() => document.getElementById('avatar-upload')?.click()}
+ onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('avatar-upload')?.click(); } }}
+ className="w-full py-4 border-2 border-dashed border-blue-400 rounded-xl hover:border-blue-500 transition-all cursor-pointer bg-blue-50 hover:bg-blue-100"
+ >
+ <div className="text-center">
+ {uploadingAvatar ? (
+ <div className="flex items-center justify-center gap-2 text-blue-600">
+ <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+ <span>Загрузка...</span>
+ </div>
+ ) : (
+ <>
+ <svg
+ xmlns="http://www.w3.org/2000/svg"
+ fill="none"
+ viewBox="0 0 24 24"
+ strokeWidth={2}
+ stroke="currentColor"
+ className="w-8 h-8 mx-auto mb-2 text-blue-600"
+ >
+ <path
+ strokeLinecap="round"
+ strokeLinejoin="round"
+ d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+ />
+ </svg>
+ <p className="text-blue-600 font-medium">Загрузить свое фото</p>
+ <p className="text-slate-500 text-sm mt-1">PNG, JPG до 5MB</p>
+ </>
+ )}
+ </div>
+ </div>
+ </label>
+ </div>
+
+ <div className="border-t border-slate-200 pt-4 mb-4">
+ <p className="text-slate-600 text-sm mb-3">Или выберите готовый аватар:</p>
+ </div>
+
+ <div className="grid grid-cols-4 gap-3 mb-6">
+ {AVATAR_OPTIONS.map((avatar, i) => (
+ <button
+ key={i}
+ onClick={() => { void handleAvatarChange(avatar); }}
+ className={`aspect-square rounded-xl overflow-hidden border-2 transition-all hover:scale-105 ${
+ user.avatar === avatar ? 'border-blue-500' : 'border-transparent'
+ }`}
+ >
+ <img src={avatar} alt={`Avatar ${i + 1}`} className="w-full h-full" />
+ </button>
+ ))}
+ </div>
+ <button
+ onClick={() => setShowAvatarPicker(false)}
+ className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors"
+ >
+ Отмена
+ </button>
+ </div>
+ </div>
+ )}
+
+ {isEditing && (
+ <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="edit-profile-title">
+ <div className=" rounded-2xl p-6 max-w-md w-full border border-slate-200 shadow-xl" style={{ backgroundColor: 'var(--color-surface)' }}>
+ <h3 id="edit-profile-title" className="text-xl font-semibold text-slate-900 mb-6">Редактировать профиль</h3>
+
+ <div className="space-y-4">
+ <div>
+ <label htmlFor="edit-name" className="block text-sm text-slate-600 mb-2">Имя</label>
+ <input
+ id="edit-name"
+ type="text"
+ value={editForm.name}
+ onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+ className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-blue-500 focus:outline-none"
+ />
+ </div>
+
+ <div>
+ <label htmlFor="edit-bio" className="block text-sm text-slate-600 mb-2">О себе</label>
+ <textarea
+ id="edit-bio"
+ value={editForm.bio}
+ onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
+ rows={3}
+ placeholder="Расскажите о себе..."
+ className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-blue-500 focus:outline-none resize-none"
+ />
+ </div>
+
+ <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+ <div>
+ <p className="text-slate-900 font-medium">Публичный профиль</p>
+ <p className="text-sm text-slate-600">Другие смогут видеть ваш профиль</p>
+ </div>
+ <button
+ onClick={() => setEditForm({ ...editForm, isPublic: !editForm.isPublic })}
+ className={`w-12 h-6 rounded-full transition-colors ${
+ editForm.isPublic ? 'bg-blue-500' : 'bg-slate-300'
+ }`}
+ >
+ <div
+ className={`w-5 h-5 bg-white rounded-full transition-transform ${
+ editForm.isPublic ? 'translate-x-6' : 'translate-x-0.5'
+ }`}
+ />
+ </button>
+ </div>
+ </div>
+
+ <div className="flex gap-3 mt-6">
+ <button
+ onClick={() => setIsEditing(false)}
+ className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors"
+ >
+ Отмена
+ </button>
+ <button
+ onClick={() => { void handleSave(); }}
+ className="flex-1 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
+ >
+ Сохранить
+ </button>
+ </div>
+ </div>
+ </div>
+ )}
+ </div>
+ );
 }

@@ -1,21 +1,15 @@
-import { PrismaClient } from '@prisma/client';
+import prisma, { disconnectDatabase } from '../src/config/database';
 
 import { seedAchievements } from './seeds/achievements';
 import { seedAdminUser } from './seeds/adminUser';
-import { seedDiagnosticTests } from './seeds/diagnosticTests';
-import { seedRegularTests } from './seeds/regularTests';
 import { seedTestUser } from './seeds/testUser';
 import { seedAdminUser } from './seeds/adminUser';
-
-const prisma = new PrismaClient();
 
 async function main() {
   console.log('Starting database seeding...\n');
 
   try {
     await seedAchievements();
-    await seedDiagnosticTests();
-    await seedRegularTests();
     await seedTestUser();
     await seedAdminUser();
 
@@ -26,11 +20,13 @@ async function main() {
   }
 }
 
+void prisma;
+
 main()
   .catch(e => {
     console.error(e);
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await disconnectDatabase();
   });

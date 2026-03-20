@@ -24,8 +24,7 @@ export class StorageService implements IStorageService {
       localStorage.setItem(testKey, testKey);
       localStorage.removeItem(testKey);
       return true;
-    } catch (e) {
-      console.warn('localStorage недоступен:', e);
+    } catch {
       return false;
     }
   }
@@ -34,9 +33,8 @@ export class StorageService implements IStorageService {
     return `${this.prefix}${key}`;
   }
 
-  public save<T>(key: string, value: T): void {
+  public save<T>(key: string, value: T, _retried = false): void {
     if (!this.isAvailable) {
-      console.warn('Storage недоступен');
       return;
     }
 
@@ -48,10 +46,9 @@ export class StorageService implements IStorageService {
       });
       localStorage.setItem(this.getKey(key), serialized);
     } catch (error) {
-      console.error('Ошибка сохранения:', error);
-      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      if (!_retried && error instanceof DOMException && error.name === 'QuotaExceededError') {
         this.clearOldData();
-        this.save(key, value);
+        this.save(key, value, true);
       }
     }
   }
@@ -67,8 +64,7 @@ export class StorageService implements IStorageService {
 
       const parsed = JSON.parse(raw);
       return parsed.data as T;
-    } catch (error) {
-      console.error('Ошибка загрузки:', error);
+    } catch {
       return null;
     }
   }
@@ -87,8 +83,7 @@ export class StorageService implements IStorageService {
         data: parsed.data as T,
         timestamp: parsed.timestamp,
       };
-    } catch (error) {
-      console.error('Ошибка загрузки:', error);
+    } catch {
       return null;
     }
   }
@@ -184,15 +179,12 @@ export interface SavedTestSession {
 export class TestSessionStorage {
   private storage: StorageService;
   private autoSaveInterval: ReturnType<typeof setInterval> | null = null;
-  private readonly AUTO_SAVE_INTERVAL = 5000; // 5 секунд
+  private readonly AUTO_SAVE_INTERVAL = 5000;
 
   constructor() {
     this.storage = StorageService.getInstance();
   }
 
-  /**
-   * Сохранить полную сессию теста
-   */
   public saveSession(sessionData: string, metadata?: Partial<SavedTestSession>): void {
     const savedSession: SavedTestSession = {
       sessionData,
@@ -205,20 +197,14 @@ export class TestSessionStorage {
       route: metadata?.route || window.location.pathname,
     };
     this.storage.save(STORAGE_KEYS.TEST_SESSION, savedSession);
-    console.log('[TestSessionStorage] Сессия сохранена', new Date().toLocaleTimeString());
   }
 
-  /**
-   * Загрузить сохранённую сессию
-   */
   public loadSession(): SavedTestSession | null {
     const data = this.storage.load<SavedTestSession>(STORAGE_KEYS.TEST_SESSION);
     if (!data) return null;
 
-    // Проверяем что сессия не старше 24 часов
     const maxAge = 24 * 60 * 60 * 1000;
     if (Date.now() - data.savedAt > maxAge) {
-      console.log('[TestSessionStorage] Сессия устарела, удаляем');
       this.clearSession();
       return null;
     }
@@ -226,9 +212,6 @@ export class TestSessionStorage {
     return data;
   }
 
-  /**
-   * Загрузить только данные сериализованной сессии
-   */
   public loadSessionData(): string | null {
     const session = this.loadSession();
     return session?.sessionData || null;
@@ -238,16 +221,12 @@ export class TestSessionStorage {
     this.storage.remove(STORAGE_KEYS.TEST_SESSION);
     this.storage.remove(STORAGE_KEYS.ANSWERS_BACKUP);
     this.stopAutoSave();
-    console.log('[TestSessionStorage] Сессия очищена');
   }
 
   public hasSession(): boolean {
     return this.loadSession() !== null;
   }
 
-  /**
-   * Бэкап ответов (дополнительная защита)
-   */
   public backupAnswers(answers: Map<number, unknown>): void {
     this.storage.save(STORAGE_KEYS.ANSWERS_BACKUP, {
       answers: Array.from(answers.entries()),
@@ -255,9 +234,6 @@ export class TestSessionStorage {
     });
   }
 
-  /**
-   * Восстановить ответы из бэкапа
-   */
   public restoreAnswers(): Map<number, unknown> | null {
     const data = this.storage.load<{ answers: [number, unknown][]; savedAt: number }>(
       STORAGE_KEYS.ANSWERS_BACKUP
@@ -266,31 +242,20 @@ export class TestSessionStorage {
     return new Map(data.answers);
   }
 
-  /**
-   * Запустить автосохранение
-   */
   public startAutoSave(saveCallback: () => void): void {
     this.stopAutoSave();
     this.autoSaveInterval = setInterval(() => {
       saveCallback();
     }, this.AUTO_SAVE_INTERVAL);
-    console.log('[TestSessionStorage] Автосохранение запущено');
   }
 
-  /**
-   * Остановить автосохранение
-   */
   public stopAutoSave(): void {
     if (this.autoSaveInterval) {
       clearInterval(this.autoSaveInterval);
       this.autoSaveInterval = null;
-      console.log('[TestSessionStorage] Автосохранение остановлено');
     }
   }
 
-  /**
-   * Получить информацию о сохранённой сессии
-   */
   public getSessionInfo(): { exists: boolean; savedAt?: Date; route?: string } {
     const session = this.loadSession();
     if (!session) {

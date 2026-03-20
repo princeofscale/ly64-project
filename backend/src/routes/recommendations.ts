@@ -12,7 +12,8 @@ const router = Router();
 
 router.get('/analysis', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Не авторизован' });
 
     const cacheKey = `recommendations:analysis:${userId}`;
     const cached = cacheService.get(cacheKey);
@@ -36,7 +37,8 @@ router.get('/analysis', authenticateToken, async (req: AuthRequest, res: Respons
 
 router.get('/weaknesses', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Не авторизован' });
     const weaknesses = await recommendationService.getWeaknesses(userId);
 
     res.json({
@@ -51,8 +53,9 @@ router.get('/weaknesses', authenticateToken, async (req: AuthRequest, res: Respo
 
 router.get('/next', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
-    const limit = parseInt(req.query.limit as string) || 5;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Не авторизован' });
+    const limit = Math.min(20, Math.max(1, parseInt(req.query.limit as string) || 5));
 
     const recommendations = await recommendationService.getRecommendations(userId, limit);
 
@@ -68,7 +71,8 @@ router.get('/next', authenticateToken, async (req: AuthRequest, res: Response) =
 
 router.get('/tests', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Не авторизован' });
     const result = await recommendationService.getRecommendedTests(userId);
 
     res.json({
@@ -83,7 +87,8 @@ router.get('/tests', authenticateToken, async (req: AuthRequest, res: Response) 
 
 router.get('/topics', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Не авторизован' });
     const topics = await recommendationService.getTopicProgress(userId);
 
     res.json({

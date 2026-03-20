@@ -30,6 +30,8 @@ export class TimerService implements ITimerService, IObservable<TimerState> {
   public static resetInstance(): void {
     if (TimerService.instance) {
       TimerService.instance.stop();
+      TimerService.instance.tickObservers.clear();
+      TimerService.instance.completeObservers.clear();
       TimerService.instance = null;
     }
   }
@@ -84,6 +86,7 @@ export class TimerService implements ITimerService, IObservable<TimerState> {
     this.isRunning = false;
     this.isPaused = false;
     this.timeLeft = 0;
+    this.duration = 0;
 
     this.notifyTick();
   }

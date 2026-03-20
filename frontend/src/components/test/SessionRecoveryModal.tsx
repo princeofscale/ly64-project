@@ -11,10 +11,6 @@ interface SessionRecoveryModalProps {
   onDiscard: () => void;
 }
 
-/**
- * Модальное окно для восстановления сессии теста
- * Показывается когда найдена незавершённая сессия
- */
 export const SessionRecoveryModal: React.FC<SessionRecoveryModalProps> = ({
   session,
   onRestore,
@@ -37,7 +33,6 @@ export const SessionRecoveryModal: React.FC<SessionRecoveryModalProps> = ({
           exit={{ scale: 0.9, opacity: 0 }}
           className="bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-700"
         >
-          {/* Иконка */}
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center">
               <svg
@@ -56,17 +51,14 @@ export const SessionRecoveryModal: React.FC<SessionRecoveryModalProps> = ({
             </div>
           </div>
 
-          {/* Заголовок */}
           <h2 className="text-xl font-bold text-white text-center mb-2">
             Найден незавершённый тест
           </h2>
 
-          {/* Описание */}
           <p className="text-slate-400 text-center mb-4">
             У вас есть сохранённая сессия теста. Хотите продолжить с того места, где остановились?
           </p>
 
-          {/* Информация о сессии */}
           <div className="bg-slate-700/50 rounded-lg p-4 mb-6 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Предмет:</span>
@@ -82,7 +74,6 @@ export const SessionRecoveryModal: React.FC<SessionRecoveryModalProps> = ({
             </div>
           </div>
 
-          {/* Кнопки */}
           <div className="flex gap-3">
             <button
               onClick={onDiscard}
@@ -103,9 +94,6 @@ export const SessionRecoveryModal: React.FC<SessionRecoveryModalProps> = ({
   );
 };
 
-/**
- * Хук для проверки наличия сохранённой сессии
- */
 export function useSessionRecovery() {
   const [savedSession, setSavedSession] = React.useState<SavedTestSession | null>(null);
   const [showModal, setShowModal] = React.useState(false);
@@ -121,7 +109,6 @@ export function useSessionRecovery() {
 
   const handleRestore = React.useCallback(() => {
     setShowModal(false);
-    // Сессия будет восстановлена автоматически в useTestSession
   }, []);
 
   const handleDiscard = React.useCallback(() => {
@@ -139,7 +126,6 @@ export function useSessionRecovery() {
   };
 }
 
-// Вспомогательные функции
 function getTimeSince(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
 

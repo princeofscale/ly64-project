@@ -11,7 +11,8 @@ const router = Router();
 
 router.get('/streak', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Не авторизован' });
     const streak = await streakService.getStreak(userId);
 
     res.json({
@@ -26,7 +27,8 @@ router.get('/streak', authenticateToken, async (req: AuthRequest, res: Response)
 
 router.get('/daily-challenges', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Не авторизован' });
     const challenges = await streakService.getDailyChallenges(userId);
 
     res.json({
@@ -39,16 +41,29 @@ router.get('/daily-challenges', authenticateToken, async (req: AuthRequest, res:
   }
 });
 
+const ACTIVITY_POINTS: Record<string, number> = {
+  test_completed: 10,
+  high_score: 20,
+  correct_streak: 15,
+  time_spent: 5,
+  theory_viewed: 5,
+  challenge_completed: 0,
+};
+
+const VALID_ACTIVITY_TYPES = new Set(Object.keys(ACTIVITY_POINTS));
+
 router.post('/activity', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
-    const { type, points, metadata } = req.body;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Не авторизован' });
+    const { type, metadata } = req.body;
 
-    if (!type) {
-      return res.status(400).json({ success: false, message: 'Укажите тип активности' });
+    if (!type || !VALID_ACTIVITY_TYPES.has(type)) {
+      return res.status(400).json({ success: false, message: 'Некорректный тип активности' });
     }
 
-    const result = await streakService.recordActivity(userId, type, points || 0, metadata);
+    const points = ACTIVITY_POINTS[type] ?? 0;
+    const result = await streakService.recordActivity(userId, type, points, metadata);
 
     res.json({
       success: true,
@@ -62,8 +77,9 @@ router.post('/activity', authenticateToken, async (req: AuthRequest, res: Respon
 
 router.get('/stats', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
-    const days = parseInt(req.query.days as string) || 30;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Не авторизован' });
+    const days = Math.min(365, Math.max(1, parseInt(req.query.days as string) || 30));
 
     const [streak, challenges, stats] = await Promise.all([
       streakService.getStreak(userId),
@@ -87,8 +103,9 @@ router.get('/stats', authenticateToken, async (req: AuthRequest, res: Response) 
 
 router.get('/activity-history', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
-    const days = parseInt(req.query.days as string) || 30;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Не авторизован' });
+    const days = Math.min(365, Math.max(1, parseInt(req.query.days as string) || 30));
 
     const stats = await streakService.getActivityStats(userId, days);
 

@@ -12,8 +12,7 @@ interface UnfinishedTestBannerProps {
 export function UnfinishedTestBanner({ onAbandon }: UnfinishedTestBannerProps) {
   const navigate = useNavigate();
   const service = getActiveTestService();
-  const initialActiveTest = service.getActiveTest();
-  const [activeTest, setActiveTest] = useState<ActiveTestData | null>(initialActiveTest);
+  const [activeTest, setActiveTest] = useState<ActiveTestData | null>(() => service.getActiveTest());
   const [showConfirm, setShowConfirm] = useState(false);
 
   if (!activeTest) return null;

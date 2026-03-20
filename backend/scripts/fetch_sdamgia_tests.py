@@ -134,19 +134,20 @@ class DatabaseSeeder:
         variant_id: str,
         subject: Subject,
         exam_type: ExamType,
-        target_grade: str
+        target_grade: str,
+        grade: Optional[int] = None
     ) -> Optional[str]:
         print(f"Fetching variant {variant_id} for {subject.value} {exam_type.value}...")
 
         with SdamgiaClient() as client:
             try:
-                variant = client.get_variant(variant_id, subject, exam_type)
+                variant = client.get_variant(variant_id, subject, exam_type, grade=grade)
                 print(f"Found {len(variant.problems)} problems in variant")
 
                 question_ids = []
                 for idx, problem_ref in enumerate(variant.problems, 1):
                     try:
-                        problem = client.get_problem(problem_ref.id, subject, exam_type)
+                        problem = client.get_problem(problem_ref.id, subject, exam_type, grade=grade)
                         question_id = self.create_question(
                             problem,
                             self._map_subject(subject),
@@ -202,7 +203,7 @@ class DatabaseSeeder:
 
 
 def main() -> None:
-    db_path = Path(__file__).parent.parent / "prisma" / "dev.db"
+    db_path = Path(__file__).parent.parent / "dev.db"
 
     if not db_path.exists():
         print(f"Error: Database not found at {db_path}")
@@ -224,6 +225,9 @@ def main() -> None:
 
             print("\n=== Fetching OGE Russian variants ===")
             seeder.fetch_and_create_variant("88888", Subject.RUS, ExamType.OGE, "GRADE_9")
+
+            print("\n=== Fetching VPR Math Grade 8 variants ===")
+            seeder.fetch_and_create_variant("3400848", Subject.MATH, ExamType.VPR, "GRADE_8", grade=8)
 
             print("\n✓ All variants fetched successfully!")
 

@@ -1,8 +1,3 @@
-/**
- * Task Navigation Component
- * Компонент быстрой навигации по заданиям
- */
-
 import React, { useCallback } from 'react';
 
 type TaskStatus = 'current' | 'answered' | 'unanswered' | 'flagged';
@@ -27,26 +22,26 @@ export const TaskNavigation: React.FC<TaskNavigationProps> = ({
       const isCurrent = number === currentTaskNumber;
 
       if (isCurrent) {
-        return 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white scale-110 shadow-lg shadow-cyan-500/30';
+        return 'bg-gradient-to-r from-blue-500 to-blue-600 text-white scale-110 shadow-lg shadow-blue-500/30';
       }
 
       switch (status) {
         case 'answered':
-          return 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30';
+          return 'bg-blue-100 border border-blue-200 text-blue-600 hover:bg-blue-200';
         case 'flagged':
-          return 'bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30';
+          return 'bg-amber-100 border border-amber-200 text-amber-600 hover:bg-amber-200';
         case 'unanswered':
         default:
-          return 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-cyan-500/50 hover:text-white';
+          return 'bg-slate-50 border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-slate-900';
       }
     },
     [currentTaskNumber]
   );
 
   return (
-    <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
+    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-sans text-gray-400">Навигация по заданиям</h3>
+        <h3 className="text-sm font-sans text-slate-500">Навигация по заданиям</h3>
         <Legend />
       </div>
 
@@ -81,21 +76,18 @@ export const TaskNavigation: React.FC<TaskNavigationProps> = ({
   );
 };
 
-/**
- * Компонент легенды
- */
 const Legend: React.FC = () => (
   <div className="flex items-center gap-4 text-xs font-sans">
-    <LegendItem color="bg-cyan-500" label="Текущее" />
-    <LegendItem color="bg-cyan-500/20 border border-cyan-500/30" label="Отвечено" />
-    <LegendItem color="bg-yellow-500/20 border border-yellow-500/30" label="Помечено" />
-    <LegendItem color="bg-gray-800/50 border border-gray-700" label="Не отвечено" />
+    <LegendItem color="bg-blue-500" label="Текущее" />
+    <LegendItem color="bg-blue-100 border border-blue-200" label="Отвечено" />
+    <LegendItem color="bg-amber-100 border border-amber-200" label="Помечено" />
+    <LegendItem color="bg-slate-50 border border-slate-200" label="Не отвечено" />
   </div>
 );
 
 const LegendItem: React.FC<{ color: string; label: string }> = ({ color, label }) => (
   <div className="flex items-center gap-1.5">
     <div className={`w-3 h-3 rounded ${color}`} />
-    <span className="text-gray-500">{label}</span>
+    <span className="text-slate-500">{label}</span>
   </div>
 );

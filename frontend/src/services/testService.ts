@@ -1,4 +1,4 @@
-import { testApi } from './api';
+import api, { testApi } from './api';
 
 export interface TestQuestion {
   id: string;
@@ -21,7 +21,7 @@ export interface Test {
   targetGrade?: string;
   timeLimit?: number;
   questions: TestQuestion[];
-  duration: number; // in minutes
+  duration: number;
 }
 
 export interface TestVariant {
@@ -33,37 +33,50 @@ export interface TestVariant {
   tasks: TestQuestion[];
 }
 
+interface ApiQuestion {
+  id: string;
+  question: string;
+  type: string;
+  options?: string | string[];
+  correctAnswer: string;
+  topic?: string;
+  explanation?: string;
+  order?: number;
+}
+
+interface ApiTest {
+  id: string;
+  title: string;
+  description?: string;
+  subject: string;
+  examType: string;
+  targetGrade?: string;
+  timeLimit?: number;
+  questions: ApiQuestion[];
+}
+
 class TestService {
+  private static readonly MAX_CACHE_SIZE = 20;
   private testCache: Map<string, Test> = new Map();
 
-  /**
-   * Get all available tests with optional filters
-   */
   async getTests(params?: {
     subject?: string;
     examType?: string;
     isDiagnostic?: boolean;
   }): Promise<Test[]> {
     try {
-      console.log('🌐 getTests API call with params:', params);
       const response = await testApi.getTests(params);
-      console.log('📡 getTests API response:', response);
       if (response.success && response.data) {
         return response.data;
       }
       return [];
-    } catch (error) {
-      console.error('❌ Error fetching tests:', error);
+    } catch {
       return [];
     }
   }
 
-  /**
-   * Get a test by ID and start it (returns randomized questions)
-   */
   async getTestById(testId: string): Promise<Test | null> {
     try {
-      // Check cache first
       if (this.testCache.has(testId)) {
         return this.testCache.get(testId)!;
       }
@@ -71,44 +84,41 @@ class TestService {
       const response = await testApi.startTest(testId);
       if (response.success && response.data) {
         const test = this.mapApiTestToTest(response.data);
+        if (this.testCache.size >= TestService.MAX_CACHE_SIZE) {
+          const firstKey = this.testCache.keys().next().value;
+          if (firstKey) this.testCache.delete(firstKey);
+        }
         this.testCache.set(testId, test);
         return test;
       }
       return null;
-    } catch (error) {
-      console.error('Error fetching test:', error);
+    } catch {
       return null;
     }
   }
 
-  /**
-   * Get a test variant for a specific grade and exam type
-   */
   async getTestVariant(
     subject: string,
     examType: string,
     grade?: number
   ): Promise<TestVariant | null> {
     try {
-      const targetGrade = grade ? `GRADE_${grade}` : undefined;
-      console.log('🔍 getTestVariant called:', { subject, examType, grade, targetGrade });
       const tests = await this.getTests({ subject, examType });
-      console.log('📋 Tests received:', tests);
 
       if (tests.length === 0) {
-        console.warn('⚠️ No tests found for', { subject, examType });
         return null;
       }
 
-      // Get the first matching test
       const test = tests[0];
+      if (!test) {
+        return null;
+      }
       const fullTest = await this.getTestById(test.id);
 
       if (!fullTest) {
         return null;
       }
 
-      // Convert to TestVariant format
       return {
         testId: fullTest.id,
         subject: fullTest.subject,
@@ -117,15 +127,11 @@ class TestService {
         duration: fullTest.duration,
         tasks: fullTest.questions,
       };
-    } catch (error) {
-      console.error('Error fetching test variant:', error);
+    } catch {
       return null;
     }
   }
 
-  /**
-   * Submit test answers
-   */
   async submitTest(
     testId: string,
     answers: Array<{ questionId: string; answer: string }>,
@@ -135,37 +141,27 @@ class TestService {
       const response = await testApi.submitTest(testId, answers, questionsOrder);
       return response;
     } catch (error) {
-      console.error('Error submitting test:', error);
       throw error;
     }
   }
 
-  /**
-   * Get test results
-   */
   async getTestResults(testId: string) {
     try {
       const response = await testApi.getTestResults(testId);
       return response;
     } catch (error) {
-      console.error('Error fetching test results:', error);
       throw error;
     }
   }
 
-  /**
-   * Map API test data to frontend Test format
-   */
-  private mapApiTestToTest(apiTest: any): Test {
-    // Sort questions by order field to preserve original sequence
-    const sortedQuestions = (apiTest.questions || []).sort((a: any, b: any) => {
+  private mapApiTestToTest(apiTest: ApiTest): Test {
+    const sortedQuestions = [...(apiTest.questions || [])].sort((a, b) => {
       const orderA = a.order !== undefined ? a.order : 999;
       const orderB = b.order !== undefined ? b.order : 999;
       return orderA - orderB;
     });
 
-    const questions: TestQuestion[] = sortedQuestions.map((q: any, index: number) => {
-      // Parse options - could be string or already parsed array
+    const questions: TestQuestion[] = sortedQuestions.map((q, index) => {
       let options: string[] | undefined;
       if (q.options) {
         if (typeof q.options === 'string') {
@@ -179,13 +175,11 @@ class TestService {
         }
       }
 
-      // Parse correctAnswer - could be string or JSON string
       let correctAnswer = q.correctAnswer;
       if (typeof correctAnswer === 'string' && correctAnswer.startsWith('"')) {
         try {
           correctAnswer = JSON.parse(correctAnswer);
         } catch {
-          // Keep as is
         }
       }
 
@@ -196,7 +190,7 @@ class TestService {
         type: this.mapQuestionType(q.type),
         options,
         correctAnswer,
-        points: 1, // Default points, can be calculated based on difficulty
+        points: 1,
         topic: q.topic || 'Общая тема',
         explanation: q.explanation,
       };
@@ -211,13 +205,10 @@ class TestService {
       targetGrade: apiTest.targetGrade,
       timeLimit: apiTest.timeLimit,
       questions,
-      duration: apiTest.timeLimit ? Math.floor(apiTest.timeLimit / 60) : 235, // Convert to minutes
+      duration: apiTest.timeLimit ? Math.floor(apiTest.timeLimit / 60) : 235,
     };
   }
 
-  /**
-   * Map backend question type to frontend type
-   */
   private mapQuestionType(backendType: string): TestQuestion['type'] {
     const typeMap: Record<string, TestQuestion['type']> = {
       SHORT_ANSWER: 'short',
@@ -230,23 +221,33 @@ class TestService {
     return typeMap[backendType] || 'short';
   }
 
-  /**
-   * Extract grade from test
-   */
   private extractGradeFromTest(test: Test): number {
     if (test.targetGrade) {
       const match = test.targetGrade.match(/GRADE_(\d+)/);
-      if (match) {
+      if (match && match[1]) {
         return parseInt(match[1], 10);
       }
     }
-    // Default grade based on exam type
     return test.examType === 'OGE' ? 9 : 11;
   }
 
-  /**
-   * Clear cache
-   */
+  async getLatestAttemptId(testId: string): Promise<string | null> {
+    try {
+      const response = await api.get(`/tests/${testId}/results`);
+      if (response.data.success && response.data.data) {
+        // Return the most recent attempt ID
+        const attempts = response.data.data;
+        if (Array.isArray(attempts) && attempts.length > 0) {
+          return attempts[0].id;
+        }
+        if (attempts.id) return attempts.id;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
   clearCache() {
     this.testCache.clear();
   }

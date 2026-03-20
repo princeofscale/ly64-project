@@ -5,7 +5,7 @@ dotenv.config();
 import crypto from 'crypto';
 
 import prisma from '../config/database';
-import { generateToken } from '../utils/jwt';
+import { generateToken, verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 30;
@@ -51,7 +51,6 @@ class TokenService {
   }
 
   generateAccessToken(user: { id: string; email: string; role: string }): string {
-    // Use the centralized JWT service to ensure consistency
     return generateToken({
       userId: user.id,
       email: user.email,
@@ -131,23 +130,26 @@ class TokenService {
     return newTokens;
   }
 
-  verifyAccessToken(token: string): TokenPayload | null {
+  verifyAccessToken(token: string): Omit<TokenPayload, 'role'> | null {
     try {
-      const { verifyToken } = require('../utils/jwt');
       const decoded = verifyToken(token);
-      // Map the decoded token back to TokenPayload format
       return {
         id: decoded.userId,
         email: decoded.email,
-        role: 'USER', // Default role, can be extended if needed
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }
 
-  async revokeRefreshToken(token: string): Promise<boolean> {
+  async revokeRefreshToken(token: string, userId?: string): Promise<boolean> {
     try {
+      if (userId) {
+        const existing = await prisma.refreshToken.findUnique({ where: { token } });
+        if (!existing || existing.userId !== userId) {
+          return false;
+        }
+      }
       await prisma.refreshToken.update({
         where: { token },
         data: { isRevoked: true },

@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
-const prisma = new PrismaClient();
+import prisma from '../../src/config/database';
 
 export async function seedAdminUser() {
   console.log('Creating admin user...');

@@ -1,8 +1,3 @@
-/**
- * Short Answer Question Component
- * Компонент для вопросов с кратким ответом
- */
-
 import React, { useState, useCallback } from 'react';
 
 import type { ITask } from '../../core/interfaces';
@@ -32,7 +27,6 @@ export const ShortAnswerQuestion: React.FC<ShortAnswerQuestionProps> = ({
   );
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    // Предотвращаем отправку формы при нажатии Enter
     if (e.key === 'Enter') {
       e.preventDefault();
     }
@@ -40,7 +34,7 @@ export const ShortAnswerQuestion: React.FC<ShortAnswerQuestionProps> = ({
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-sans text-gray-400">
+      <label className="block text-sm font-sans text-slate-500">
         {task.type === 'matching'
           ? 'Введите соответствие (например: А-1, Б-2, В-3):'
           : 'Введите ответ:'}
@@ -56,26 +50,25 @@ export const ShortAnswerQuestion: React.FC<ShortAnswerQuestionProps> = ({
           placeholder={task.type === 'matching' ? 'А-1, Б-2, В-3' : 'Ваш ответ'}
           className={`
             w-full px-4 py-3
-            bg-gray-800/50
-            border border-gray-700
+            bg-slate-50
+            border border-slate-200
             rounded-xl
-            text-white
-            placeholder-gray-500
-            focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500
+            text-slate-900
+            placeholder-slate-400
+            focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
             transition-all duration-200
             font-sans
-            ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-600'}
+            ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-slate-300'}
           `}
           autoComplete="off"
           spellCheck="false"
         />
 
-        {/* Индикатор ввода */}
         {localValue && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-cyan-400"
+              className="h-5 w-5 text-blue-500"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -89,9 +82,8 @@ export const ShortAnswerQuestion: React.FC<ShortAnswerQuestionProps> = ({
         )}
       </div>
 
-      {/* Подсказка для типа matching */}
       {task.type === 'matching' && (
-        <p className="text-xs text-gray-500 font-sans">
+        <p className="text-xs text-slate-500 font-sans">
           Запишите соответствие через запятую, например: А-1, Б-3, В-2
         </p>
       )}

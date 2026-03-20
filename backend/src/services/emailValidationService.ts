@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+import { logger } from '../utils/logger';
+
 export class EmailValidationService {
   private readonly reacherApiUrl = process.env.REACHER_API_URL;
   private readonly useReacherApi = !!this.reacherApiUrl;
@@ -12,7 +14,7 @@ export class EmailValidationService {
 
       return this.validateSimple(email);
     } catch (error) {
-      console.error('Email validation error:', error);
+      logger.error('Email validation error:', error);
 
       return true;
     }
@@ -34,7 +36,7 @@ export class EmailValidationService {
         result.is_reachable === 'unknown'
       );
     } catch (error) {
-      console.error('Reacher API error:', error);
+      logger.error('Reacher API error:', error);
 
       return this.validateSimple(email);
     }
@@ -63,7 +65,7 @@ export class EmailValidationService {
       'yopmail.com',
     ];
 
-    const domain = email.split('@')[1]?.toLowerCase();
+    const domain = email.split('@')[1]?.toLowerCase() ?? '';
     return !disposableDomains.includes(domain);
   }
 }

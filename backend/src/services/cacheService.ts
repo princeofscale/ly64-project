@@ -323,7 +323,10 @@ class CacheService {
 
   private removeOldestEntries(entries: Array<[string, CacheEntry<unknown>]>, count: number): void {
     for (let i = 0; i < count; i++) {
-      this.cache.delete(entries[i][0]);
+      const entry = entries[i];
+      if (entry) {
+        this.cache.delete(entry[0]);
+      }
     }
   }
 

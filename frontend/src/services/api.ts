@@ -8,6 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -50,8 +51,7 @@ async function refreshAccessToken(): Promise<string | null> {
     }
 
     return null;
-  } catch (error) {
-    console.error('[API] Token refresh failed:', error);
+  } catch {
     logout();
     return null;
   }
@@ -69,7 +69,6 @@ api.interceptors.request.use(
         isRefreshing = true;
         authStore.setRefreshing(true);
 
-        // Create and store the refresh promise
         refreshPromise = refreshAccessToken().finally(() => {
           isRefreshing = false;
           authStore.setRefreshing(false);
@@ -81,7 +80,6 @@ api.interceptors.request.use(
           config.headers.Authorization = `Bearer ${newToken}`;
         }
       } else if (isRefreshing && refreshPromise) {
-        // Wait for the ongoing refresh to complete
         const newToken = await refreshPromise;
         if (newToken) {
           config.headers.Authorization = `Bearer ${newToken}`;
@@ -93,13 +91,13 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error: any) => {
+  (error: unknown) => {
     return Promise.reject(error);
   }
 );
 
 api.interceptors.response.use(
-  (response: any) => response,
+  (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
@@ -110,7 +108,6 @@ api.interceptors.response.use(
       const isAuthEndpoint = originalRequest.url?.includes('/auth/');
       if (!refreshToken || isAuthEndpoint) {
         authStore.logout();
-        window.location.href = '/login';
         return Promise.reject(error);
       }
 
@@ -132,7 +129,6 @@ api.interceptors.response.use(
       isRefreshing = true;
       authStore.setRefreshing(true);
 
-      // Create and store the refresh promise
       refreshPromise = refreshAccessToken().finally(() => {
         isRefreshing = false;
         authStore.setRefreshing(false);
@@ -149,13 +145,11 @@ api.interceptors.response.use(
         } else {
           processQueue(new Error('Token refresh failed'), null);
           authStore.logout();
-          window.location.href = '/login';
           return Promise.reject(error);
         }
       } catch (refreshError) {
         processQueue(refreshError as Error, null);
         authStore.logout();
-        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
@@ -195,8 +189,7 @@ export const authApi = {
     const { refreshToken } = useAuthStore.getState();
     try {
       await api.post('/auth/logout', { refreshToken });
-    } catch (error) {
-      console.error('[Auth] Logout error:', error);
+    } catch {
     }
   },
 
@@ -205,7 +198,6 @@ export const authApi = {
       const response = await api.post('/auth/logout-all');
       return response.data;
     } catch (error) {
-      console.error('[Auth] Logout all error:', error);
       throw error;
     }
   },

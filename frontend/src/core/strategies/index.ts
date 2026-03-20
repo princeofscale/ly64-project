@@ -1,8 +1,3 @@
-/**
- * Strategies Index
- * Централизованный экспорт всех стратегий
- */
-
 export {
   ShortAnswerStrategy,
   ChoiceAnswerStrategy,

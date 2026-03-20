@@ -1,8 +1,3 @@
-/**
- * Exam Header Component
- * Заголовок экзамена с таймером и прогрессом
- */
-
 import React from 'react';
 
 import { TimerService } from '../../core/services';
@@ -52,7 +47,6 @@ export const ExamHeader: React.FC<ExamHeaderProps> = ({
     <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          {/* Название экзамена */}
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-slate-900">
               {title}
@@ -60,9 +54,7 @@ export const ExamHeader: React.FC<ExamHeaderProps> = ({
             {subtitle && <span className="text-sm text-slate-600">{subtitle}</span>}
           </div>
 
-          {/* Правая часть: таймер и прогресс */}
           <div className="flex items-center gap-6">
-            {/* Таймер */}
             <div
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${getTimerBgColor()}`}
             >
@@ -72,7 +64,6 @@ export const ExamHeader: React.FC<ExamHeaderProps> = ({
               </span>
             </div>
 
-            {/* Счетчик заданий */}
             <div className="text-sm text-slate-600">
               <span className="text-blue-600 font-semibold">{currentTask}</span>
               <span className="mx-1">/</span>
@@ -81,7 +72,6 @@ export const ExamHeader: React.FC<ExamHeaderProps> = ({
           </div>
         </div>
 
-        {/* Прогресс-бар */}
         <div className="mt-3 w-full bg-slate-200 rounded-full h-2 overflow-hidden">
           <div
             className="h-2 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full transition-all duration-300"
@@ -93,9 +83,6 @@ export const ExamHeader: React.FC<ExamHeaderProps> = ({
   );
 };
 
-/**
- * Иконка таймера
- */
 const TimerIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"

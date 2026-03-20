@@ -119,7 +119,9 @@ export class MatchingAnswerStrategy extends BaseAnswerValidationStrategy {
     let match;
 
     while ((match = regex.exec(answer)) !== null) {
-      pairs.set(this.trimWhitespace(match[1]).toUpperCase(), this.trimWhitespace(match[2]));
+      if (match[1] && match[2]) {
+        pairs.set(this.trimWhitespace(match[1]).toUpperCase(), this.trimWhitespace(match[2]));
+      }
     }
 
     return pairs;

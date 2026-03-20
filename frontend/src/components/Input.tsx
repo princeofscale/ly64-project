@@ -1,5 +1,5 @@
 import { AlertCircle } from 'lucide-react';
-import { forwardRef } from 'react';
+import { forwardRef, useId } from 'react';
 
 import type { InputHTMLAttributes } from 'react';
 
@@ -11,7 +11,8 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, hint, className = '', id, ...props }, ref) => {
-    const inputId = id || props.name || Math.random().toString(36).substring(7);
+    const generatedId = useId();
+    const inputId = id || props.name || generatedId;
 
     return (
       <div className="w-full">

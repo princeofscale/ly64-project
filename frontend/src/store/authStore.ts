@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface User {
   id: string;
@@ -19,6 +19,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   isRefreshing: boolean;
+  _hasHydrated: boolean;
 
   setUser: (user: User) => void;
   setToken: (token: string) => void;
@@ -29,6 +30,7 @@ interface AuthState {
   setRefreshing: (refreshing: boolean) => void;
   isTokenExpired: () => boolean;
   shouldRefreshToken: () => boolean;
+  setHasHydrated: (state: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -41,6 +43,9 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       isRefreshing: false,
+      _hasHydrated: false,
+
+      setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
 
       setUser: user => set({ user, isAuthenticated: true }),
 
@@ -77,14 +82,12 @@ export const useAuthStore = create<AuthState>()(
 
       setRefreshing: refreshing => set({ isRefreshing: refreshing }),
 
-      // Проверка истёк ли токен
       isTokenExpired: () => {
         const { tokenExpiresAt } = get();
         if (!tokenExpiresAt) return true;
         return Date.now() >= tokenExpiresAt;
       },
 
-      // Проверка нужно ли обновить токен (за 2 минуты до истечения)
       shouldRefreshToken: () => {
         const { tokenExpiresAt } = get();
         if (!tokenExpiresAt) return false;
@@ -94,6 +97,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
+      storage: createJSONStorage(() => localStorage),
       partialize: state => ({
         user: state.user,
         token: state.token,
@@ -101,6 +105,9 @@ export const useAuthStore = create<AuthState>()(
         tokenExpiresAt: state.tokenExpiresAt,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

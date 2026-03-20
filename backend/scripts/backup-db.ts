@@ -133,6 +133,11 @@ function restoreFromLatest(): boolean {
 
   const latestBackup = backups[0];
 
+  if (!latestBackup) {
+    console.error('❌ Бэкап не найден!');
+    return false;
+  }
+
   console.log(`   Последний бэкап: ${latestBackup.name}`);
   console.log(`   Дата: ${latestBackup.date.toLocaleString('ru-RU')}`);
   console.log('');

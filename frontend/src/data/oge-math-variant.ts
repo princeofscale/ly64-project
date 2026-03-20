@@ -2,7 +2,7 @@ export const ogeMathVariant = {
   subject: 'MATHEMATICS',
   grade: 9,
   examType: 'OGE',
-  duration: 235, // 3 часа 55 минут в минутах
+  duration: 235,
   tasks: [
     {
       number: 1,

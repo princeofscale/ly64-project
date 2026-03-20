@@ -22,6 +22,8 @@ export class LeaderboardService {
     const dateFilter = this.buildDateFilter(period as LeaderboardPeriod);
     const subjectFilter = this.buildSubjectFilter(subject);
 
+    const maxUsers = Math.min(parseInt(limit, 10) || STATS_CONSTANTS.LEADERBOARD_DEFAULT_LIMIT, 200);
+
     const usersWithStats = await this.prisma.user.findMany({
       where: {
         isPublic: true,
@@ -33,6 +35,7 @@ export class LeaderboardService {
           },
         },
       },
+      take: maxUsers,
       select: {
         id: true,
         username: true,
@@ -53,6 +56,9 @@ export class LeaderboardService {
         userAchievements: {
           select: {
             id: true,
+            achievement: {
+              select: { points: true },
+            },
           },
         },
       },
@@ -83,7 +89,12 @@ export class LeaderboardService {
           select: { score: true },
         },
         userAchievements: {
-          select: { id: true },
+          select: {
+            id: true,
+            achievement: {
+              select: { points: true },
+            },
+          },
         },
       },
     });
@@ -96,17 +107,20 @@ export class LeaderboardService {
     const scores = currentUser.testAttempts.map(a => a.score);
     const userAvgScore = StatisticsCalculator.calculateAverageScore(scores);
     const userBestScore = StatisticsCalculator.calculateBestScore(scores);
-    const userAchievements = currentUser.userAchievements.length;
+    const userAchievementsCount = currentUser.userAchievements.length;
+    const userAchievementPoints = currentUser.userAchievements.reduce(
+      (sum, ua) => sum + ua.achievement.points, 0
+    );
 
     const userPoints = StatisticsCalculator.calculateUserPoints(
       userTests,
       userAvgScore,
       userBestScore,
-      userAchievements
+      userAchievementPoints
     );
 
     const higherRankedCount = await this.countHigherRankedUsers(userPoints);
-    const rank = Number(higherRankedCount[0]?.count ?? 0) + 1;
+    const rank = higherRankedCount + 1;
 
     return {
       rank,
@@ -115,7 +129,7 @@ export class LeaderboardService {
         totalTests: userTests,
         averageScore: StatisticsCalculator.roundToDecimal(userAvgScore),
         bestScore: userBestScore,
-        achievementsCount: userAchievements,
+        achievementsCount: userAchievementsCount,
       },
     };
   }
@@ -165,7 +179,7 @@ export class LeaderboardService {
       avatar: string | null;
       currentGrade: number;
       testAttempts: ReadonlyArray<{ score: number | null }>;
-      userAchievements: ReadonlyArray<{ id: string }>;
+      userAchievements: ReadonlyArray<{ id: string; achievement: { points: number } }>;
     }>
   ): LeaderboardEntry[] {
     return users.map(user => {
@@ -174,12 +188,15 @@ export class LeaderboardService {
       const averageScore = StatisticsCalculator.calculateAverageScore(scores);
       const bestScore = StatisticsCalculator.calculateBestScore(scores);
       const achievementsCount = user.userAchievements.length;
+      const achievementPoints = user.userAchievements.reduce(
+        (sum, ua) => sum + ua.achievement.points, 0
+      );
 
       const points = StatisticsCalculator.calculateUserPoints(
         totalTests,
         averageScore,
         bestScore,
-        achievementsCount
+        achievementPoints
       );
 
       return {
@@ -209,22 +226,45 @@ export class LeaderboardService {
     }));
   }
 
-  private async countHigherRankedUsers(
-    userPoints: number
-  ): Promise<ReadonlyArray<{ count: bigint }>> {
-    return this.prisma.$queryRaw<{ count: bigint }[]>`
-      SELECT COUNT(DISTINCT u.id) as count
-      FROM "User" u
-      LEFT JOIN "TestAttempt" ta ON ta."userId" = u.id AND ta."completedAt" IS NOT NULL
-      LEFT JOIN "UserAchievement" ua ON ua."userId" = u.id
-      WHERE u."isPublic" = true
-      GROUP BY u.id
-      HAVING (
-        COUNT(ta.id) * 10 +
-        COALESCE(AVG(ta.score), 0) * 5 +
-        COALESCE(MAX(ta.score), 0) * 2 +
-        COUNT(ua.id) * 50
-      ) > ${userPoints}
-    `;
+  private async countHigherRankedUsers(userPoints: number): Promise<number> {
+    const users = await this.prisma.user.findMany({
+      where: {
+        isPublic: true,
+        testAttempts: {
+          some: { completedAt: { not: null } },
+        },
+      },
+      take: 1000,
+      select: {
+        testAttempts: {
+          where: { completedAt: { not: null } },
+          select: { score: true },
+        },
+        userAchievements: {
+          select: {
+            achievement: {
+              select: { points: true },
+            },
+          },
+        },
+      },
+    });
+
+    let count = 0;
+    for (const user of users) {
+      const scores = user.testAttempts.map(a => a.score);
+      const avgScore = StatisticsCalculator.calculateAverageScore(scores);
+      const bestScore = StatisticsCalculator.calculateBestScore(scores);
+      const achievementPoints = user.userAchievements.reduce(
+        (sum, ua) => sum + ua.achievement.points, 0
+      );
+      const points = StatisticsCalculator.calculateUserPoints(
+        user.testAttempts.length, avgScore, bestScore, achievementPoints
+      );
+
+      if (points > userPoints) count++;
+    }
+
+    return count;
   }
 }

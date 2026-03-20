@@ -1,0 +1,1 @@
+import{a as r}from"./index-Cl8mftaQ.js";const o={async getVariants(a,s){return(await r.get("/sdamgia/variants",{params:{subject:a,grade:s}})).data.data},async getVariant(a,s,t,e){return(await r.get(`/sdamgia/variant/${a}`,{params:{subject:s,examType:t,grade:e}})).data.data}};export{o as s};

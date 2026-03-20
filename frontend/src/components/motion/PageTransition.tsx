@@ -1,15 +1,9 @@
-/**
- * PageTransition Component
- * Анимации переходов между страницами
- */
-
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
 import type { Variants } from 'framer-motion';
 import type { ReactNode } from 'react';
 
-// Animation variants
 const fadeVariants: Variants = {
   initial: { opacity: 0 },
   enter: { opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } },
@@ -49,9 +43,6 @@ interface PageTransitionProps {
   className?: string;
 }
 
-/**
- * Wrapper for page content with enter/exit animations
- */
 export function PageTransition({
   children,
   type = 'slideUp',
@@ -76,9 +67,6 @@ export function PageTransition({
   );
 }
 
-/**
- * Simple fade transition without AnimatePresence
- */
 export function FadeIn({
   children,
   delay = 0,
@@ -100,9 +88,6 @@ export function FadeIn({
   );
 }
 
-/**
- * Slide up animation
- */
 export function SlideUp({
   children,
   delay = 0,
@@ -124,9 +109,6 @@ export function SlideUp({
   );
 }
 
-/**
- * Scale in animation
- */
 export function ScaleIn({
   children,
   delay = 0,
@@ -148,9 +130,6 @@ export function ScaleIn({
   );
 }
 
-/**
- * Staggered children animation
- */
 interface StaggeredListProps {
   children: ReactNode[];
   staggerDelay?: number;
@@ -190,9 +169,6 @@ export function StaggeredList({
   );
 }
 
-/**
- * Pop animation for buttons/icons
- */
 export function Pop({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={className}>

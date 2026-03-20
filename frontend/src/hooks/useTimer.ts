@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
 import { TimerService } from '../core/services';
 
@@ -100,13 +100,18 @@ export function useTimer(
     timerService.current.addTime(seconds);
   }, []);
 
+  const percentRemaining = useMemo(
+    () => timerService.current.getPercentRemaining(),
+    [state.timeLeft]
+  );
+
   return {
     timeLeft: state.timeLeft,
     formattedTime: TimerService.formatTime(state.timeLeft),
     isRunning: state.isRunning,
     isPaused: state.isPaused,
     status: state.status,
-    percentRemaining: timerService.current.getPercentRemaining(),
+    percentRemaining,
     start,
     pause,
     resume,

@@ -92,7 +92,8 @@ export function useExam(options: UseExamOptions): UseExamReturn {
 
   const description = useMemo(() => {
     if (exam && 'getDescription' in exam) {
-      return (exam as any).getDescription();
+      const examWithDesc = exam as IExam & { getDescription(): string };
+      return examWithDesc.getDescription();
     }
     return '';
   }, [exam]);

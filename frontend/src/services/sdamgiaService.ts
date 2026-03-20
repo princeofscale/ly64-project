@@ -14,6 +14,7 @@ export interface SdamgiaProblem {
   part: number;
   question: string;
   images: string[];
+  audio?: string;
   answer: string;
   solution?: string;
   solutionImages?: string[];
@@ -30,9 +31,6 @@ export interface SdamgiaVariantDetail {
 }
 
 export const sdamgiaService = {
-  /**
-   * Получить список вариантов для предмета и класса
-   */
   async getVariants(subject: string, grade: number): Promise<SdamgiaVariant[]> {
     const response = await api.get('/sdamgia/variants', {
       params: { subject, grade },
@@ -40,10 +38,6 @@ export const sdamgiaService = {
     return response.data.data;
   },
 
-  /**
-   * Получить конкретный вариант с заданиями
-   * @param grade - класс (обязателен для ВПР)
-   */
   async getVariant(
     variantId: string,
     subject: string,

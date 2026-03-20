@@ -1,12 +1,10 @@
-/**
- * Task Card Component
- * Карточка с заданием
- */
-
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 
 import { QUESTION_TYPE_INFO } from '../../core/constants';
+import { findTheoryForTask } from '../../data/theory/theoryLookup';
+import type { TheoryTopic } from '../../data/theory/types';
 import { QuestionRenderer } from '../questions';
+import { TheoryDrawer } from '../theory';
 
 import type { ITask } from '../../core/interfaces';
 
@@ -20,6 +18,8 @@ interface TaskCardProps {
   isFirst?: boolean;
   isLast?: boolean;
   disabled?: boolean;
+  subject?: string;
+  examType?: string;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -32,41 +32,55 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   isFirst = false,
   isLast = false,
   disabled = false,
+  subject,
+  examType,
 }) => {
   const questionInfo = QUESTION_TYPE_INFO[task.type] || QUESTION_TYPE_INFO.short;
+  const [theoryTopic, setTheoryTopic] = useState<TheoryTopic | null>(null);
+
+  const openTheory = useCallback(() => {
+    if (subject && examType) {
+      setTheoryTopic(findTheoryForTask(subject, examType, task.number, task.topic));
+    }
+  }, [subject, examType, task.number, task.topic]);
+
+  const theoryAvailable = subject && examType && findTheoryForTask(subject, examType, task.number, task.topic);
 
   return (
     <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-8 shadow-xl animate-fade-in">
-      {/* Заголовок задания */}
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            {/* Номер задания */}
             <span className="px-3 py-1 bg-blue-50 border border-blue-200 rounded-xl text-blue-600 font-semibold">
               Задание {task.number}
             </span>
 
-            {/* Баллы */}
             <span className="text-sm text-slate-600">
               {task.points} {getPointsForm(task.points)}
             </span>
 
-            {/* Тип вопроса */}
             <span className="text-sm text-slate-500 flex items-center gap-1">
               <span>{questionInfo.icon}</span>
               <span>{questionInfo.name}</span>
             </span>
           </div>
 
-          {/* Тема */}
-          <div className="text-sm text-slate-500">{task.topic}</div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-500">{task.topic}</span>
+            {theoryAvailable && (
+              <button
+                onClick={openTheory}
+                className="text-xs px-2 py-1 bg-blue-50 border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                Теория
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Флаг для отметки */}
         <FlagButton />
       </div>
 
-      {/* Вопрос и поле ответа */}
       <QuestionRenderer
         task={task}
         currentAnswer={currentAnswer}
@@ -74,7 +88,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         disabled={disabled}
       />
 
-      {/* Навигация */}
       <div className="flex items-center justify-between pt-6 mt-6 border-t border-slate-200">
         <button
           onClick={onPrevious}
@@ -134,13 +147,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           )}
         </div>
       </div>
+
+      <TheoryDrawer topic={theoryTopic} subject={subject} onClose={() => setTheoryTopic(null)} />
     </div>
   );
 };
 
-/**
- * Кнопка флага
- */
 const FlagButton: React.FC = () => (
   <button
     className="p-2 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
@@ -163,9 +175,6 @@ const FlagButton: React.FC = () => (
   </button>
 );
 
-/**
- * Иконки
- */
 const ArrowLeftIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -205,9 +214,6 @@ const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-/**
- * Склонение слова "балл"
- */
 function getPointsForm(points: number): string {
   const lastDigit = points % 10;
   const lastTwoDigits = points % 100;

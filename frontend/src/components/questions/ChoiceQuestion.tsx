@@ -1,8 +1,3 @@
-/**
- * Choice Question Component
- * Компонент для вопросов с выбором ответа
- */
-
 import React, { useCallback, useMemo } from 'react';
 
 import type { ITask } from '../../core/interfaces';
@@ -22,7 +17,6 @@ export const ChoiceQuestion: React.FC<ChoiceQuestionProps> = ({
   disabled = false,
   multiple = false,
 }) => {
-  // Для множественного выбора храним массив выбранных ответов
   const selectedAnswers = useMemo(() => {
     if (multiple && currentAnswer) {
       return currentAnswer.split(',').map(s => s.trim());
@@ -63,12 +57,12 @@ export const ChoiceQuestion: React.FC<ChoiceQuestionProps> = ({
   );
 
   if (!task.options || task.options.length === 0) {
-    return <div className="text-gray-500 font-sans">Варианты ответов отсутствуют</div>;
+    return <div className="text-slate-500 font-sans">Варианты ответов отсутствуют</div>;
   }
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-sans text-gray-400 mb-4">
+      <label className="block text-sm font-sans text-slate-500 mb-4">
         {multiple ? 'Выберите все подходящие варианты:' : 'Выберите один вариант:'}
       </label>
 
@@ -88,15 +82,14 @@ export const ChoiceQuestion: React.FC<ChoiceQuestionProps> = ({
                 transition-all duration-200
                 ${
                   selected
-                    ? 'border-cyan-500 bg-cyan-500/10 text-white shadow-[0_0_20px_rgba(6,182,212,0.2)]'
-                    : 'border-gray-700 bg-gray-800/30 text-gray-300 hover:border-cyan-500/50 hover:bg-gray-800/50'
+                    ? 'border-blue-500 bg-blue-50 text-slate-900 shadow-lg shadow-blue-500/10'
+                    : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-slate-50'
                 }
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 group
               `}
             >
               <div className="flex items-center gap-4">
-                {/* Индикатор выбора */}
                 <div
                   className={`
                   flex-shrink-0 w-6 h-6
@@ -105,8 +98,8 @@ export const ChoiceQuestion: React.FC<ChoiceQuestionProps> = ({
                   transition-all duration-200
                   ${
                     selected
-                      ? 'border-cyan-500 bg-cyan-500'
-                      : 'border-gray-600 group-hover:border-cyan-500/50'
+                      ? 'border-blue-500 bg-blue-500'
+                      : 'border-slate-300 group-hover:border-blue-400'
                   }
                 `}
                 >
@@ -126,7 +119,6 @@ export const ChoiceQuestion: React.FC<ChoiceQuestionProps> = ({
                   )}
                 </div>
 
-                {/* Текст варианта */}
                 <span className="font-sans flex-1 leading-relaxed">{option}</span>
               </div>
             </button>
@@ -134,9 +126,8 @@ export const ChoiceQuestion: React.FC<ChoiceQuestionProps> = ({
         })}
       </div>
 
-      {/* Счетчик для множественного выбора */}
       {multiple && selectedAnswers.length > 0 && (
-        <div className="mt-4 text-sm text-cyan-400 font-sans">
+        <div className="mt-4 text-sm text-blue-600 font-sans">
           Выбрано: {selectedAnswers.length}
         </div>
       )}

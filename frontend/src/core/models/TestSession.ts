@@ -222,11 +222,13 @@ export class TestSession implements ITestSession {
     const parsed = JSON.parse(data);
     const session = new TestSession(exam);
 
-    (session as any).id = parsed.id;
-    (session as any).startedAt = new Date(parsed.startedAt);
-    session.status = parsed.status;
-    session.currentTaskIndex = parsed.currentTaskIndex;
-    (session as any).totalPausedTime = parsed.totalPausedTime;
+    Object.assign(session, {
+      id: parsed.id,
+      startedAt: new Date(parsed.startedAt),
+      status: parsed.status,
+      currentTaskIndex: parsed.currentTaskIndex,
+      totalPausedTime: parsed.totalPausedTime,
+    });
 
     parsed.answers.forEach(([key, value]: [number, UserAnswer]) => {
       session.answers.set(key, {

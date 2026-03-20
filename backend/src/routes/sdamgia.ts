@@ -1,18 +1,25 @@
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { writeFile, unlink } from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { promisify } from 'util';
 
 import { Router } from 'express';
+import { rateLimit } from 'express-rate-limit';
 
 import { authenticateToken } from '../middlewares/auth';
+import { logger } from '../utils/logger';
 
-import type { AuthRequest } from '../middlewares/auth';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 
 const router = Router();
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
+
+const sdamgiaLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { success: false, message: 'Слишком много запросов, попробуйте позже' },
+});
 
 const SUBJECT_MAP: Record<string, string> = {
   MATHEMATICS: 'math',
@@ -26,6 +33,7 @@ const SUBJECT_MAP: Record<string, string> = {
   ENGLISH: 'en',
   GEOGRAPHY: 'geo',
   SOCIAL_STUDIES: 'soc',
+  SOCIAL: 'soc',
   LITERATURE: 'lit',
   GERMAN: 'de',
   FRENCH: 'fr',
@@ -45,46 +53,31 @@ const EXAM_TYPE_MAP: Record<number, string> = {
 
 const VALID_EXAM_TYPES = ['oge', 'ege', 'vpr'];
 
+const VALID_SDAMGIA_SUBJECTS = new Set(Object.values(SUBJECT_MAP));
+const VALID_GRADES = new Set(Object.keys(EXAM_TYPE_MAP).map(Number));
+
+function sanitizeParam(value: string): string {
+  return value.replace(/[^a-zA-Z0-9_-]/g, '');
+}
+
+function validateEnumValue(value: string, validSet: Set<string>, label: string): string {
+  if (!validSet.has(value)) {
+    throw new Error(`Invalid ${label}: ${sanitizeParam(value)}`);
+  }
+  return value;
+}
+
 const VPR_SUBJECTS_BY_GRADE: Record<number, string[]> = {
   4: ['math', 'rus'],
   5: ['math', 'rus', 'bio', 'hist'],
-  6: ['math', 'rus', 'bio', 'hist', 'geo', 'soc'],
-  7: ['math', 'rus', 'bio', 'hist', 'geo', 'soc', 'phys', 'en'],
-  8: ['math', 'rus', 'bio', 'hist', 'geo', 'soc', 'phys', 'chem'],
-  10: ['math', 'rus', 'bio', 'hist', 'geo', 'soc', 'phys', 'chem'],
+  6: ['math', 'rus', 'bio', 'hist', 'geo', 'soc', 'inf'],
+  7: ['math', 'rus', 'bio', 'hist', 'geo', 'soc', 'phys', 'en', 'inf'],
+  8: ['math', 'rus', 'bio', 'hist', 'geo', 'soc', 'phys', 'chem', 'inf', 'lit'],
+  10: ['math', 'rus', 'bio', 'hist', 'geo', 'soc', 'phys', 'chem', 'lit'],
   11: ['math', 'rus', 'bio', 'hist', 'geo', 'soc', 'phys', 'chem', 'en'],
 };
 
-const OGE_TASK_COUNT: Record<string, number> = {
-  math: 25,
-  rus: 9,
-  phys: 25,
-  inf: 15,
-  bio: 29,
-  chem: 24,
-  hist: 24,
-  en: 15,
-  geo: 30,
-  soc: 24,
-  lit: 5,
-};
-
-const EGE_TASK_COUNT: Record<string, number> = {
-  math: 18,
-  mathb: 21,
-  rus: 27,
-  phys: 30,
-  inf: 27,
-  bio: 28,
-  chem: 34,
-  hist: 21,
-  en: 40,
-  geo: 31,
-  soc: 25,
-  lit: 12,
-};
-
-router.get('/variants', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/variants', authenticateToken, sdamgiaLimiter, async (req: Request, res: Response) => {
   let tempFile: string | null = null;
 
   try {
@@ -98,20 +91,27 @@ router.get('/variants', authenticateToken, async (req: AuthRequest, res: Respons
     }
 
     const gradeNum = Number(grade);
+    if (!Number.isInteger(gradeNum) || !VALID_GRADES.has(gradeNum)) {
+      return res.status(400).json({
+        success: false,
+        message: `Для ${sanitizeParam(String(grade))} класса sdamgia API не поддерживается`,
+      });
+    }
+
     const sdamgiaSubject = SUBJECT_MAP[subject as string];
     const examType = EXAM_TYPE_MAP[gradeNum];
 
-    if (!sdamgiaSubject) {
+    if (!sdamgiaSubject || !VALID_SDAMGIA_SUBJECTS.has(sdamgiaSubject)) {
       return res.status(400).json({
         success: false,
         message: 'Неподдерживаемый предмет',
       });
     }
 
-    if (!examType) {
+    if (!examType || !VALID_EXAM_TYPES.includes(examType)) {
       return res.status(400).json({
         success: false,
-        message: `Для ${grade} класса sdamgia API не поддерживается`,
+        message: `Для ${gradeNum} класса sdamgia API не поддерживается`,
       });
     }
 
@@ -120,15 +120,20 @@ router.get('/variants', authenticateToken, async (req: AuthRequest, res: Respons
       if (!availableSubjects.includes(sdamgiaSubject)) {
         return res.status(400).json({
           success: false,
-          message: `Предмет ${subject} не поддерживается для ВПР ${grade} класса`,
+          message: `Предмет ${sanitizeParam(String(subject))} не поддерживается для ВПР ${gradeNum} класса`,
         });
       }
     }
 
-    const sdamgiaPath = path.join(process.cwd(), 'sdamgia_api', 'src').replace(/\\/g, '/');
+    // Validate enum values strictly before interpolation into Python code
+    validateEnumValue(sdamgiaSubject, VALID_SDAMGIA_SUBJECTS, 'subject');
+
+    const sdamgiaPath = path.join(process.cwd(), '..', 'sdamgia_api', 'src').replace(/\\/g, '/');
 
     const gradeParam = examType === 'vpr' ? `, grade=${gradeNum}` : '';
 
+    // Safe: sdamgiaSubject and examType are validated against whitelists,
+    // gradeNum is validated as integer in VALID_GRADES set
     const pythonScript = `
 import sys
 import io
@@ -149,7 +154,7 @@ try:
     with SdamgiaClient() as client:
         variants = client.list_variants(subject_enum, exam_enum${gradeParam})
         result = []
-        for i, v in enumerate(variants[:15]):  # Ограничиваем 15 вариантами
+        for i, v in enumerate(variants[:15]):
             result.append({
                 'id': v.id,
                 'number': i + 1,
@@ -167,18 +172,18 @@ except Exception as e:
     await writeFile(tempFile, pythonScript);
 
     const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-    const { stdout } = await execAsync(`${pythonCmd} "${tempFile}"`, {
+    const { stdout } = await execFileAsync(pythonCmd, [tempFile], {
       timeout: 60000,
     });
 
     const result = JSON.parse(stdout.trim());
 
     if (!result.success) {
-      console.error('Python error:', result.error);
-      console.error('Trace:', result.trace);
+      logger.error('Python error:', result.error);
+      logger.error('Trace:', result.trace);
       return res.status(500).json({
         success: false,
-        message: result.error || 'Ошибка получения вариантов',
+        message: 'Ошибка получения вариантов',
       });
     }
 
@@ -186,8 +191,8 @@ except Exception as e:
       success: true,
       data: result.data,
     });
-  } catch (error: any) {
-    console.error('Error fetching variants:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching variants:', error);
     res.status(500).json({
       success: false,
       message: 'Ошибка получения вариантов',
@@ -203,7 +208,7 @@ except Exception as e:
   }
 });
 
-router.get('/variant/:variantId', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/variant/:variantId', authenticateToken, sdamgiaLimiter, async (req: Request, res: Response) => {
   let tempFile: string | null = null;
 
   try {
@@ -217,11 +222,20 @@ router.get('/variant/:variantId', authenticateToken, async (req: AuthRequest, re
       });
     }
 
+    // Sanitize variantId: only allow alphanumeric, hyphens, underscores
+    const safeVariantId = sanitizeParam(String(variantId));
+    if (!safeVariantId || safeVariantId.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Некорректный ID варианта',
+      });
+    }
+
     const sdamgiaSubject = SUBJECT_MAP[subject as string];
     const examTypeLower = (examType as string).toLowerCase();
     const gradeNum = grade ? Number(grade) : null;
 
-    if (!sdamgiaSubject) {
+    if (!sdamgiaSubject || !VALID_SDAMGIA_SUBJECTS.has(sdamgiaSubject)) {
       return res.status(400).json({
         success: false,
         message: 'Неподдерживаемый предмет',
@@ -231,26 +245,31 @@ router.get('/variant/:variantId', authenticateToken, async (req: AuthRequest, re
     if (!VALID_EXAM_TYPES.includes(examTypeLower)) {
       return res.status(400).json({
         success: false,
-        message: `Неподдерживаемый тип экзамена: ${examType}. Поддерживаются: OGE, EGE, VPR`,
+        message: `Неподдерживаемый тип экзамена: ${sanitizeParam(String(examType))}. Поддерживаются: OGE, EGE, VPR`,
       });
     }
 
-    if (examTypeLower === 'vpr' && !gradeNum) {
+    if (examTypeLower === 'vpr' && (!gradeNum || !Number.isInteger(gradeNum) || !VALID_GRADES.has(gradeNum))) {
       return res.status(400).json({
         success: false,
-        message: 'Для ВПР необходимо указать класс (grade)',
+        message: 'Для ВПР необходимо указать корректный класс (grade)',
       });
     }
 
-    const sdamgiaPath = path.join(process.cwd(), 'sdamgia_api', 'src').replace(/\\/g, '/');
+    // Validate enum values strictly before interpolation into Python code
+    validateEnumValue(sdamgiaSubject, VALID_SDAMGIA_SUBJECTS, 'subject');
+
+    const sdamgiaPath = path.join(process.cwd(), '..', 'sdamgia_api', 'src').replace(/\\/g, '/');
 
     const gradeParam = examTypeLower === 'vpr' ? `, grade=${gradeNum}` : '';
 
+    // Safe: sdamgiaSubject, examTypeLower are validated against whitelists,
+    // safeVariantId is sanitized to alphanumeric only,
+    // gradeNum is validated as integer in VALID_GRADES set
     const pythonScript = `
 import sys
 import io
 
-# Исправление кодировки для Windows
 if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
@@ -264,7 +283,7 @@ try:
     exam_enum = ExamType.${examTypeLower.toUpperCase()}
 
     with SdamgiaClient(timeout=60.0, rate_limit_rps=5.0) as client:
-        variant = client.get_variant("${variantId}", subject_enum, exam_enum${gradeParam})
+        variant = client.get_variant("${safeVariantId}", subject_enum, exam_enum${gradeParam})
 
         problems = []
         for problem_ref in variant.problems:
@@ -278,6 +297,11 @@ try:
                 images = []
                 if hasattr(problem.condition, 'images') and problem.condition.images:
                     images = problem.condition.images
+
+                # Получаем аудио
+                audio_urls = []
+                if hasattr(problem.condition, 'audio') and problem.condition.audio:
+                    audio_urls = problem.condition.audio
 
                 # Получаем решение
                 solution_html = None
@@ -298,6 +322,7 @@ try:
                     'part': part,
                     'question': question_html,
                     'images': images,
+                    'audio': audio_urls[0] if audio_urls else None,
                     'answer': str(problem.answer) if problem.answer else '',
                     'solution': solution_html,
                     'solutionImages': solution_images,
@@ -314,7 +339,7 @@ try:
         print(json.dumps({
             'success': True,
             'variant': {
-                'id': "${variantId}",
+                'id': "${safeVariantId}",
                 'totalProblems': len(problems),
                 'part1Count': len([p for p in problems if p['part'] == 1]),
                 'part2Count': len([p for p in problems if p['part'] == 2]),
@@ -331,23 +356,23 @@ except Exception as e:
     await writeFile(tempFile, pythonScript);
 
     const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-    const { stdout, stderr } = await execAsync(`${pythonCmd} "${tempFile}"`, {
+    const { stdout, stderr } = await execFileAsync(pythonCmd, [tempFile], {
       timeout: 300000,
       maxBuffer: 1024 * 1024 * 10,
     });
 
     if (stderr && !stderr.includes('Warning')) {
-      console.error('Python stderr:', stderr);
+      logger.error('Python stderr:', stderr);
     }
 
     const result = JSON.parse(stdout.trim());
 
     if (!result.success) {
-      console.error('Python error:', result.error);
-      console.error('Trace:', result.trace);
+      logger.error('Python error:', result.error);
+      logger.error('Trace:', result.trace);
       return res.status(500).json({
         success: false,
-        message: result.error || 'Ошибка получения варианта',
+        message: 'Ошибка получения варианта',
       });
     }
 
@@ -355,18 +380,19 @@ except Exception as e:
       success: true,
       data: result.variant,
     });
-  } catch (error: any) {
-    console.error('Error fetching variant:', error);
+  } catch (error) {
+    logger.error('Error fetching variant:', error);
     res.status(500).json({
       success: false,
       message: 'Ошибка получения варианта',
-      error: error.message,
     });
   } finally {
     if (tempFile) {
       try {
         await unlink(tempFile);
-      } catch (err) {}
+      } catch {
+        // Ignore cleanup errors
+      }
     }
   }
 });

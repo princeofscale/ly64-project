@@ -45,19 +45,21 @@ export const useAchievementNotifications = () => {
             previousAchievements.current.add(achievement.id);
           }
         }
-      } catch (error: any) {
-        if (error?.response?.status === 401) {
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        if (axiosError?.response?.status === 401) {
           hasInitialized.current = false;
           previousAchievements.current.clear();
           return;
         }
-        // Игнорируем другие ошибки (429, сетевые и т.д.)
       }
     };
 
-    checkNewAchievements();
+    void checkNewAchievements();
 
-    const interval = setInterval(checkNewAchievements, 30000);
+    const interval = setInterval(() => {
+      void checkNewAchievements();
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [isAuthenticated, token]);
