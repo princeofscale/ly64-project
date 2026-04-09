@@ -65,31 +65,6 @@ router.post('/refresh', authLimiter, async (req: Request, res: Response) => {
   }
 });
 
-    const tokens = await tokenService.refreshTokens(refreshToken, deviceInfo, ipAddress);
-
-    if (!tokens) {
-      return res.status(401).json({
-        success: false,
-        message: 'Недействительный или истёкший refresh token',
-      });
-    }
-
-    res.json({
-      success: true,
-      data: {
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-        expiresIn: tokens.expiresIn,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Ошибка обновления токена',
-    });
-  }
-});
-
 // Get current user (authenticated)
 router.get('/me', authenticateToken, authController.getCurrentUser.bind(authController));
 
