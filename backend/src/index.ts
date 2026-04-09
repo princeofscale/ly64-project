@@ -151,7 +151,19 @@ class ApplicationServer {
   }
 
   private getAllowedOrigins(): ReadonlyArray<string> {
-    return this.config.frontendUrl ? [this.config.frontendUrl] : [];
+    const origins: string[] = [];
+    if (this.config.frontendUrl) {
+      origins.push(this.config.frontendUrl);
+      // Also allow www and http variants
+      const url = this.config.frontendUrl;
+      if (url.startsWith('https://') && !url.includes('www.')) {
+        origins.push(url.replace('https://', 'https://www.'));
+      }
+      if (url.startsWith('https://')) {
+        origins.push(url.replace('https://', 'http://'));
+      }
+    }
+    return origins;
   }
 
   private isDevelopmentEnvironment(): boolean {
@@ -163,7 +175,7 @@ class ApplicationServer {
     allowedOrigins: ReadonlyArray<string>,
     isDevelopment: boolean
   ): boolean {
-    if (!origin && isDevelopment) {
+    if (!origin) {
       return true;
     }
 
