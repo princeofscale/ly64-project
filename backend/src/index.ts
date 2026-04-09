@@ -2,7 +2,6 @@ import { createServer } from 'http';
 
 import compression from 'compression';
 import cors from 'cors';
-import compression from 'compression';
 import dotenv from 'dotenv';
 import express from 'express';
 
