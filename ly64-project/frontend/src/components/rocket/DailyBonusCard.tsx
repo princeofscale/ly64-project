@@ -42,9 +42,9 @@ export const DailyBonusCard = memo(function DailyBonusCard({
         available
           ? {
               boxShadow: [
-                '0 0 0 rgba(251,191,36,0)',
-                '0 0 30px rgba(251,191,36,0.4)',
-                '0 0 0 rgba(251,191,36,0)',
+                '0 0 0px 0px rgba(251,191,36,0)',
+                '0 0 30px 4px rgba(251,191,36,0.4)',
+                '0 0 0px 0px rgba(251,191,36,0)',
               ],
             }
           : {}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
 import {
+  AutoCashoutWatcher,
   BetPanel,
   DailyBonusCard,
   FairnessNote,
@@ -30,7 +31,10 @@ import type {
 } from '@lyceum64/shared';
 
 export default function RocketPage() {
-  const { state, multiplier, connected } = useRocketStore();
+  // Selectors: RocketPage only re-renders on slow-changing state (status, bets, history)
+  // multiplier (10Hz) is consumed by GameCanvas and BetPanel directly via their own selectors
+  const state = useRocketStore(s => s.state);
+  const connected = useRocketStore(s => s.connected);
   const { user, isAuthenticated, setRutheniumBalance } = useAuthStore();
   const balance = user?.rutheniumBalance ?? 0;
   const onlineCount = state?.onlineCount ?? 0;
@@ -47,6 +51,10 @@ export default function RocketPage() {
   const [showStats, setShowStats] = useState(false);
 
   useEffect(() => {
+    // Unlock AudioContext on first user interaction with the page
+    const unlock = () => { soundManager.unlock(); document.removeEventListener('click', unlock); };
+    document.addEventListener('click', unlock, { once: true });
+
     connectRocketSocket();
     rocketApi.getState().then(s => useRocketStore.getState().setState(s)).catch(() => {});
     return () => disconnectRocketSocket();
@@ -166,31 +174,11 @@ export default function RocketPage() {
     }
   }, [refreshMyHistory, setRutheniumBalance]);
 
-  // Автовывод: при достижении целевого множителя один раз дёргает cashOut.
-  // Сбрасываем "выстреляно" на старт нового раунда.
-  const autoFiredFor = useRef<string | null>(null);
-  useEffect(() => {
-    if (state?.status !== 'RUNNING') return;
-    if (!autoEnabled) return;
-    if (!canCashOut) return;
-    if (cashingOut) return;
-    if (state.roundId && autoFiredFor.current === state.roundId) return;
-    const target = parseFloat(autoTarget);
-    if (!Number.isFinite(target) || target < 1.01) return;
-    if (multiplier >= target) {
-      autoFiredFor.current = state.roundId ?? null;
-      handleCashOut();
-    }
-  }, [
-    autoEnabled,
-    autoTarget,
-    canCashOut,
-    cashingOut,
-    handleCashOut,
-    multiplier,
-    state?.roundId,
-    state?.status,
-  ]);
+  const canBet = state?.status === 'BETTING' && !myBet && isAuthenticated;
+  const canCashOut =
+    state?.status === 'RUNNING' && myBet?.status === 'ACTIVE' && isAuthenticated;
+
+  // Auto-cashout is handled by <AutoCashoutWatcher /> which subscribes to multiplier directly
 
   const handleClaimBonus = async () => {
     try {
@@ -210,15 +198,6 @@ export default function RocketPage() {
     }
   };
 
-  const canBet = state?.status === 'BETTING' && !myBet && isAuthenticated;
-  const canCashOut =
-    state?.status === 'RUNNING' && myBet?.status === 'ACTIVE' && isAuthenticated;
-
-  const potentialWin = useMemo(() => {
-    if (!myBet || !canCashOut) return 0;
-    return myBet.amount * multiplier;
-  }, [myBet, multiplier, canCashOut]);
-
   return (
     <div className="min-h-screen bg-[#050816] text-white relative overflow-hidden">
       <Nebula />
@@ -229,7 +208,6 @@ export default function RocketPage() {
           <div className="space-y-6">
             <GameCanvas
               status={state?.status ?? 'BETTING'}
-              multiplier={multiplier}
               crashMultiplier={state?.crashMultiplier}
               bettingSecondsLeft={bettingSecondsLeft}
             />
@@ -240,6 +218,14 @@ export default function RocketPage() {
           </div>
 
           <div className="space-y-4">
+            <AutoCashoutWatcher
+              autoEnabled={autoEnabled}
+              autoTarget={autoTarget}
+              canCashOut={canCashOut}
+              cashingOut={cashingOut}
+              roundId={state?.roundId}
+              onCashOut={handleCashOut}
+            />
             <BetPanel
               betAmount={betAmount}
               setBetAmount={setBetAmount}
@@ -252,7 +238,6 @@ export default function RocketPage() {
               placing={placing}
               cashingOut={cashingOut}
               myBet={myBet}
-              potentialWin={potentialWin}
               onPlaceBet={handlePlaceBet}
               onCashOut={handleCashOut}
               balance={balance}

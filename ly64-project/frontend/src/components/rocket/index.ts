@@ -1,3 +1,4 @@
+export { AutoCashoutWatcher } from './AutoCashoutWatcher';
 export { Nebula, Starfield, GridFloor } from './Background';
 export { BetPanel } from './BetPanel';
 export { DailyBonusCard } from './DailyBonusCard';

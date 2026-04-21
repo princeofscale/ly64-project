@@ -31,6 +31,7 @@ type WSMessage = {
 let ws: WebSocket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let pingTimer: ReturnType<typeof setInterval> | null = null;
+let reconnectAttempts = 0;
 
 const getWsUrl = (): string => {
   const apiUrl = import.meta.env.VITE_API_URL || '';
@@ -55,6 +56,7 @@ export function connectRocketSocket(): void {
   ws = new WebSocket(url);
 
   ws.onopen = () => {
+    reconnectAttempts = 0;
     useRocketStore.getState().setConnected(true);
     const token = useAuthStore.getState().token;
     if (token) {
@@ -102,14 +104,19 @@ export function connectRocketSocket(): void {
     }
   };
 
-  ws.onclose = () => {
+  ws.onclose = (event) => {
     useRocketStore.getState().setConnected(false);
     if (pingTimer) {
       clearInterval(pingTimer);
       pingTimer = null;
     }
+    // code 1000 = intentional close (disconnectRocketSocket called on unmount) — don't reconnect
+    if (event.code === 1000) return;
     if (reconnectTimer) clearTimeout(reconnectTimer);
-    reconnectTimer = setTimeout(() => connectRocketSocket(), 3000);
+    // Exponential backoff: 1s, 2s, 4s, max 10s
+    reconnectAttempts += 1;
+    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), 10000);
+    reconnectTimer = setTimeout(() => connectRocketSocket(), delay);
   };
 
   ws.onerror = () => {
@@ -118,6 +125,7 @@ export function connectRocketSocket(): void {
 }
 
 export function disconnectRocketSocket(): void {
+  reconnectAttempts = 0;
   if (reconnectTimer) {
     clearTimeout(reconnectTimer);
     reconnectTimer = null;
@@ -128,7 +136,7 @@ export function disconnectRocketSocket(): void {
   }
   if (ws) {
     ws.onclose = null;
-    ws.close();
+    ws.close(1000, 'Intentional disconnect');
     ws = null;
   }
   useRocketStore.getState().setConnected(false);

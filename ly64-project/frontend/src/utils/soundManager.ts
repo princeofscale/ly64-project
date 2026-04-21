@@ -21,7 +21,16 @@ class SoundManager {
     if (!this.audioContext) {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
+    // Resume suspended context (browsers suspend AudioContext until a user gesture)
+    if (this.audioContext.state === 'suspended') {
+      this.audioContext.resume().catch(() => {});
+    }
     return this.audioContext;
+  }
+
+  /** Call once on any user interaction to unlock audio */
+  unlock(): void {
+    this.getAudioContext();
   }
 
   private playTone(frequencies: number[], duration: number) {

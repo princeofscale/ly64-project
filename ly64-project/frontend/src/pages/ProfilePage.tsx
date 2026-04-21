@@ -142,6 +142,12 @@ export default function ProfilePage() {
         },
       });
 
+      if (response.status === 401) {
+        useAuthStore.getState().logout();
+        window.location.href = '/login';
+        return;
+      }
+
       if (response.ok) {
         const data = await response.json();
         setUser(data);
@@ -488,18 +494,18 @@ export default function ProfilePage() {
         </div>
 
         {stats?.dailyActivity && stats.dailyActivity.length > 0 && (
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 mb-8">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 mb-8 shadow-lg">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-white flex items-center">
-                <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full mr-2 animate-pulse" />
+              <h2 className="text-base font-semibold text-slate-900 flex items-center">
+                <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full mr-2 animate-pulse" />
                 Активность за 4 недели
               </h2>
-              <div className="flex items-center gap-1 text-xs text-gray-500">
+              <div className="flex items-center gap-1 text-xs text-slate-500">
                 <span>Меньше</span>
                 {[0, 1, 2, 3, 4].map(i => (
                   <div
                     key={i}
-                    className={`w-2 h-2 rounded ${['bg-gray-800', 'bg-cyan-900/50', 'bg-cyan-700/70', 'bg-cyan-500', 'bg-cyan-400'][i]}`}
+                    className={`w-2 h-2 rounded ${['bg-slate-200', 'bg-cyan-200', 'bg-cyan-400', 'bg-cyan-500', 'bg-cyan-600'][i]}`}
                   />
                 ))}
                 <span>Больше</span>
@@ -509,28 +515,28 @@ export default function ProfilePage() {
               {stats.dailyActivity.slice(-28).map((day, index) => {
                 const intensity = day.count === 0 ? 0 : Math.min(Math.ceil(day.count / 2), 4);
                 const colors = [
-                  'bg-gray-800',
-                  'bg-cyan-900/50',
-                  'bg-cyan-700/70',
-                  'bg-cyan-500',
+                  'bg-slate-200',
+                  'bg-cyan-200',
                   'bg-cyan-400',
+                  'bg-cyan-500',
+                  'bg-cyan-600',
                 ];
                 return (
                   <div
                     key={index}
                     className={`w-8 h-8 rounded-lg ${colors[intensity]} hover:scale-110 transition-all cursor-pointer group relative`}
                   >
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 border border-gray-700 shadow-xl">
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 shadow-xl">
                       <div className="font-bold">
                         {new Date(day.date).toLocaleDateString('ru-RU', {
                           day: 'numeric',
                           month: 'short',
                         })}
                       </div>
-                      <div className="text-gray-400">{day.count} тестов</div>
+                      <div className="text-slate-300">{day.count} тестов</div>
                       {day.avgScore > 0 && (
                         <div
-                          className={`${day.avgScore >= 70 ? 'text-green-400' : 'text-yellow-400'}`}
+                          className={`${day.avgScore >= 70 ? 'text-green-300' : 'text-yellow-300'}`}
                         >
                           {day.avgScore.toFixed(0)}% средний балл
                         </div>
@@ -544,9 +550,9 @@ export default function ProfilePage() {
         )}
 
         {stats?.recentAttempts && stats.recentAttempts.length > 0 && (
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6 mb-8">
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-              <span className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse" />
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-8 shadow-lg">
+            <h2 className="text-xl font-semibold text-slate-900 mb-6 flex items-center">
+              <span className="w-2 h-2 bg-purple-500 rounded-full mr-3 animate-pulse" />
               Прогресс по тестам
             </h2>
             <div className="h-64">
@@ -571,22 +577,23 @@ export default function ProfilePage() {
                       <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="name" stroke="#9ca3af" tick={{ fill: '#9ca3af', fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="name" stroke="#64748b" tick={{ fill: '#64748b', fontSize: 12 }} />
                   <YAxis
-                    stroke="#9ca3af"
-                    tick={{ fill: '#9ca3af', fontSize: 12 }}
+                    stroke="#64748b"
+                    tick={{ fill: '#64748b', fontSize: 12 }}
                     domain={[0, 100]}
                     tickFormatter={value => `${value}%`}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#1f2937',
-                      border: '1px solid #374151',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
                       borderRadius: '12px',
                       padding: '12px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                     }}
-                    labelStyle={{ color: '#9ca3af', marginBottom: '4px' }}
+                    labelStyle={{ color: '#475569', marginBottom: '4px' }}
                     formatter={(value) => [
                       `${value ?? 0}%`,
                       '',
@@ -609,15 +616,15 @@ export default function ProfilePage() {
         {/* Аналитика */}
         <div className="mb-8 space-y-8">
           {/* Тепловая карта времени дня */}
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
+            <h2 className="text-xl font-semibold text-slate-900 mb-6 flex items-center">
               <span
-                className="w-2 h-2 bg-amber-400 rounded-full mr-3 animate-pulse"
+                className="w-2 h-2 bg-amber-500 rounded-full mr-3 animate-pulse"
                 style={{ animationDelay: '0.7s' }}
               />
               🕒 Тепловая карта активности
             </h2>
-            <p className="text-gray-400 text-sm mb-6">Ваши лучшие результаты по времени суток</p>
+            <p className="text-slate-500 text-sm mb-6">Ваши лучшие результаты по времени суток</p>
 
             <div className="grid grid-cols-12 gap-2">
               {Array.from({ length: 24 }, (_, hour) => {
@@ -639,11 +646,19 @@ export default function ProfilePage() {
                           : 4;
 
                 const colors = [
-                  'bg-gray-800',
-                  'bg-red-900/40',
-                  'bg-yellow-700/60',
-                  'bg-green-600/70',
+                  'bg-slate-100',
+                  'bg-red-200',
+                  'bg-yellow-300',
                   'bg-green-400',
+                  'bg-green-600',
+                ];
+
+                const textColors = [
+                  'text-slate-500',
+                  'text-red-700',
+                  'text-yellow-800',
+                  'text-green-900',
+                  'text-white',
                 ];
 
                 return (
@@ -652,14 +667,14 @@ export default function ProfilePage() {
                       className={`aspect-square rounded-lg ${colors[intensity]} hover:scale-110 transition-all cursor-pointer group relative flex items-center justify-center`}
                       title={`${hour}:00 - ${hourData.testCount} тестов, ${hourData.avgScore.toFixed(0)}%`}
                     >
-                      <span className="text-xs text-gray-400 font-mono">{hour}</span>
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 border border-gray-700 shadow-xl">
+                      <span className={`text-xs ${textColors[intensity]} font-mono font-semibold`}>{hour}</span>
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 shadow-xl">
                         <div className="font-bold">
                           {hour}:00 - {hour + 1}:00
                         </div>
-                        <div className="text-gray-400">{hourData.testCount} тестов</div>
+                        <div className="text-slate-300">{hourData.testCount} тестов</div>
                         <div
-                          className={`${hourData.avgScore >= 70 ? 'text-green-400' : 'text-yellow-400'}`}
+                          className={`${hourData.avgScore >= 70 ? 'text-green-300' : 'text-yellow-300'}`}
                         >
                           {hourData.avgScore.toFixed(0)}% средний балл
                         </div>
@@ -670,13 +685,13 @@ export default function ProfilePage() {
               })}
             </div>
 
-            <div className="flex items-center justify-between mt-6 text-xs text-gray-400">
+            <div className="flex items-center justify-between mt-6 text-xs text-slate-500">
               <span>Низкие результаты</span>
               <div className="flex gap-1">
                 {[0, 1, 2, 3, 4].map(i => (
                   <div
                     key={i}
-                    className={`w-5 h-5 rounded ${['bg-gray-800', 'bg-red-900/40', 'bg-yellow-700/60', 'bg-green-600/70', 'bg-green-400'][i]}`}
+                    className={`w-5 h-5 rounded ${['bg-slate-100', 'bg-red-200', 'bg-yellow-300', 'bg-green-400', 'bg-green-600'][i]}`}
                   />
                 ))}
               </div>
@@ -692,12 +707,12 @@ export default function ProfilePage() {
                 );
 
                 return bestHour && bestHour.testCount > 0 ? (
-                  <div className="mt-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+                  <div className="mt-6 p-4 bg-cyan-50 border border-cyan-200 rounded-xl">
                     <div className="flex items-start gap-3">
                       <span className="text-2xl">💡</span>
                       <div>
-                        <p className="text-cyan-400 font-semibold mb-1">Совет:</p>
-                        <p className="text-gray-300 text-sm">
+                        <p className="text-cyan-700 font-semibold mb-1">Совет:</p>
+                        <p className="text-slate-700 text-sm">
                           Ваши лучшие результаты показаны в {bestHour.hour}:00-{bestHour.hour + 1}
                           :00 ({bestHour.avgScore.toFixed(0)}%). Старайтесь заниматься в это время
                           для максимальной эффективности!

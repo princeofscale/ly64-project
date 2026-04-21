@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion';
-import { memo } from 'react';
+import { memo, useEffect, useLayoutEffect, useRef } from 'react';
 
+import { useRocketStore } from '../../store/rocketStore';
 import { formatRuth, QUICK_BET_AMOUNTS, RUTH_SYMBOL } from './constants';
 
 interface BetPanelProps {
@@ -22,7 +22,6 @@ interface BetPanelProps {
         winAmount?: number;
       }
     | undefined;
-  potentialWin: number;
   onPlaceBet: () => void;
   onCashOut: () => void;
   balance: number;
@@ -42,13 +41,52 @@ export const BetPanel = memo(function BetPanel({
   placing,
   cashingOut,
   myBet,
-  potentialWin,
   onPlaceBet,
   onCashOut,
   balance,
   status,
   bettingSecondsLeft,
 }: BetPanelProps) {
+  /**
+   * Zero-rerender cashout button:
+   * Instead of subscribing to multiplier via hook (which re-renders at 10Hz),
+   * we hold a ref to the button DOM node and update its textContent directly.
+   *
+   * The button has NO JSX children — React creates zero text fiber nodes for it.
+   * Setting textContent is safe: React has nothing to reconcile inside the button,
+   * so there are no removeChild conflicts.
+   *
+   * useLayoutEffect seeds the text synchronously before the first paint (no flash).
+   * useEffect sets up the store subscription for subsequent 10Hz tick updates.
+   */
+  const cashoutBtnRef = useRef<HTMLButtonElement>(null);
+  // Mirror myBet into a ref so the subscribe callback always reads fresh values
+  const myBetRef = useRef(myBet);
+  myBetRef.current = myBet;
+
+  // Seed before first paint to avoid empty-button flash
+  useLayoutEffect(() => {
+    if (!canCashOut || !cashoutBtnRef.current || !myBetRef.current) return;
+    const m = useRocketStore.getState().multiplier;
+    cashoutBtnRef.current.textContent = `Забрать ${formatRuth(myBetRef.current.amount * m)} ${RUTH_SYMBOL}`;
+  }, [canCashOut]);
+
+  useEffect(() => {
+    if (!canCashOut) return;
+    let prevM = useRocketStore.getState().multiplier;
+    const unsubscribe = useRocketStore.subscribe(state => {
+      const m = state.multiplier;
+      if (m === prevM) return;
+      prevM = m;
+      const el = cashoutBtnRef.current;
+      const bet = myBetRef.current;
+      if (el && bet) {
+        el.textContent = `Забрать ${formatRuth(bet.amount * m)} ${RUTH_SYMBOL}`;
+      }
+    });
+    return unsubscribe;
+  }, [canCashOut]);
+
   const changeAmount = (factor: number) => {
     const current = parseFloat(betAmount || '0');
     const next = Math.max(0.1, current * factor);
@@ -141,15 +179,14 @@ export const BetPanel = memo(function BetPanel({
       </div>
 
       {canCashOut ? (
-        <motion.button
+        /* Button has NO JSX children — text is set via textContent in useLayoutEffect/useEffect.
+           This prevents React's removeChild error when textContent replaces React-managed text nodes. */
+        <button
+          ref={cashoutBtnRef}
           onClick={onCashOut}
           disabled={cashingOut}
-          className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-black text-lg shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all disabled:opacity-60"
-          animate={{ scale: [1, 1.02, 1] }}
-          transition={{ repeat: Infinity, duration: 0.8 }}
-        >
-          Забрать {formatRuth(potentialWin)} {RUTH_SYMBOL}
-        </motion.button>
+          className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-black text-lg shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all disabled:opacity-60 animate-cashout-pulse"
+        />
       ) : myBet && status === 'RUNNING' && myBet.status !== 'ACTIVE' ? (
         <button
           disabled

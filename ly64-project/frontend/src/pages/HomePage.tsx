@@ -148,7 +148,7 @@ function HomePage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await api.get('/api/stats');
+        const response = await api.get('/stats');
         if (response.data.success) {
           setStats({
             usersCount: response.data.data.usersCount,

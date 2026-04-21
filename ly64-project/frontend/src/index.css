@@ -1,5 +1,28 @@
 @import 'tailwindcss';
 
+/* Cashout button pulse — CSS animation runs on compositor thread,
+   unaffected by React re-renders every 100ms tick */
+@keyframes cashout-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+
+.animate-cashout-pulse {
+  animation: cashout-pulse 0.8s ease-in-out infinite;
+}
+
+/* Multiplier text pulse — replaces Framer Motion animate on motion.p.
+   Using plain <p> + CSS avoids Framer Motion's internal <Text> wrapper
+   which conflicts with direct textContent mutations. */
+@keyframes multiplier-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.animate-multiplier-pulse {
+  animation: multiplier-pulse 0.6s ease-in-out infinite;
+}
+
 /*
  * LYCEUM 64 - Design System
  * Light theme - Educational Platform

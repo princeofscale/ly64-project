@@ -196,7 +196,7 @@ class DatabaseSeeder:
 
 
 def main() -> None:
-    db_path = Path(__file__).parent.parent / "prisma" / "dev.db"
+    db_path = Path(__file__).parent.parent / "dev.db"
 
     if not db_path.exists():
         print(f"Error: Database not found at {db_path}")

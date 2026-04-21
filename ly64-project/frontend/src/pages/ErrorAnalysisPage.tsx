@@ -109,6 +109,11 @@ export default function ErrorAnalysisPage() {
       const res = await fetch('/api/users/error-analysis', {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (res.status === 401) {
+        useAuthStore.getState().logout();
+        window.location.href = '/login';
+        return;
+      }
       if (res.ok) {
         const result = await res.json();
         setData(result.data);
