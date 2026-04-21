@@ -1,0 +1,31 @@
+/* Pure CSS animations for starfield - no JS re-renders */
+
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.9; }
+}
+
+@keyframes star-drift {
+  0%, 100% { opacity: 0.3; transform: translateX(0); }
+  50% { opacity: 1; transform: translateX(-8px); }
+}
+
+@keyframes shooting-star {
+  0% { transform: translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateX(120vw); opacity: 0; }
+}
+
+.star-twinkle {
+  animation: star-twinkle infinite ease-in-out;
+}
+
+.star-drift {
+  animation: star-drift infinite ease-in-out;
+}
+
+.shooting-star {
+  animation: shooting-star infinite ease-out;
+  animation-iteration-count: infinite;
+}

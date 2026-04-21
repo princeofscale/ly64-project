@@ -1,0 +1,27 @@
+
+// Модель достижения
+model Achievement {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  icon        String
+  condition   String   // Условие получения
+  points      Int      // Баллы за достижение
+
+  createdAt   DateTime @default(now())
+
+  userAchievements UserAchievement[]
+}
+
+// Достижения пользователей
+model UserAchievement {
+  id            String   @id @default(uuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+}

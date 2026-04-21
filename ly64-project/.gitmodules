@@ -1,0 +1,4 @@
+[submodule "sdamgia_api"]
+        path = sdamgia_api
+        url = https://github.com/princeofscale/oge-sdamgia-api
+        branch = main

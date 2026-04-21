@@ -1,0 +1,15 @@
+echo "🔍 Проверка билда перед push..."
+
+# Проверка типов (только backend, frontend имеет legacy TS ошибки)
+echo "📝 Проверка TypeScript (backend)..."
+npm run type-check --workspace=backend
+if [ $? -ne 0 ]; then
+  echo "❌ Ошибки типизации в backend! Исправьте их перед push."
+  exit 1
+fi
+
+# TODO: ESLint 10 несовместим с eslint-plugin-react/import - нужен даунгрейд до v9
+# echo "🔧 Проверка ESLint..."
+# npm run lint
+
+echo "✅ Проверки пройдены! Push разрешен."
