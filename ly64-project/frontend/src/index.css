@@ -1,7 +1,5 @@
 @import 'tailwindcss';
 
-/* Cashout button pulse — CSS animation runs on compositor thread,
-   unaffected by React re-renders every 100ms tick */
 @keyframes cashout-pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.025); }
@@ -11,9 +9,6 @@
   animation: cashout-pulse 0.8s ease-in-out infinite;
 }
 
-/* Multiplier text pulse — replaces Framer Motion animate on motion.p.
-   Using plain <p> + CSS avoids Framer Motion's internal <Text> wrapper
-   which conflicts with direct textContent mutations. */
 @keyframes multiplier-pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.02); }
@@ -22,11 +17,6 @@
 .animate-multiplier-pulse {
   animation: multiplier-pulse 0.6s ease-in-out infinite;
 }
-
-/*
- * LYCEUM 64 - Design System
- * Light theme - Educational Platform
- */
 
 :root {
   --color-primary: #2563eb;
@@ -49,7 +39,6 @@
   --color-text-muted: #94a3b8;
 }
 
-/* Base styles */
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
@@ -66,13 +55,11 @@ body {
     sans-serif;
 }
 
-/* Selection */
 ::selection {
   background-color: rgba(37, 99, 235, 0.2);
   color: var(--color-primary-dark);
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -91,12 +78,10 @@ body {
   background-color: #94a3b8;
 }
 
-/* Typography */
 .font-display {
   font-family: 'Outfit', 'Inter', system-ui, sans-serif;
 }
 
-/* Animations */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -169,14 +154,12 @@ body {
   animation: pulse-soft 2s ease-in-out infinite;
 }
 
-/* Animation delays */
 .animation-delay-100 { animation-delay: 100ms; }
 .animation-delay-200 { animation-delay: 200ms; }
 .animation-delay-300 { animation-delay: 300ms; }
 .animation-delay-400 { animation-delay: 400ms; }
 .animation-delay-500 { animation-delay: 500ms; }
 
-/* Container utilities */
 .container-wide {
   max-width: 80rem;
   margin-left: auto;
@@ -199,7 +182,6 @@ body {
   }
 }
 
-/* Card styles */
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -217,7 +199,6 @@ body {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
-/* Button base styles */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -250,7 +231,6 @@ body {
   border-color: #cbd5e1;
 }
 
-/* Form inputs */
 .input {
   width: 100%;
   padding: 0.75rem 1rem;
@@ -271,7 +251,6 @@ body {
   color: var(--color-text-muted);
 }
 
-/* Gradient backgrounds */
 .bg-gradient-primary {
   background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
 }
@@ -280,7 +259,6 @@ body {
   background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
 }
 
-/* Badge styles */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -301,7 +279,6 @@ body {
   color: var(--color-success);
 }
 
-/* Progress bar */
 .progress-bar {
   height: 0.5rem;
   background: var(--color-bg-tertiary);
@@ -316,7 +293,6 @@ body {
   transition: width 0.3s ease;
 }
 
-/* Stat card */
 .stat-card {
   padding: 1.5rem;
   background: var(--color-surface);
@@ -337,13 +313,11 @@ body {
   margin-top: 0.25rem;
 }
 
-/* Focus ring */
 .focus-ring:focus {
   outline: none;
   box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary);
 }
 
-/* Skeleton loading */
 .skeleton {
   background: linear-gradient(90deg, var(--color-bg-tertiary) 25%, var(--color-bg-secondary) 50%, var(--color-bg-tertiary) 75%);
   background-size: 200% 100%;

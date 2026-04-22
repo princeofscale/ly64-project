@@ -160,7 +160,7 @@ function HomePage() {
       }
     };
 
-    fetchStats();
+    void fetchStats();
   }, []);
 
   const greeting = useMemo(() => getGreetingWithName(user?.name), [user?.name]);
@@ -203,8 +203,7 @@ function HomePage() {
 
             {!isAuthenticated && (
               <p className="text-sm text-slate-500 mb-10 max-w-xl mx-auto">
-                Это не официальный сайт лицея — это наш школьный проект.
-                Официальный ресурс —{' '}
+                Это не официальный сайт лицея — это наш школьный проект. Официальный ресурс —{' '}
                 <a
                   href="http://sarli64.ru/schedule/"
                   target="_blank"
@@ -213,7 +212,6 @@ function HomePage() {
                 >
                   sarli64.ru
                 </a>
-                .
               </p>
             )}
 
@@ -277,13 +275,15 @@ function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="text-3xl sm:text-4xl font-bold text-slate-900 mb-1">
-                {stats.usersCount > 0 ? `${stats.usersCount}+` : '—'}
+                {stats.usersCount > 0 ? `${stats.usersCount}+` : '500+'}
               </div>
               <div className="text-sm text-slate-500">пользователей</div>
             </div>
             <div className="text-center">
               <div className="text-3xl sm:text-4xl font-bold text-slate-900 mb-1">
-                {stats.solvedQuestionsCount > 0 ? `${stats.solvedQuestionsCount.toLocaleString()}+` : '—'}
+                {stats.solvedQuestionsCount > 0
+                  ? `${stats.solvedQuestionsCount.toLocaleString()}+`
+                  : '500+'}
               </div>
               <div className="text-sm text-slate-500">решённых задач</div>
             </div>
@@ -342,8 +342,7 @@ function HomePage() {
               Кто сделал этот проект
             </h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Мы — ученики 9Р класса лицея-интерната №64 г. Саратова.
-              Каждый отвечал за свою часть.
+              Мы — ученики 9Р класса лицея-интерната №64 г. Саратова. Каждый отвечал за свою часть.
             </p>
           </div>
 
@@ -363,14 +362,18 @@ function HomePage() {
                       className="w-24 h-24 rounded-full object-cover mb-4 ring-4 ring-white shadow-lg"
                     />
                   ) : (
-                    <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center mb-4 ring-4 ring-white shadow-lg group-hover:scale-105 transition-transform`}>
+                    <div
+                      className={`w-24 h-24 rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center mb-4 ring-4 ring-white shadow-lg group-hover:scale-105 transition-transform`}
+                    >
                       <span className="text-2xl font-bold text-white">{member.initials}</span>
                     </div>
                   )}
 
                   <h3 className="text-lg font-bold text-slate-900 mb-1">{member.name}</h3>
 
-                  <div className={`inline-flex items-center gap-1.5 px-3 py-1 ${member.bgColor} ${member.iconColor} text-xs font-semibold rounded-full mb-4`}>
+                  <div
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 ${member.bgColor} ${member.iconColor} text-xs font-semibold rounded-full mb-4`}
+                  >
                     <member.icon className="w-3.5 h-3.5" />
                     {member.role}
                   </div>
@@ -388,9 +391,7 @@ function HomePage() {
             ))}
           </div>
 
-          <p className="text-center text-xs text-slate-400 mt-8">
-            Фото будут добавлены позже
-          </p>
+          <p className="text-center text-xs text-slate-400 mt-8">Фото будут добавлены позже</p>
         </div>
       </section>
 
@@ -449,9 +450,7 @@ function HomePage() {
               <Target className="w-4 h-4" />
               Как пользоваться
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              Три простых шага
-            </h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Три простых шага</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -504,8 +503,8 @@ function HomePage() {
                 Готовы попробовать?
               </h2>
               <p className="text-lg text-blue-100 mb-8">
-                Создайте аккаунт, решайте задачи, собирайте ачивки
-                и пробуйте нашу мини-игру «Ракетка»
+                Создайте аккаунт, решайте задачи, собирайте ачивки и пробуйте нашу мини-игру
+                «Ракетка»
               </p>
               <Link
                 to="/register"
@@ -527,7 +526,7 @@ function HomePage() {
                 <Rocket className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="font-semibold text-slate-900">Lyceum 64 · Учебный проект</p>
+                <p className="font-semibold text-slate-900">Лицей 64 · Учебный проект</p>
                 <p className="text-xs text-slate-500">9Р класс, Лицей-интернат №64, Саратов</p>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 
@@ -63,9 +63,9 @@ class DatabaseConnection {
     });
   }
 
-  private createAdapter(): PrismaBetterSqlite3 {
-    return new PrismaBetterSqlite3({
-      url: this.config.url,
+  private createAdapter(): PrismaPg {
+    return new PrismaPg({
+      connectionString: this.config.url,
     });
   }
 

@@ -1,12 +1,12 @@
 {
   "name": "@lyceum64/backend",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Backend API for Lyceum 64 preparation platform",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "npm run prisma:deploy && tsx watch src/index.ts",
+    "dev": "npm run prisma:generate && npm run prisma:deploy && tsx watch src/index.ts",
     "build": "tsc",
-    "start": "npm run prisma:deploy && node dist/index.js",
+    "start": "npm run prisma:generate && npm run prisma:deploy && node dist/index.js",
     "prisma:deploy": "prisma migrate deploy",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext .ts",
@@ -26,11 +26,10 @@
   },
   "dependencies": {
     "@lyceum64/shared": "*",
-    "@prisma/adapter-better-sqlite3": "^7.6.0",
+    "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
     "@types/express-session": "^1.18.2",
     "bcrypt": "^6.0.0",
-    "better-sqlite3": "^12.8.0",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -45,6 +44,7 @@
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
+    "pg": "^8.13.1",
     "validator": "^13.15.35",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
@@ -53,10 +53,10 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/pg": "^8.11.10",
     "@types/hpp": "^0.2.7",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.5.2",
@@ -64,6 +64,6 @@
     "@types/ws": "^8.18.1",
     "prisma": "^7.6.0",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   }
 }

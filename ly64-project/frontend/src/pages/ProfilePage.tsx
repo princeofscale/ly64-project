@@ -725,33 +725,33 @@ export default function ProfilePage() {
           </div>
 
           {/* Сравнение со средним */}
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
+            <h2 className="text-xl font-semibold text-slate-900 mb-6 flex items-center">
               <span
-                className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse"
+                className="w-2 h-2 bg-purple-500 rounded-full mr-3 animate-pulse"
                 style={{ animationDelay: '0.9s' }}
               />
               📊 Сравнение с другими пользователями
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold text-cyan-400 mb-1">
+              <div className="bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl p-4 text-center">
+                <div className="text-3xl font-bold text-cyan-600 mb-1">
                   #{stats?.userRank || '—'}
                 </div>
-                <div className="text-gray-400 text-xs">Ваше место</div>
+                <div className="text-slate-500 text-xs">Ваше место</div>
               </div>
-              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold text-purple-400 mb-1">
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 text-center">
+                <div className="text-3xl font-bold text-purple-600 mb-1">
                   {stats?.percentile || 0}%
                 </div>
-                <div className="text-gray-400 text-xs">Перцентиль</div>
+                <div className="text-slate-500 text-xs">Перцентиль</div>
               </div>
-              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold text-green-400 mb-1">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 text-center">
+                <div className="text-3xl font-bold text-green-600 mb-1">
                   {stats?.usersBeaten || 0}
                 </div>
-                <div className="text-gray-400 text-xs">Обогнали из {stats?.totalUsers || 0}</div>
+                <div className="text-slate-500 text-xs">Обогнали из {stats?.totalUsers || 0}</div>
               </div>
             </div>
 
@@ -759,12 +759,12 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-sm">Ваш средний балл</span>
-                    <span className="text-2xl font-bold text-cyan-400">
+                    <span className="text-slate-500 text-sm">Ваш средний балл</span>
+                    <span className="text-2xl font-bold text-cyan-600">
                       {stats?.averageScore || 0}%
                     </span>
                   </div>
-                  <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-1000"
                       style={{ width: `${stats?.averageScore || 0}%` }}
@@ -774,14 +774,14 @@ export default function ProfilePage() {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-sm">Средний балл платформы</span>
-                    <span className="text-2xl font-bold text-gray-400">
+                    <span className="text-slate-500 text-sm">Средний балл платформы</span>
+                    <span className="text-2xl font-bold text-slate-500">
                       {stats?.platformAverage || 0}%
                     </span>
                   </div>
-                  <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-gray-600 to-gray-500 rounded-full"
+                      className="h-full bg-gradient-to-r from-slate-400 to-slate-300 rounded-full"
                       style={{ width: `${stats?.platformAverage || 0}%` }}
                     />
                   </div>
@@ -791,7 +791,7 @@ export default function ProfilePage() {
               <div className="flex items-center justify-center">
                 <div className="relative w-40 h-40">
                   <svg className="w-full h-full transform -rotate-90">
-                    <circle cx="80" cy="80" r="70" stroke="#1f2937" strokeWidth="12" fill="none" />
+                    <circle cx="80" cy="80" r="70" stroke="#e2e8f0" strokeWidth="12" fill="none" />
                     <circle
                       cx="80"
                       cy="80"
@@ -811,22 +811,22 @@ export default function ProfilePage() {
                     </defs>
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-bold text-white">
+                    <span className="text-3xl font-bold text-slate-900">
                       топ {100 - (stats?.percentile || 0)}%
                     </span>
-                    <span className="text-gray-400 text-xs">пользователей</span>
+                    <span className="text-slate-500 text-xs">пользователей</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {(stats?.percentile || 0) >= 70 ? (
-              <div className="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">🏆</span>
                   <div>
-                    <p className="text-green-400 font-semibold mb-1">Вы в топе!</p>
-                    <p className="text-gray-300 text-sm">
+                    <p className="text-green-600 font-semibold mb-1">Вы в топе!</p>
+                    <p className="text-slate-700 text-sm">
                       Вы входите в топ {100 - (stats?.percentile || 0)}% пользователей платформы.
                       Обогнали {stats?.usersBeaten || 0} из {stats?.totalUsers || 0} учеников!
                     </p>
@@ -834,12 +834,12 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (stats?.percentile || 0) >= 40 ? (
-              <div className="mt-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+              <div className="mt-6 p-4 bg-cyan-50 border border-cyan-200 rounded-xl">
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">📈</span>
                   <div>
-                    <p className="text-cyan-400 font-semibold mb-1">Хороший результат!</p>
-                    <p className="text-gray-300 text-sm">
+                    <p className="text-cyan-600 font-semibold mb-1">Хороший результат!</p>
+                    <p className="text-slate-700 text-sm">
                       Вы показываете результаты выше среднего. Ещё немного усилий, и вы войдёте в
                       топ!
                     </p>
@@ -847,12 +847,12 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">💪</span>
                   <div>
-                    <p className="text-amber-400 font-semibold mb-1">Время для рывка!</p>
-                    <p className="text-gray-300 text-sm">
+                    <p className="text-amber-600 font-semibold mb-1">Время для рывка!</p>
+                    <p className="text-slate-700 text-sm">
                       Регулярные занятия помогут вам подняться выше. Сфокусируйтесь на слабых темах!
                     </p>
                   </div>
@@ -863,41 +863,41 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Предсказание баллов */}
-            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
-              <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
+              <h2 className="text-xl font-semibold text-slate-900 mb-6 flex items-center">
                 <span
-                  className="w-2 h-2 bg-pink-400 rounded-full mr-3 animate-pulse"
+                  className="w-2 h-2 bg-pink-500 rounded-full mr-3 animate-pulse"
                   style={{ animationDelay: '1.1s' }}
                 />
                 🤖 ИИ прогноз результата
               </h2>
 
               <div className="text-center mb-6">
-                <div className="inline-block p-6 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-2xl border border-pink-500/30">
-                  <div className="text-5xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                <div className="inline-block p-6 bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl border border-pink-200">
+                  <div className="text-5xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-2">
                     {stats?.predictedScore || 78}%
                   </div>
-                  <p className="text-gray-400 text-sm">Прогноз на экзамен</p>
+                  <p className="text-slate-500 text-sm">Прогноз на экзамен</p>
                 </div>
               </div>
 
               <div className="space-y-3 mb-6">
-                <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl">
-                  <span className="text-gray-400 text-sm">Текущий средний балл</span>
-                  <span className="text-white font-semibold">{stats?.averageScore || 0}%</span>
+                <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  <span className="text-slate-500 text-sm">Текущий средний балл</span>
+                  <span className="text-slate-900 font-semibold">{stats?.averageScore || 0}%</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl">
-                  <span className="text-gray-400 text-sm">Динамика за неделю</span>
+                <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  <span className="text-slate-500 text-sm">Динамика за неделю</span>
                   <span
-                    className={`font-semibold ${(stats?.weeklyProgress || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                    className={`font-semibold ${(stats?.weeklyProgress || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}
                   >
                     {(stats?.weeklyProgress || 0) >= 0 ? '+' : ''}
                     {stats?.weeklyProgress || 0}%
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl">
-                  <span className="text-gray-400 text-sm">Уверенность прогноза</span>
-                  <span className="text-cyan-400 font-semibold">
+                <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  <span className="text-slate-500 text-sm">Уверенность прогноза</span>
+                  <span className="text-cyan-600 font-semibold">
                     {stats?.predictionConfidence || 0}%
                   </span>
                 </div>
@@ -908,7 +908,7 @@ export default function ProfilePage() {
                   {stats.predictionFactors.map((factor, i) => (
                     <span
                       key={i}
-                      className="px-3 py-1 bg-pink-500/20 border border-pink-500/30 rounded-full text-pink-400 text-xs"
+                      className="px-3 py-1 bg-pink-50 border border-pink-200 rounded-full text-pink-600 text-xs"
                     >
                       {factor}
                     </span>
@@ -916,12 +916,12 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+              <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">✨</span>
                   <div>
-                    <p className="text-purple-400 font-semibold mb-1">Анализ ИИ</p>
-                    <p className="text-gray-300 text-sm">
+                    <p className="text-purple-600 font-semibold mb-1">Анализ ИИ</p>
+                    <p className="text-slate-700 text-sm">
                       {(stats?.totalTests || 0) < 3
                         ? 'Пройдите ещё несколько тестов для точного прогноза. Минимум 3 теста для анализа.'
                         : `Прогноз основан на ${stats?.totalTests} тестов. При текущей динамике вы можете улучшить результат до ${Math.min(100, (stats?.predictedScore || 0) + 5).toFixed(0)}%!`}
@@ -932,10 +932,10 @@ export default function ProfilePage() {
             </div>
 
             {/* Слабые места */}
-            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
-              <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
+              <h2 className="text-xl font-semibold text-slate-900 mb-6 flex items-center">
                 <span
-                  className="w-2 h-2 bg-red-400 rounded-full mr-3 animate-pulse"
+                  className="w-2 h-2 bg-red-500 rounded-full mr-3 animate-pulse"
                   style={{ animationDelay: '1.3s' }}
                 />
                 🎯 Темы для улучшения
@@ -946,12 +946,12 @@ export default function ProfilePage() {
                   stats.weakTopics.slice(0, 5).map((topic, index) => (
                     <div
                       key={index}
-                      className="p-4 bg-gray-800/50 rounded-xl hover:bg-gray-800/70 transition-all"
+                      className="p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-all"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
-                          <h3 className="text-white font-semibold">{topic.topic}</h3>
-                          <p className="text-gray-400 text-xs">
+                          <h3 className="text-slate-900 font-semibold">{topic.topic}</h3>
+                          <p className="text-slate-500 text-xs">
                             {getSubjectLabel(topic.subject)} • {topic.totalAttempts} попыток
                           </p>
                         </div>
@@ -959,19 +959,19 @@ export default function ProfilePage() {
                           <div
                             className={`text-2xl font-bold ${
                               topic.avgScore < 50
-                                ? 'text-red-400'
+                                ? 'text-red-600'
                                 : topic.avgScore < 60
-                                  ? 'text-orange-400'
+                                  ? 'text-orange-600'
                                   : topic.avgScore < 70
-                                    ? 'text-yellow-400'
-                                    : 'text-green-400'
+                                    ? 'text-yellow-600'
+                                    : 'text-green-600'
                             }`}
                           >
                             {topic.avgScore}%
                           </div>
                         </div>
                       </div>
-                      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${
                             topic.avgScore < 50
@@ -988,7 +988,7 @@ export default function ProfilePage() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-slate-500">
                     <div className="text-4xl mb-2">🎯</div>
                     <p>Пройдите несколько тестов, чтобы мы смогли определить темы для улучшения</p>
                   </div>
@@ -996,12 +996,12 @@ export default function ProfilePage() {
               </div>
 
               {stats?.weakTopics && stats.weakTopics.length > 0 && (
-                <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl">
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl">
                   <div className="flex items-start gap-3">
                     <span className="text-2xl">📚</span>
                     <div>
-                      <p className="text-orange-400 font-semibold mb-1">Рекомендация</p>
-                      <p className="text-gray-300 text-sm">
+                      <p className="text-orange-600 font-semibold mb-1">Рекомендация</p>
+                      <p className="text-slate-700 text-sm">
                         Уделите больше внимания этим темам. Решение дополнительных 5-10 задач может
                         повысить ваш балл на 10-15%!
                       </p>
@@ -1015,29 +1015,29 @@ export default function ProfilePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
-            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
-              <h2 className="text-xl font-semibold text-white mb-4">Информация</h2>
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
+              <h2 className="text-xl font-semibold text-slate-900 mb-4">Информация</h2>
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500">Статус</p>
-                  <p className="text-white">{USER_STATUS_LABELS[user.status]}</p>
+                  <p className="text-sm text-slate-500">Статус</p>
+                  <p className="text-slate-900">{USER_STATUS_LABELS[user.status]}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Класс</p>
-                  <p className="text-white">{CURRENT_GRADE_LABELS[user.currentGrade]}</p>
+                  <p className="text-sm text-slate-500">Класс</p>
+                  <p className="text-slate-900">{CURRENT_GRADE_LABELS[user.currentGrade]}</p>
                 </div>
                 {user.desiredDirection && (
                   <div>
-                    <p className="text-sm text-gray-500">Направление</p>
-                    <p className="text-cyan-400">
+                    <p className="text-sm text-slate-500">Направление</p>
+                    <p className="text-cyan-600">
                       {DIRECTION_LABELS[user.desiredDirection as keyof typeof DIRECTION_LABELS]}
                     </p>
                   </div>
                 )}
                 <div>
-                  <p className="text-sm text-gray-500">На платформе с</p>
-                  <p className="text-white">
+                  <p className="text-sm text-slate-500">На платформе с</p>
+                  <p className="text-slate-900">
                     {new Date(user.createdAt).toLocaleDateString('ru-RU', {
                       year: 'numeric',
                       month: 'long',
@@ -1046,10 +1046,10 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-gray-700">
+              <div className="mt-6 pt-6 border-t border-slate-200">
                 <Link
                   to={`/profiles/${user.username}`}
-                  className="text-cyan-400 hover:text-cyan-300 text-sm flex items-center gap-2"
+                  className="text-cyan-600 hover:text-cyan-700 text-sm flex items-center gap-2"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -1077,10 +1077,10 @@ export default function ProfilePage() {
           </div>
 
           <div className="lg:col-span-2">
-            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-white">Достижения</h2>
-                <span className="text-sm text-gray-400">
+                <h2 className="text-xl font-semibold text-slate-900">Достижения</h2>
+                <span className="text-sm text-slate-500">
                   {unlockedAchievements.length} из {achievements.length}
                 </span>
               </div>
@@ -1097,13 +1097,13 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-gray-500 py-8">
+                <p className="text-center text-slate-500 py-8">
                   Пока нет разблокированных достижений
                 </p>
               )}
 
               {achievements.length > 6 && (
-                <button className="w-full mt-4 py-3 text-cyan-400 hover:text-cyan-300 transition-colors">
+                <button className="w-full mt-4 py-3 text-cyan-600 hover:text-cyan-700 transition-colors">
                   Показать все достижения
                 </button>
               )}

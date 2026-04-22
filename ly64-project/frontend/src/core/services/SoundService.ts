@@ -1,8 +1,3 @@
-/**
- * Sound Service
- * Управление звуковыми эффектами в приложении
- */
-
 type SoundType =
   | 'click'
   | 'success'
@@ -21,9 +16,6 @@ interface SoundConfig {
 
 const STORAGE_KEY = 'sound-settings';
 
-/**
- * Web Audio API based sound generator
- */
 class SoundService {
   private static instance: SoundService;
   private audioContext: AudioContext | null = null;
@@ -65,30 +57,29 @@ class SoundService {
   private getAudioContext(): AudioContext | null {
     if (!this.audioContext) {
       try {
-        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      } catch (error) {
+        this.audioContext = new (
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+        )();
+      } catch {
         console.error('[SoundService] AudioContext not supported');
         return null;
       }
     }
 
-    // Resume suspended context (happens after user interaction requirement)
     if (this.audioContext.state === 'suspended') {
-      this.audioContext.resume();
+      void this.audioContext.resume();
     }
 
     return this.audioContext;
   }
 
-  /**
-   * Play a synthesized sound
-   */
   private playTone(
     frequency: number,
     duration: number,
     type: OscillatorType = 'sine',
     attack = 0.01,
-    decay = 0.1
+    decay = 0.1,
   ): void {
     if (!this.config.enabled) return;
 
@@ -104,12 +95,11 @@ class SoundService {
     oscillator.type = type;
     oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
 
-    // ADSR envelope
     gainNode.gain.setValueAtTime(0, ctx.currentTime);
     gainNode.gain.linearRampToValueAtTime(this.config.volume, ctx.currentTime + attack);
     gainNode.gain.linearRampToValueAtTime(
       this.config.volume * 0.7,
-      ctx.currentTime + attack + decay
+      ctx.currentTime + attack + decay,
     );
     gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
 
@@ -117,12 +107,9 @@ class SoundService {
     oscillator.stop(ctx.currentTime + duration);
   }
 
-  /**
-   * Play multiple tones in sequence (melody)
-   */
   private playMelody(
     notes: { freq: number; duration: number; delay: number }[],
-    type: OscillatorType = 'sine'
+    type: OscillatorType = 'sine',
   ): void {
     if (!this.config.enabled) return;
 
@@ -136,20 +123,15 @@ class SoundService {
     });
   }
 
-  /**
-   * Play sound by type
-   */
   public play(sound: SoundType): void {
     if (!this.config.enabled) return;
 
     switch (sound) {
       case 'click':
-        // Short click sound
         this.playTone(800, 0.05, 'square', 0.001, 0.01);
         break;
 
       case 'success':
-        // Pleasant success ding
         this.playMelody([
           { freq: 523.25, duration: 0.15, delay: 0 }, // C5
           { freq: 659.25, duration: 0.15, delay: 0.1 }, // E5
@@ -158,12 +140,10 @@ class SoundService {
         break;
 
       case 'error':
-        // Error buzz
         this.playTone(200, 0.3, 'sawtooth', 0.01, 0.05);
         break;
 
       case 'warning':
-        // Warning beep
         this.playMelody([
           { freq: 440, duration: 0.1, delay: 0 },
           { freq: 440, duration: 0.1, delay: 0.15 },
@@ -171,7 +151,6 @@ class SoundService {
         break;
 
       case 'complete':
-        // Test completion fanfare
         this.playMelody([
           { freq: 523.25, duration: 0.1, delay: 0 }, // C5
           { freq: 587.33, duration: 0.1, delay: 0.1 }, // D5
@@ -182,7 +161,6 @@ class SoundService {
         break;
 
       case 'achievement':
-        // Achievement unlock sound
         this.playMelody(
           [
             { freq: 392, duration: 0.1, delay: 0 }, // G4
@@ -191,22 +169,19 @@ class SoundService {
             { freq: 783.99, duration: 0.15, delay: 0.3 }, // G5
             { freq: 1046.5, duration: 0.3, delay: 0.45 }, // C6
           ],
-          'triangle'
+          'triangle',
         );
         break;
 
       case 'navigation':
-        // Subtle navigation tick
         this.playTone(600, 0.03, 'sine', 0.001, 0.01);
         break;
 
       case 'timer':
-        // Timer tick (warning when time is low)
         this.playTone(440, 0.05, 'square', 0.001, 0.02);
         break;
 
       case 'levelUp':
-        // Level up / rank increase
         this.playMelody(
           [
             { freq: 261.63, duration: 0.1, delay: 0 }, // C4
@@ -217,13 +192,12 @@ class SoundService {
             { freq: 783.99, duration: 0.2, delay: 0.4 }, // G5
             { freq: 1046.5, duration: 0.4, delay: 0.55 }, // C6
           ],
-          'triangle'
+          'triangle',
         );
         break;
     }
   }
 
-  // Configuration methods
   public setVolume(volume: number): void {
     this.config.volume = Math.max(0, Math.min(1, volume));
     this.saveSettings();

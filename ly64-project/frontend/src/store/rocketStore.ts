@@ -41,9 +41,7 @@ const getWsUrl = (): string => {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const host =
     import.meta.env.VITE_WS_HOST ||
-    (window.location.hostname === 'localhost'
-      ? 'localhost:3001'
-      : window.location.host);
+    (window.location.hostname === 'localhost' ? 'localhost:3001' : window.location.host);
   return `${protocol}//${host}/ws`;
 };
 
@@ -100,20 +98,18 @@ export function connectRocketSocket(): void {
         }
       }
     } catch {
-      // ignore malformed messages
+      /* ignore parse errors */
     }
   };
 
-  ws.onclose = (event) => {
+  ws.onclose = event => {
     useRocketStore.getState().setConnected(false);
     if (pingTimer) {
       clearInterval(pingTimer);
       pingTimer = null;
     }
-    // code 1000 = intentional close (disconnectRocketSocket called on unmount) — don't reconnect
     if (event.code === 1000) return;
     if (reconnectTimer) clearTimeout(reconnectTimer);
-    // Exponential backoff: 1s, 2s, 4s, max 10s
     reconnectAttempts += 1;
     const delay = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), 10000);
     reconnectTimer = setTimeout(() => connectRocketSocket(), delay);

@@ -1,6 +1,3 @@
-import { egeMathBase } from '../../data/ege-math-base';
-import { egeMathProfile } from '../../data/ege-math-profile';
-import { ogeMathVariant } from '../../data/oge-math-variant';
 import { OGEMathExam, EGEProfileMathExam, EGEBaseMathExam, RegularExam } from '../models';
 
 import type { IExam, IExamFactory } from '../interfaces';
@@ -10,21 +7,13 @@ class ExamDataRegistry {
   private static instance: ExamDataRegistry;
   private examData: Map<string, ExamDTO> = new Map();
 
-  private constructor() {
-    this.registerDefaultExams();
-  }
+  private constructor() {}
 
   public static getInstance(): ExamDataRegistry {
     if (!ExamDataRegistry.instance) {
       ExamDataRegistry.instance = new ExamDataRegistry();
     }
     return ExamDataRegistry.instance;
-  }
-
-  private registerDefaultExams(): void {
-    this.register('MATHEMATICS', 9, 'OGE', ogeMathVariant as ExamDTO);
-    this.register('MATHEMATICS', 11, 'EGE_PROFILE', egeMathProfile as ExamDTO);
-    this.register('MATHEMATICS', 11, 'EGE_BASE', egeMathBase as ExamDTO);
   }
 
   private createKey(subject: Subject, grade: Grade, examType: ExamType): string {
@@ -80,7 +69,7 @@ export class ExamFactory implements IExamFactory {
 
     if (!data) {
       throw new ExamNotFoundError(
-        `Экзамен не найден: ${examType} по ${subject} для ${grade} класса`
+        `Экзамен не найден: ${examType} по ${subject} для ${grade} класса`,
       );
     }
 

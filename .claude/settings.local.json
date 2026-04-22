@@ -1,46 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
-    "allow": [
-      "Bash(git clone *)",
-      "Bash(netstat -ano)",
-      "Bash(awk '{print $5}')",
-      "Bash(node *)",
-      "Bash(npm install *)",
-      "Bash(npx prisma *)",
-      "Bash(npm run *)",
-      "Bash(curl -s -o /dev/null -w \"backend: %{http_code}\\\\n\" http://localhost:3001/api/health)",
-      "Bash(curl -s -o /dev/null -w \"frontend: %{http_code}\\\\n\" http://localhost:5173/)",
-      "Bash(curl -s http://localhost:5173/)",
-      "Bash(grep -rn \"import.*{.*\\\\bapi\\\\b.*}.*from.*['\\\\\"]\\\\\\(\\\\\\\\.\\\\\\\\./\\\\\\)*services/api['\\\\\"]\" \"C:/Users/User/Desktop/claude project 4.1/ly64-project/frontend/src/\")",
-      "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H \"Content-Type: application/json\" -d '{\"email\":\"test@example.com\",\"password\":\"Test1234\",\"name\":\"Test User\",\"status\":\"STUDENT\",\"currentGrade\":10,\"agreedToTerms\":true,\"authProvider\":\"EMAIL\"}')",
-      "Bash(curl -s 'http://localhost:3001/api/users/leaderboard?period=all' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjMTViNzY5ZS1jNTg1LTQ3ODktOTgyMy1hN2FhOGY4MzU4MjUiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpYXQiOjE3NzY1ODk3NzMsImV4cCI6MTc3NzE5NDU3MywiaXNzIjoibHljZXVtNjQtYXBpIn0.HSXjXsBYGmeFgbDx8K8qW-8Jttwiz61LSmJrtr6G43U')",
-      "Bash(py *)",
-      "Bash(taskkill //F //PID 3624)",
-      "Bash(curl *)",
-      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")",
-      "Bash(taskkill *)",
-      "Bash(xargs -I {} taskkill //PID {} //F)",
-      "Read(//tmp/**)",
-      "Bash(grep -oE '\"/\\(test|problem|variant|catalog|get_variant\\)[^\"]{0,60}\"')",
-      "Bash(grep -oE 'axios[^;]{0,150}')",
-      "Bash(grep -oE '\"/api[^\"]*\"|\"\\\\./api[^\"]*\"|ajax[^\"]{0,40}\"')",
-      "Bash(npx tsc *)",
-      "Bash(grep -iE \"start|\\\\.sh$\")",
-      "Bash(git add *)",
-      "Bash(git commit -m ' *)",
-      "Bash(git push *)",
-      "Bash(git checkout *)",
-      "Bash(git stash *)",
-      "Bash(git commit -m 'Revert: откат ракеты к рабочей версии *)",
-      "Bash(git reset *)",
-      "Bash(git rm *)",
-      "Bash(cmd //c \"rmdir /S /Q ly64-project\")",
-      "Bash(npx tsx *)",
-      "Bash(wait)",
-      "Bash(npx eslint *)",
-      "Bash(npx vite *)",
-      "Bash(npm rebuild *)"
-    ]
+    "defaultMode": "bypassPermissions"
   }
 }

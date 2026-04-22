@@ -1,6 +1,6 @@
 {
   "name": "@lyceum64/shared",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shared types and constants",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
@@ -19,6 +19,6 @@
     "test": "echo \"No tests yet\""
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   }
 }

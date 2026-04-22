@@ -11,7 +11,6 @@ import {
   Settings,
   LogOut,
   Rocket,
-  Disc3,
   Gamepad2,
   X,
 } from 'lucide-react';
@@ -25,7 +24,6 @@ export function Header() {
   const { isAuthenticated, user } = useAuthStore();
   const location = useLocation();
   const isRocketPage = location.pathname === '/rocket';
-  const displayBalance = user?.rutheniumBalance ?? 0;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -46,57 +44,47 @@ export function Header() {
   }, []);
 
   return (
-    <header className={`backdrop-blur-lg border-b sticky top-0 z-50 ${
-      isRocketPage
-        ? 'bg-slate-950/80 border-slate-800'
-        : 'bg-white/90 border-slate-200'
-    }`}>
+    <header
+      className={`backdrop-blur-lg border-b sticky top-0 z-50 ${
+        isRocketPage ? 'bg-slate-950/80 border-slate-800' : 'bg-white/90 border-slate-200'
+      }`}
+    >
       <div className="container-wide py-3">
         <div className="flex justify-between items-center">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all group-hover:scale-105 ${
-              isRocketPage
-                ? 'bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 shadow-indigo-600/30'
-                : 'bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 shadow-indigo-600/25'
-            }`}>
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all group-hover:scale-105 ${
+                isRocketPage
+                  ? 'bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 shadow-indigo-600/30'
+                  : 'bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 shadow-indigo-600/25'
+              }`}
+            >
               <Rocket className="w-5 h-5 text-white" />
             </div>
             <div className="hidden sm:block">
-              <p className={`text-base font-bold ${isRocketPage ? 'text-white' : 'text-slate-900'}`}>Lyceum 64</p>
-              <p className={`text-xs -mt-0.5 ${isRocketPage ? 'text-slate-400' : 'text-slate-500'}`}>Проект 9Р класса</p>
+              <p
+                className={`text-base font-bold ${isRocketPage ? 'text-white' : 'text-slate-900'}`}
+              >
+                Лицей 64
+              </p>
+              <p
+                className={`text-xs -mt-0.5 ${isRocketPage ? 'text-slate-400' : 'text-slate-500'}`}
+              >
+                Проект 9Р класса
+              </p>
             </div>
           </Link>
 
           {/* Navigation */}
           <nav className="flex items-center gap-3">
-            {isAuthenticated && (
-              <Link
-                to="/games"
-                className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 hover:border-amber-300 transition-colors"
-                title="Игры"
-              >
-                <Gamepad2 className="w-4 h-4 text-amber-600" />
-                <span className="text-sm font-bold text-amber-700">Игры</span>
-                <span className="text-[10px] tabular-nums text-amber-600 font-bold">
-                  {displayBalance.toLocaleString('ru-RU', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })} Ɍ
-                </span>
-              </Link>
-            )}
             {isAuthenticated ? (
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition-colors"
                 >
-                  {isMenuOpen ? (
-                    <X className="w-5 h-5" />
-                  ) : (
-                    <Menu className="w-5 h-5" />
-                  )}
+                  {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                   <span className="font-medium text-sm hidden sm:block">Меню</span>
                 </button>
 
@@ -148,28 +136,10 @@ export function Header() {
 
                     {/* Games */}
                     <div className="p-2 border-t border-slate-100">
-                      <p className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <Gamepad2 className="w-3.5 h-3.5" />
-                        Игры
-                      </p>
                       <MenuItem
                         to="/games"
                         icon={Gamepad2}
-                        label="Все игры"
-                        onClick={() => setIsMenuOpen(false)}
-                        highlight
-                      />
-                      <MenuItem
-                        to="/rocket"
-                        icon={Rocket}
-                        label="Ракетка"
-                        onClick={() => setIsMenuOpen(false)}
-                        highlight
-                      />
-                      <MenuItem
-                        to="/roulette"
-                        icon={Disc3}
-                        label="Европейская рулетка"
+                        label="Игры"
                         onClick={() => setIsMenuOpen(false)}
                         highlight
                       />
@@ -224,7 +194,7 @@ export function Header() {
                       <button
                         onClick={() => {
                           setIsMenuOpen(false);
-                          handleLogout();
+                          void handleLogout();
                         }}
                         className="flex items-center gap-3 w-full px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                       >
@@ -273,11 +243,7 @@ function MenuItem({ to, icon: Icon, label, onClick, highlight }: MenuItemProps) 
       onClick={onClick}
       className={`
         flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors
-        ${
-          highlight
-            ? 'text-amber-600 hover:bg-amber-50'
-            : 'text-slate-700 hover:bg-slate-100'
-        }
+        ${highlight ? 'text-amber-600 hover:bg-amber-50' : 'text-slate-700 hover:bg-slate-100'}
       `}
     >
       <Icon className="w-5 h-5" />

@@ -4,7 +4,7 @@ import { seedAchievements } from './seeds/achievements';
 import { seedAdminUser } from './seeds/adminUser';
 // import { seedDiagnosticTests } from './seeds/diagnosticTests'; // file does not exist
 // import { seedRegularTests } from './seeds/regularTests'; // file does not exist
-import { seedTestUser } from './seeds/testUser';
+// import { seedTestUser } from './seeds/testUser'; // file does not exist
 
 const prisma = new PrismaClient();
 
@@ -15,7 +15,7 @@ async function main() {
     await seedAchievements();
     // await seedDiagnosticTests(); // file does not exist
     // await seedRegularTests(); // file does not exist
-    await seedTestUser();
+    // await seedTestUser(); // file does not exist
     await seedAdminUser();
 
     console.log('\nDatabase seeding completed successfully!');

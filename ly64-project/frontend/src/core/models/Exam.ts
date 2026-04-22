@@ -1,8 +1,3 @@
-/**
- * Exam Model
- * Базовый класс экзамена с поддержкой наследования
- */
-
 import { v4 as uuidv4 } from 'uuid';
 
 import { EXAM_CONFIG, SUBJECT_NAMES } from '../constants';
@@ -12,9 +7,6 @@ import { Task } from './Task';
 import type { IExam, ITask } from '../interfaces';
 import type { ExamType, Subject, Grade, ExamDTO } from '../types';
 
-/**
- * Абстрактный базовый класс экзамена
- */
 export abstract class BaseExam implements IExam {
   public readonly id: string;
   public readonly subject: Subject;
@@ -32,46 +24,28 @@ export abstract class BaseExam implements IExam {
     this.tasks = dto.tasks.map(taskDto => new Task(taskDto));
   }
 
-  /**
-   * Получить название экзамена
-   */
   public get title(): string {
     const config = EXAM_CONFIG[this.examType];
     const subjectName = SUBJECT_NAMES[this.subject];
     return `${config.title} ${subjectName}`;
   }
 
-  /**
-   * Получить максимальное количество баллов
-   */
   public get maxPoints(): number {
     return this.tasks.reduce((sum, task) => sum + task.points, 0);
   }
 
-  /**
-   * Получить задание по номеру
-   */
   public getTask(number: number): ITask | undefined {
     return this.tasks.find(task => task.number === number);
   }
 
-  /**
-   * Получить количество заданий
-   */
   public getTaskCount(): number {
     return this.tasks.length;
   }
 
-  /**
-   * Получить продолжительность в секундах
-   */
   public getDurationInSeconds(): number {
     return this.duration * 60;
   }
 
-  /**
-   * Получить форматированную продолжительность
-   */
   public getFormattedDuration(): string {
     const hours = Math.floor(this.duration / 60);
     const minutes = this.duration % 60;
@@ -84,29 +58,17 @@ export abstract class BaseExam implements IExam {
     return `${minutes} мин`;
   }
 
-  /**
-   * Получить задания по теме
-   */
   public getTasksByTopic(topic: string): ITask[] {
     return this.tasks.filter(task => task.topic === topic);
   }
 
-  /**
-   * Получить уникальные темы
-   */
   public getTopics(): string[] {
     return [...new Set(this.tasks.map(task => task.topic))];
   }
 
-  /**
-   * Абстрактный метод для получения описания экзамена
-   */
   public abstract getDescription(): string;
 }
 
-/**
- * ОГЭ по математике
- */
 export class OGEMathExam extends BaseExam {
   constructor(dto: ExamDTO) {
     super({
@@ -123,9 +85,6 @@ export class OGEMathExam extends BaseExam {
   }
 }
 
-/**
- * ЕГЭ профильного уровня по математике
- */
 export class EGEProfileMathExam extends BaseExam {
   constructor(dto: ExamDTO) {
     super({
@@ -141,24 +100,15 @@ export class EGEProfileMathExam extends BaseExam {
             Максимум ${this.maxPoints} первичных баллов.`;
   }
 
-  /**
-   * Получить задания первой части (1-12)
-   */
   public getFirstPartTasks(): ITask[] {
     return this.tasks.filter(task => task.number <= 12);
   }
 
-  /**
-   * Получить задания второй части (13-19)
-   */
   public getSecondPartTasks(): ITask[] {
     return this.tasks.filter(task => task.number > 12);
   }
 }
 
-/**
- * ЕГЭ базового уровня по математике
- */
 export class EGEBaseMathExam extends BaseExam {
   constructor(dto: ExamDTO) {
     super({
@@ -174,9 +124,6 @@ export class EGEBaseMathExam extends BaseExam {
             Оценивается по пятибалльной шкале.`;
   }
 
-  /**
-   * Конвертировать первичные баллы в оценку
-   */
   public convertToGrade(primaryScore: number): number {
     if (primaryScore >= 17) return 5;
     if (primaryScore >= 12) return 4;
@@ -185,9 +132,6 @@ export class EGEBaseMathExam extends BaseExam {
   }
 }
 
-/**
- * Обычный тренировочный тест
- */
 export class RegularExam extends BaseExam {
   constructor(dto: ExamDTO) {
     super({

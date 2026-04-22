@@ -56,9 +56,7 @@ export const useAuthStore = create<AuthState>()(
         }),
 
       setRutheniumBalance: balance =>
-        set(state =>
-          state.user ? { user: { ...state.user, rutheniumBalance: balance } } : {}
-        ),
+        set(state => (state.user ? { user: { ...state.user, rutheniumBalance: balance } } : {})),
 
       login: (user, accessToken, refreshToken, expiresIn) =>
         set({
@@ -84,14 +82,12 @@ export const useAuthStore = create<AuthState>()(
 
       setRefreshing: refreshing => set({ isRefreshing: refreshing }),
 
-      // Проверка истёк ли токен
       isTokenExpired: () => {
         const { tokenExpiresAt } = get();
         if (!tokenExpiresAt) return true;
         return Date.now() >= tokenExpiresAt;
       },
 
-      // Проверка нужно ли обновить токен (за 2 минуты до истечения)
       shouldRefreshToken: () => {
         const { tokenExpiresAt } = get();
         if (!tokenExpiresAt) return false;
@@ -108,6 +104,6 @@ export const useAuthStore = create<AuthState>()(
         tokenExpiresAt: state.tokenExpiresAt,
         isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
+    },
+  ),
 );

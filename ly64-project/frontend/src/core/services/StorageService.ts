@@ -190,9 +190,6 @@ export class TestSessionStorage {
     this.storage = StorageService.getInstance();
   }
 
-  /**
-   * Сохранить полную сессию теста
-   */
   public saveSession(sessionData: string, metadata?: Partial<SavedTestSession>): void {
     const savedSession: SavedTestSession = {
       sessionData,
@@ -208,14 +205,10 @@ export class TestSessionStorage {
     console.log('[TestSessionStorage] Сессия сохранена', new Date().toLocaleTimeString());
   }
 
-  /**
-   * Загрузить сохранённую сессию
-   */
   public loadSession(): SavedTestSession | null {
     const data = this.storage.load<SavedTestSession>(STORAGE_KEYS.TEST_SESSION);
     if (!data) return null;
 
-    // Проверяем что сессия не старше 24 часов
     const maxAge = 24 * 60 * 60 * 1000;
     if (Date.now() - data.savedAt > maxAge) {
       console.log('[TestSessionStorage] Сессия устарела, удаляем');
@@ -226,9 +219,6 @@ export class TestSessionStorage {
     return data;
   }
 
-  /**
-   * Загрузить только данные сериализованной сессии
-   */
   public loadSessionData(): string | null {
     const session = this.loadSession();
     return session?.sessionData || null;
@@ -245,9 +235,6 @@ export class TestSessionStorage {
     return this.loadSession() !== null;
   }
 
-  /**
-   * Бэкап ответов (дополнительная защита)
-   */
   public backupAnswers(answers: Map<number, unknown>): void {
     this.storage.save(STORAGE_KEYS.ANSWERS_BACKUP, {
       answers: Array.from(answers.entries()),
@@ -255,20 +242,14 @@ export class TestSessionStorage {
     });
   }
 
-  /**
-   * Восстановить ответы из бэкапа
-   */
   public restoreAnswers(): Map<number, unknown> | null {
     const data = this.storage.load<{ answers: [number, unknown][]; savedAt: number }>(
-      STORAGE_KEYS.ANSWERS_BACKUP
+      STORAGE_KEYS.ANSWERS_BACKUP,
     );
     if (!data) return null;
     return new Map(data.answers);
   }
 
-  /**
-   * Запустить автосохранение
-   */
   public startAutoSave(saveCallback: () => void): void {
     this.stopAutoSave();
     this.autoSaveInterval = setInterval(() => {
@@ -277,9 +258,6 @@ export class TestSessionStorage {
     console.log('[TestSessionStorage] Автосохранение запущено');
   }
 
-  /**
-   * Остановить автосохранение
-   */
   public stopAutoSave(): void {
     if (this.autoSaveInterval) {
       clearInterval(this.autoSaveInterval);
@@ -288,9 +266,6 @@ export class TestSessionStorage {
     }
   }
 
-  /**
-   * Получить информацию о сохранённой сессии
-   */
   public getSessionInfo(): { exists: boolean; savedAt?: Date; route?: string } {
     const session = this.loadSession();
     if (!session) {

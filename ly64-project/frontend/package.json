@@ -1,6 +1,6 @@
 {
   "name": "@lyceum64/frontend",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Frontend for Lyceum 64 preparation platform",
   "type": "module",
   "scripts": {
@@ -41,7 +41,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.2",
-    "typescript": "^6.0.2",
+    "typescript": "^6.0.3",
     "vite": "^8.0.5"
   }
 }
